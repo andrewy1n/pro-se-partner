@@ -301,18 +301,22 @@ src/
 ## 8. MVP Scope
 
 ### Must Ship
-- [ ] Intake form + Agent 1 classification
+- [x] Intake form + Agent 1 classification
 - [ ] Agent 3: Forms Navigator Agent — live navigation and UD-105 + FW-001 download
 - [ ] Agent 3b: PDF Filler Agent — field mapping and pre-fill from structured case facts
 - [ ] Agent 4: Deadline computation with dual source citation
 - [ ] Agent 5: Defense research (minimum 2 defenses)
 - [ ] Activity Strip with real-time agent feed
-- [ ] Dashboard — all three panels populating end-to-end
-- [ ] HITL gate card with clear user instructions
+- [ ] Dashboard — all four panels populating end-to-end from agent outputs *(Case Facts panel from intake classification is implemented; Status, Action Items, and Resources still placeholders until Wave 1 agents populate context)*
+- [ ] HITL gate card with clear user instructions *(component exists; gate state not wired to dispatch / pause flow)*
 - [ ] Stage 2: Agent 9 e-filing flow functional
 
+### Repo progress (snapshot)
+
+What is implemented today: home intake form; `POST /api/intake/classify` (structured Gemini output); client `sessionStorage` handoff; session page layout (browser iframe shell, Activity Strip shell with empty feed, TanStack Query polling stub); **Case Facts** panel with human-readable labels; other dashboard panels and HITL are UI shells. `dispatchWave1Agents` / `dispatchWave2Agent` in `src/lib/agent-dispatcher.ts` are not implemented yet.
+
 ### Stretch Goals
-- [ ] Agent 2: Document parsing from uploaded files
+- [ ] Agent 2: Document parsing from uploaded files *(upload control exists; no upload pipeline)*
 - [ ] Agent 6: Live legal aid geocoded search
 - [ ] Agent 7: Fee waiver eligibility check + FW-001 pre-fill
 - [ ] Mobile-responsive layout
@@ -346,3 +350,4 @@ Keep changes lightweight. Edit the relevant section in place, then append a one-
 | Hack start | Initial document created |
 | April 3 | Split Agent 3 (Forms Agent) into Agent 3 (Forms Navigator) and Agent 3b (PDF Filler). E-Filing Agent renumbered to Agent 9. |
 | April 4 | Added Case Facts panel for user verification of Intake Agent classification. |
+| April 4 | MVP checklist: marked intake + Agent 1 complete; added repo progress snapshot and notes on partial UI. |
