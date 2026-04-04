@@ -312,10 +312,10 @@ src/
 
 ### Repo progress (snapshot)
 
-What is implemented today: home intake form; `POST /api/intake/classify` (structured Gemini output); client `sessionStorage` handoff; session page layout (browser iframe shell, Activity Strip shell with empty feed, TanStack Query polling stub); **Case Facts** panel with human-readable labels; other dashboard panels and HITL are UI shells. `dispatchWave1Agents` / `dispatchWave2Agent` in `src/lib/agent-dispatcher.ts` are not implemented yet.
+What is implemented today: home intake form; `POST /api/intake/classify` (structured Gemini output); **`POST /api/intake/parse-document`** when a file is attached (structured fields per Document Parser roster); client `sessionStorage` handoff including optional parsed document fields; session page layout (browser iframe shell, Activity Strip shell with empty feed, TanStack Query polling stub); **Case Facts** panel with intake labels plus **From your uploaded document** when a file was processed; other dashboard panels and HITL are UI shells. `dispatchWave1Agents` / `dispatchWave2Agent` in `src/lib/agent-dispatcher.ts` are not implemented yet (parsed fields are stored for future handoff to Forms Navigator / Fee Waiver).
 
 ### Stretch Goals
-- [ ] Document Parser: parsing from uploaded files *(upload control exists; no upload pipeline)*
+- [x] Document Parser: direct extraction from uploaded files *(PDF/images/text via `POST /api/intake/parse-document`; Browser Use session path still TBD in `api.ts`)*
 - [ ] Legal Aid: live geocoded search
 - [ ] Fee Waiver: eligibility check + FW-001 pre-fill
 - [ ] Mobile-responsive layout
@@ -351,3 +351,4 @@ Keep changes lightweight. Edit the relevant section in place, then append a one-
 | April 4 | Added Case Facts panel for user verification of Case Intake classification. |
 | April 4 | MVP checklist: marked intake + Case Intake complete; added repo progress snapshot and notes on partial UI. |
 | April 4 | Renamed numbered agents to role-based names (Case Intake, Document Parser, Forms Navigator, PDF Filler, Deadline Tracker, Defense Research, Legal Aid, Fee Waiver, E-Filing). |
+| April 4 | Document Parser: direct multimodal extraction API + Case Facts panel section for structured fields from uploads. |
