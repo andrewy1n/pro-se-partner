@@ -1,45 +1,170 @@
-import { BrowserUse as BrowserUseV3 } from "browser-use-sdk/v3";
-import { BrowserUse as BrowserUseV2 } from "browser-use-sdk";
-import type { MessageResponse, SessionResponse } from "browser-use-sdk/v3";
+import { BrowserUse } from "browser-use-sdk/v3";
+import type {
+  CreateSessionBody,
+  MessageResponse,
+  SessionResponse,
+} from "browser-use-sdk/v3";
 import type { AgentId } from "@/lib/types";
+import {
+  isVerboseSessionPoll,
+  logServerError,
+  logServerEvent,
+} from "@/lib/server-log";
+
+export type BrowserUseModelId = "bu-mini" | "bu-max";
+
+export const DEFAULT_BROWSER_USE_MODEL: BrowserUseModelId = "bu-max";
 
 // Server-only — no NEXT_PUBLIC_ prefix, never exposed to the browser
 const apiKey = process.env.BROWSER_USE_API_KEY ?? "";
-const v3 = new BrowserUseV3({ apiKey });
-const v2 = new BrowserUseV2({ apiKey });
+const client = new BrowserUse({ apiKey });
 
-export const client = v3;
-export const clientV2 = v2;
+export { client };
+
+export function getBrowserUseModel(): BrowserUseModelId {
+  const raw = process.env.BROWSER_USE_MODEL?.trim().toLowerCase();
+  if (raw === "bu-mini" || raw === "bu-max") return raw;
+  return DEFAULT_BROWSER_USE_MODEL;
+}
 
 export interface CreateSessionInput {
-  // TODO: Add model/profile/workspace settings from intake flow.
-  model?: string;
+  model?: BrowserUseModelId;
+  keepAlive?: boolean;
+  outputSchema?: Record<string, unknown>;
 }
 
 export interface SendAgentTaskInput {
   sessionId: string;
   agentId: AgentId;
   task: string;
+  model?: BrowserUseModelId;
+  outputSchema?: Record<string, unknown>;
 }
 
 export async function createBrowserSession(
-  _input: CreateSessionInput,
+  input: CreateSessionInput,
 ): Promise<SessionResponse> {
-  // TODO: Wrap Browser Use session create lifecycle for Pro Se Partner.
-  throw new Error("Not implemented: createBrowserSession");
+  assertBrowserUseConfigured();
+
+  const body: CreateSessionBody = {
+    model: input.model ?? getBrowserUseModel(),
+    keepAlive: input.keepAlive ?? true,
+  };
+
+  if (input.outputSchema) {
+    body.outputSchema = input.outputSchema;
+  }
+
+  logServerEvent("browser_use_create_session_start", {
+    model: body.model,
+    keepAlive: body.keepAlive,
+    hasOutputSchema: Boolean(input.outputSchema),
+  });
+
+  try {
+    const session = await client.sessions.create(body);
+    logServerEvent("browser_use_create_session_ok", {
+      sessionId: session.id,
+      status: session.status,
+      hasLiveUrl: Boolean(session.liveUrl),
+    });
+    return session;
+  } catch (err) {
+    logServerError("browser_use_create_session_failed", err, {
+      model: body.model,
+    });
+    throw err;
+  }
 }
 
-export async function sendAgentTask(_input: SendAgentTaskInput): Promise<void> {
-  // TODO: Dispatch agent-scoped tasks to Browser Use sessions.
-  throw new Error("Not implemented: sendAgentTask");
+export async function sendAgentTask(input: SendAgentTaskInput): Promise<SessionResponse> {
+  assertBrowserUseConfigured();
+
+  logServerEvent("browser_use_send_task_start", {
+    sessionId: input.sessionId,
+    agentId: input.agentId,
+    model: input.model ?? getBrowserUseModel(),
+    taskChars: input.task.length,
+    hasOutputSchema: Boolean(input.outputSchema),
+  });
+
+  try {
+    const session = await client.sessions.create({
+      sessionId: input.sessionId,
+      task: input.task,
+      model: input.model ?? getBrowserUseModel(),
+      keepAlive: true,
+      outputSchema: input.outputSchema,
+    });
+    logServerEvent("browser_use_send_task_ok", {
+      sessionId: session.id,
+      status: session.status,
+      hasLiveUrl: Boolean(session.liveUrl),
+    });
+    return session;
+  } catch (err) {
+    logServerError("browser_use_send_task_failed", err, {
+      sessionId: input.sessionId,
+      agentId: input.agentId,
+    });
+    throw err;
+  }
 }
 
-export async function listSessionMessages(_sessionId: string): Promise<MessageResponse[]> {
-  // TODO: Poll session messages at 1s intervals from session-context.
-  throw new Error("Not implemented: listSessionMessages");
+export async function getBrowserSession(sessionId: string): Promise<SessionResponse> {
+  assertBrowserUseConfigured();
+  try {
+    const session = await client.sessions.get(sessionId);
+    if (isVerboseSessionPoll()) {
+      logServerEvent("browser_use_get_session_ok", {
+        sessionId,
+        status: session.status,
+        hasOutput: session.output != null,
+      });
+    }
+    return session;
+  } catch (err) {
+    logServerError("browser_use_get_session_failed", err, { sessionId });
+    throw err;
+  }
 }
 
-export async function stopBrowserSession(_sessionId: string): Promise<void> {
-  // TODO: Support explicit stop/retry controls for long-running agents.
-  throw new Error("Not implemented: stopBrowserSession");
+export async function listSessionMessages(sessionId: string): Promise<MessageResponse[]> {
+  assertBrowserUseConfigured();
+
+  try {
+    const { messages } = await client.sessions.messages(sessionId, {
+      limit: 200,
+    });
+    if (isVerboseSessionPoll()) {
+      logServerEvent("browser_use_list_messages_ok", {
+        sessionId,
+        messageCount: messages.length,
+      });
+    }
+    return messages;
+  } catch (err) {
+    logServerError("browser_use_list_messages_failed", err, { sessionId });
+    throw err;
+  }
+}
+
+export async function stopBrowserSession(sessionId: string): Promise<SessionResponse> {
+  assertBrowserUseConfigured();
+  try {
+    const session = await client.sessions.stop(sessionId, { strategy: "session" });
+    logServerEvent("browser_use_stop_session_ok", { sessionId, status: session.status });
+    return session;
+  } catch (err) {
+    logServerError("browser_use_stop_session_failed", err, { sessionId });
+    throw err;
+  }
+}
+
+function assertBrowserUseConfigured() {
+  if (!apiKey.trim()) {
+    throw new Error(
+      "Server is not configured for Browser Use. Set BROWSER_USE_API_KEY.",
+    );
+  }
 }

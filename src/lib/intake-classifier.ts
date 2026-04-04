@@ -29,6 +29,12 @@ const intakeObjectSchema = z.object({
     "unknown",
   ]),
   serviceDate: z.string().nullable(),
+  serviceMethod: z.enum([
+    "personal",
+    "substituted",
+    "posted_and_mailed",
+    "unknown",
+  ]),
   jurisdiction: z.string().nullable(),
   claimedAmount: z.number().nullable(),
   confidence: z.number().min(0).max(1),
@@ -51,6 +57,7 @@ function structuredToCaseFacts(s: IntakeStructuredOutput): CaseFacts {
     proceedingStage: s.proceedingStage === "unknown" ? null : s.proceedingStage,
     noticeType: s.noticeType === "unknown" ? null : s.noticeType,
     serviceDate: s.serviceDate,
+    serviceMethod: s.serviceMethod === "unknown" ? null : s.serviceMethod,
     jurisdiction: s.jurisdiction,
     claimedAmount: s.claimedAmount,
   };
@@ -62,9 +69,11 @@ Extract structured case facts from the user's plain-language description. Rules:
 - Never invent dates, amounts, or court events. Use null and "unknown" when not clearly stated.
 - If jurisdiction is not stated, prefer null unless the user clearly indicates LA County or Los Angeles.
 - Dates must be ISO 8601 date strings (YYYY-MM-DD) or null.
+- serviceMethod must be one of: personal, substituted, posted_and_mailed, or unknown.
+- For eviction answer timing, serviceDate should refer to the best available date the summons and complaint were served. If only a notice date is mentioned, use it only when that is clearly the operative date the user is discussing.
 - claimedAmount is dollars as a number, or null if not stated.
 - confidence: your estimated probability (0-1) that the classification is correct given the text.
-- missingFields: short snake_case names of important missing facts (e.g. service_date, notice_type).
+- missingFields: short snake_case names of important missing facts (e.g. service_date, service_method, notice_type).
 - needsHumanReview: true if confidence is low or the situation is ambiguous or legally sensitive.`;
 
 export async function classifyIntake(

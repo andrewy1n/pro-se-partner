@@ -24,11 +24,13 @@ interface CaseContextValue {
   intakeMeta: Omit<IntakeSessionPayload, "caseFacts"> | null;
   setIntakeMeta: (meta: CaseContextValue["intakeMeta"]) => void;
   deadlineResult: DeadlineResult | null;
+  setDeadlineResult: (result: DeadlineResult | null) => void;
   defenses: DefenseItem[];
   legalAid: LegalAidItem[];
   actionItems: ActionChecklistItem[];
   formArtifacts: FormArtifact[];
   hitlGate: HitlGateState;
+  setHitlGate: (state: HitlGateState) => void;
 }
 
 const CaseContext = createContext<CaseContextValue | null>(null);
@@ -38,6 +40,11 @@ export function CaseProvider({ children }: { children: ReactNode }) {
   const [intakeMeta, setIntakeMeta] = useState<
     Omit<IntakeSessionPayload, "caseFacts"> | null
   >(null);
+  const [deadlineResult, setDeadlineResult] = useState<DeadlineResult | null>(null);
+  const [hitlGate, setHitlGate] = useState<HitlGateState>({
+    isBlockedOnUser: false,
+    instruction: null,
+  });
 
   const value = useMemo<CaseContextValue>(
     () => ({
@@ -45,17 +52,16 @@ export function CaseProvider({ children }: { children: ReactNode }) {
       setCaseFacts,
       intakeMeta,
       setIntakeMeta,
-      deadlineResult: null,
+      deadlineResult,
+      setDeadlineResult,
       defenses: [],
       legalAid: [],
       actionItems: [],
       formArtifacts: [],
-      hitlGate: {
-        isBlockedOnUser: false,
-        instruction: null,
-      },
+      hitlGate,
+      setHitlGate,
     }),
-    [caseFacts, intakeMeta],
+    [caseFacts, deadlineResult, hitlGate, intakeMeta],
   );
 
   return <CaseContext.Provider value={value}>{children}</CaseContext.Provider>;

@@ -119,6 +119,9 @@ export function parseIntakeSessionPayload(raw: string): IntakeSessionPayload | n
     if (migrated !== undefined) {
       v.parsedDocumentFields = migrated;
     }
+    if (!("deadlineTrackerSession" in v) || v.deadlineTrackerSession === undefined) {
+      v.deadlineTrackerSession = null;
+    }
     return v;
   } catch {
     return null;

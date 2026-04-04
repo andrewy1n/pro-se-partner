@@ -4,6 +4,8 @@ import {
   classifyIntake,
   DEFAULT_INTAKE_MODEL,
 } from "@/lib/intake-classifier";
+import { dispatchWave1Agents } from "@/lib/agent-dispatcher";
+import { logServerError, logServerEvent } from "@/lib/server-log";
 import type { CaseFacts } from "@/lib/types";
 
 export const runtime = "nodejs";
@@ -18,14 +20,10 @@ function logIntakeClassification(payload: {
   confidence: number;
   missingFields: string[];
   needsHumanReview: boolean;
+  browserSessionId: string;
+  browserSessionStatus: string;
 }) {
-  console.log(
-    JSON.stringify({
-      event: "intake_classification",
-      at: new Date().toISOString(),
-      ...payload,
-    }),
-  );
+  logServerEvent("intake_classification", payload);
 }
 
 export async function POST(request: Request) {
@@ -71,12 +69,26 @@ export async function POST(request: Request) {
       { status: 503 },
     );
   }
+  if (!process.env.BROWSER_USE_API_KEY?.trim()) {
+    return NextResponse.json(
+      {
+        error:
+          "Server is not configured for Browser Use. Set BROWSER_USE_API_KEY (see .env.local).",
+      },
+      { status: 503 },
+    );
+  }
 
   try {
     const sessionId = randomUUID();
     const result = await classifyIntake(caseSummary);
     const model =
       process.env.INTAKE_CLASSIFICATION_MODEL?.trim() || DEFAULT_INTAKE_MODEL;
+    const wave1 = await dispatchWave1Agents({
+      appSessionId: sessionId,
+      caseFacts: result.caseFacts,
+      parsedDocumentFields: null,
+    });
 
     logIntakeClassification({
       sessionId,
@@ -86,21 +98,20 @@ export async function POST(request: Request) {
       confidence: result.confidence,
       missingFields: result.missingFields,
       needsHumanReview: result.needsHumanReview,
+      browserSessionId: wave1.deadlineTrackerSession.sessionId,
+      browserSessionStatus: wave1.deadlineTrackerSession.status,
     });
 
     return NextResponse.json({
       sessionId,
       ...result,
+      deadlineTrackerSession: wave1.deadlineTrackerSession,
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Classification failed";
-    console.error(
-      JSON.stringify({
-        event: "intake_classification_error",
-        at: new Date().toISOString(),
-        message,
-      }),
-    );
+    logServerError("intake_classification_error", err, {
+      stage: "classify_or_wave1",
+    });
     return NextResponse.json({ error: message }, { status: 502 });
   }
 }

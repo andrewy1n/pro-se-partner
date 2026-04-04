@@ -303,7 +303,7 @@ src/
 - [x] Intake form + Case Intake classification
 - [ ] Forms Navigator — live navigation and UD-105 + FW-001 download
 - [ ] PDF Filler — field mapping and pre-fill from structured case facts
-- [ ] Deadline Tracker — deadline computation with dual source citation
+- [x] Deadline Tracker — deadline computation with dual source citation
 - [ ] Defense Research — minimum 2 defenses
 - [ ] Activity Strip with real-time agent feed
 - [ ] Dashboard — all four panels populating end-to-end from agent outputs *(Case Facts panel from intake classification is implemented; Status, Action Items, and Resources still placeholders until Wave 1 agents populate context)*
