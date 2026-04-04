@@ -1,10 +1,32 @@
 import { NextResponse } from "next/server";
 import { randomUUID } from "crypto";
-import { classifyIntake } from "@/lib/intake-classifier";
+import {
+  classifyIntake,
+  DEFAULT_INTAKE_MODEL,
+} from "@/lib/intake-classifier";
+import type { CaseFacts } from "@/lib/types";
 
 export const runtime = "nodejs";
 
 const MAX_SUMMARY_LENGTH = 24_000;
+
+function logIntakeClassification(payload: {
+  sessionId: string;
+  model: string;
+  caseSummaryLength: number;
+  caseFacts: CaseFacts;
+  confidence: number;
+  missingFields: string[];
+  needsHumanReview: boolean;
+}) {
+  console.log(
+    JSON.stringify({
+      event: "intake_classification",
+      at: new Date().toISOString(),
+      ...payload,
+    }),
+  );
+}
 
 export async function POST(request: Request) {
   let body: unknown;
@@ -53,12 +75,32 @@ export async function POST(request: Request) {
   try {
     const sessionId = randomUUID();
     const result = await classifyIntake(caseSummary);
+    const model =
+      process.env.INTAKE_CLASSIFICATION_MODEL?.trim() || DEFAULT_INTAKE_MODEL;
+
+    logIntakeClassification({
+      sessionId,
+      model,
+      caseSummaryLength: caseSummary.length,
+      caseFacts: result.caseFacts,
+      confidence: result.confidence,
+      missingFields: result.missingFields,
+      needsHumanReview: result.needsHumanReview,
+    });
+
     return NextResponse.json({
       sessionId,
       ...result,
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Classification failed";
+    console.error(
+      JSON.stringify({
+        event: "intake_classification_error",
+        at: new Date().toISOString(),
+        message,
+      }),
+    );
     return NextResponse.json({ error: message }, { status: 502 });
   }
 }

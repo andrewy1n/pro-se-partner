@@ -3,6 +3,8 @@ import { generateText, Output } from "ai";
 import { z } from "zod";
 import type { CaseFacts } from "@/lib/types";
 
+export const DEFAULT_INTAKE_MODEL = "gemini-2.5-flash";
+
 const intakeObjectSchema = z.object({
   evictionType: z.enum([
     "nonpayment",
@@ -69,7 +71,7 @@ export async function classifyIntake(
   caseSummary: string,
 ): Promise<IntakeClassificationResult> {
   const modelId =
-    process.env.INTAKE_CLASSIFICATION_MODEL ?? "gemini-2.5-flash";
+    process.env.INTAKE_CLASSIFICATION_MODEL ?? DEFAULT_INTAKE_MODEL;
 
   const { output } = await generateText({
     model: google(modelId),
