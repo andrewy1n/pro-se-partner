@@ -1,20 +1,48 @@
 "use client";
 
+import { useEffect } from "react";
 import { useParams } from "next/navigation";
 import { BrowserPanel } from "@/components/browser-panel";
 import { ActivityStrip } from "@/components/activity-strip";
+import { CaseFactsPanel } from "@/components/dashboard/case-facts-panel";
 import { StatusPanel } from "@/components/dashboard/status-panel";
 import { ActionItemsPanel } from "@/components/dashboard/action-items-panel";
 import { ResourcesPanel } from "@/components/dashboard/resources-panel";
 import { HitlGate } from "@/components/hitl-gate";
 import { useSession } from "@/context/session-context";
 import { useCaseContext } from "@/context/case-context";
+import { intakeStorageKey, parseIntakeSessionPayload } from "@/lib/intake-storage";
 
 export default function SessionPage() {
   const params = useParams<{ id: string }>();
   const { activeSession, activityFeed } = useSession();
-  const { hitlGate, actionItems, formArtifacts, defenses, legalAid, deadlineResult } =
-    useCaseContext();
+  const {
+    caseFacts,
+    setCaseFacts,
+    intakeMeta,
+    setIntakeMeta,
+    hitlGate,
+    actionItems,
+    formArtifacts,
+    defenses,
+    legalAid,
+    deadlineResult,
+  } = useCaseContext();
+
+  useEffect(() => {
+    const id = params.id;
+    if (!id) return;
+    const raw = sessionStorage.getItem(intakeStorageKey(id));
+    if (!raw) return;
+    const payload = parseIntakeSessionPayload(raw);
+    if (!payload) return;
+    setCaseFacts(payload.caseFacts);
+    setIntakeMeta({
+      confidence: payload.confidence,
+      missingFields: payload.missingFields,
+      needsHumanReview: payload.needsHumanReview,
+    });
+  }, [params.id, setCaseFacts, setIntakeMeta]);
 
   return (
     <main className="grid min-h-screen grid-cols-1 gap-4 p-4 lg:grid-cols-5">
@@ -27,11 +55,12 @@ export default function SessionPage() {
       </section>
 
       <section className="space-y-4 lg:col-span-2">
+        <CaseFactsPanel caseFacts={caseFacts} intakeMeta={intakeMeta} />
+
         <StatusPanel
           model={{
             countdownLabel: deadlineResult?.responseDeadline ?? "TBD",
             caseStage: activeSession?.stage ?? "stage-1-intake",
-            progressSteps: [],
             callToAction: hitlGate.instruction,
           }}
         />

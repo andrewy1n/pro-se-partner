@@ -16,10 +16,14 @@ import type {
   ActionChecklistItem,
   FormArtifact,
   HitlGateState,
+  IntakeSessionPayload,
 } from "@/lib/types";
 
 interface CaseContextValue {
   caseFacts: CaseFacts | null;
+  setCaseFacts: (facts: CaseFacts | null) => void;
+  intakeMeta: Omit<IntakeSessionPayload, "caseFacts"> | null;
+  setIntakeMeta: (meta: CaseContextValue["intakeMeta"]) => void;
   parsedDocumentFields: ParsedDocumentFields | null;
   deadlineResult: DeadlineResult | null;
   defenses: DefenseItem[];
@@ -27,17 +31,22 @@ interface CaseContextValue {
   actionItems: ActionChecklistItem[];
   formArtifacts: FormArtifact[];
   hitlGate: HitlGateState;
-  // TODO: Add reducers/selectors for stage transitions and panel hydration order.
 }
 
 const CaseContext = createContext<CaseContextValue | null>(null);
 
 export function CaseProvider({ children }: { children: ReactNode }) {
-  const [caseFacts] = useState<CaseFacts | null>(null);
+  const [caseFacts, setCaseFacts] = useState<CaseFacts | null>(null);
+  const [intakeMeta, setIntakeMeta] = useState<
+    Omit<IntakeSessionPayload, "caseFacts"> | null
+  >(null);
 
   const value = useMemo<CaseContextValue>(
     () => ({
       caseFacts,
+      setCaseFacts,
+      intakeMeta,
+      setIntakeMeta,
       parsedDocumentFields: null,
       deadlineResult: null,
       defenses: [],
@@ -49,7 +58,7 @@ export function CaseProvider({ children }: { children: ReactNode }) {
         instruction: null,
       },
     }),
-    [caseFacts],
+    [caseFacts, intakeMeta],
   );
 
   return <CaseContext.Provider value={value}>{children}</CaseContext.Provider>;

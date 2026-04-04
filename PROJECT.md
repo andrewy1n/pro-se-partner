@@ -233,10 +233,11 @@ Single-page app. After submission the page splits into two columns: a **left col
 
 ```
 +---------------------------+  +----------------------------------+
-|  [ Live Browser iframe ]  |  |  Left panel: Status & Timeline   |
-|                           |  |  Center panel: Action Items       |
-|  session.liveUrl rendered |  |  Right panel: Context & Resources |
-|  as <iframe>, ~60% width  |  |                                  |
+|  [ Live Browser iframe ]  |  |  Top panel: Case Facts           |
+|                           |  |  Upper panel: Status & Timeline  |
+|  session.liveUrl rendered |  |  Middle panel: Action Items      |
+|  as <iframe>, ~60% width  |  |  Lower panel: Context & Resources|
+|                           |  |                                  |
 |                           |  |  (panels populate progressively) |
 +---------------------------+  +----------------------------------+
 |  [ Activity Strip ]       |
@@ -256,12 +257,13 @@ Single-page app. After submission the page splits into two columns: a **left col
 
 **Right column (~40% width):**
 
-3. **Dashboard** — three stacked panels that populate progressively as agents finish:
+3. **Dashboard** — four stacked panels that populate progressively as agents finish:
 
 | Panel | Loads | Contents |
 |---|---|---|
-| **Status & Timeline** | First | Countdown ("You have 5 days to respond"), full case arc as progress tracker, always one call to action when system is paused |
-| **Action Items** | Second | Numbered prioritized checklist, pre-filled forms attached for download, each item expandable with detail |
+| **Case Facts** | First | Extracted facts from intake (Eviction type, stage, notice type, date served, amount, jurisdiction) for user verification |
+| **Status & Timeline** | Second | Countdown ("You have 5 days to respond"), full case arc as progress tracker, always one call to action when system is paused |
+| **Action Items** | Third | Numbered prioritized checklist, pre-filled forms attached for download, each item expandable with detail |
 | **Context & Resources** | Last | Applicable defenses with plain-language explanations and citations, legal aid clinics with distance/hours/eligibility |
 
 4. **HITL Gate card** — replaces the Action Items panel content when the system is waiting on the user. Single focused instruction, e.g. *"Create a free e-filing account at lacourt.org. It takes 5 minutes. Come back when you have your login."* Dismissed automatically when Stage 2 begins.
@@ -278,7 +280,8 @@ src/
 │   ├── browser-panel.tsx            # Live browser iframe (session.liveUrl), left column top
 │   ├── activity-strip.tsx           # Real-time agent action feed, left column bottom
 │   ├── dashboard/
-│   │   ├── status-panel.tsx         # Stacked top-right: countdown + case arc
+│   │   ├── case-facts-panel.tsx     # Stacked top-right: extracted intake facts
+│   │   ├── status-panel.tsx         # Stacked upper-right: countdown + case arc
 │   │   ├── action-items-panel.tsx   # Stacked mid-right: checklist + form downloads
 │   │   └── resources-panel.tsx      # Stacked bottom-right: defenses + legal aid
 │   ├── intake-form.tsx              # Full-width pre-submit: text input + file upload
@@ -342,3 +345,4 @@ Keep changes lightweight. Edit the relevant section in place, then append a one-
 |---|---|
 | Hack start | Initial document created |
 | April 3 | Split Agent 3 (Forms Agent) into Agent 3 (Forms Navigator) and Agent 3b (PDF Filler). E-Filing Agent renumbered to Agent 9. |
+| April 4 | Added Case Facts panel for user verification of Intake Agent classification. |
