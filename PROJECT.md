@@ -304,8 +304,8 @@ src/
 - [ ] Forms Navigator — live navigation and UD-105 + FW-001 download
 - [ ] PDF Filler — field mapping and pre-fill from structured case facts
 - [x] Deadline Tracker — deadline computation with dual source citation
-- [ ] Defense Research — minimum 2 defenses
-- [ ] Activity Strip with real-time agent feed
+- [x] Defense Research — minimum 2 defenses
+- [x] Activity Strip with real-time agent feed
 - [ ] Dashboard — all four panels populating end-to-end from agent outputs *(Case Facts panel from intake classification is implemented; Status, Action Items, and Resources still placeholders until Wave 1 agents populate context)*
 - [ ] HITL gate card with clear user instructions *(component exists; gate state not wired to dispatch / pause flow)*
 - [ ] Stage 2: E-Filing flow functional
@@ -316,7 +316,7 @@ What is implemented today: home intake form; `POST /api/intake/classify` (struct
 
 ### Stretch Goals
 - [x] Document Parser: direct extraction from uploaded files *(PDF/images/text via `POST /api/intake/parse-document`; Browser Use session path still TBD in `api.ts`)*
-- [ ] Legal Aid: live geocoded search
+- [x] Legal Aid: live geocoded search
 - [ ] Fee Waiver: eligibility check + FW-001 pre-fill
 - [ ] Mobile-responsive layout
 - [ ] Session persistence (user can close and return)
