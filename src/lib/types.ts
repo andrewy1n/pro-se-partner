@@ -102,7 +102,6 @@ export interface ActivityFeedItem {
 export interface StatusPanelModel {
   countdownLabel: string;
   caseStage: CaseStage;
-  progressSteps: string[];
   callToAction: string | null;
 }
 

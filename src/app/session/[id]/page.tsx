@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect } from "react";
 import { useParams } from "next/navigation";
 import { BrowserPanel } from "@/components/browser-panel";
 import { ActivityStrip } from "@/components/activity-strip";
+import { CaseFactsPanel } from "@/components/dashboard/case-facts-panel";
 import { StatusPanel } from "@/components/dashboard/status-panel";
 import { ActionItemsPanel } from "@/components/dashboard/action-items-panel";
 import { ResourcesPanel } from "@/components/dashboard/resources-panel";
@@ -43,17 +44,6 @@ export default function SessionPage() {
     });
   }, [params.id, setCaseFacts, setIntakeMeta]);
 
-  const intakeProgressSteps = useMemo(() => {
-    if (!caseFacts) return [];
-    const lines: string[] = [];
-    if (caseFacts.evictionType) lines.push(`Eviction type: ${caseFacts.evictionType}`);
-    if (caseFacts.proceedingStage) lines.push(`Stage: ${caseFacts.proceedingStage}`);
-    if (caseFacts.noticeType) lines.push(`Notice: ${caseFacts.noticeType}`);
-    if (caseFacts.serviceDate) lines.push(`Service date: ${caseFacts.serviceDate}`);
-    if (intakeMeta?.needsHumanReview) lines.push("Review suggested: facts may be incomplete");
-    return lines;
-  }, [caseFacts, intakeMeta?.needsHumanReview]);
-
   return (
     <main className="grid min-h-screen grid-cols-1 gap-4 p-4 lg:grid-cols-5">
       <section className="space-y-4 lg:col-span-3">
@@ -65,11 +55,12 @@ export default function SessionPage() {
       </section>
 
       <section className="space-y-4 lg:col-span-2">
+        <CaseFactsPanel caseFacts={caseFacts} intakeMeta={intakeMeta} />
+
         <StatusPanel
           model={{
             countdownLabel: deadlineResult?.responseDeadline ?? "TBD",
             caseStage: activeSession?.stage ?? "stage-1-intake",
-            progressSteps: intakeProgressSteps,
             callToAction: hitlGate.instruction,
           }}
         />
