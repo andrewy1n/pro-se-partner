@@ -1,4 +1,5 @@
 import type {
+  CanonicalCaseContext,
   DocumentNormalizedExtraction,
   IntakeSessionPayload,
   ParsedDocumentFields,
@@ -111,18 +112,62 @@ function migrateLegacyParsedDocumentFields(
   };
 }
 
+function ensureCanonicalCaseContext(raw: unknown): CanonicalCaseContext | null {
+  if (!raw || typeof raw !== "object") return null;
+  const candidate = raw as Record<string, unknown>;
+  if (!candidate.caseFacts || typeof candidate.caseFacts !== "object") return null;
+
+  const parsedDocumentFields = migrateLegacyParsedDocumentFields(candidate.parsedDocumentFields);
+  const missingFacts = Array.isArray(candidate.missingFacts)
+    ? candidate.missingFacts.filter((x): x is string => typeof x === "string")
+    : Array.isArray(candidate.missingFields)
+      ? candidate.missingFields.filter((x): x is string => typeof x === "string")
+      : [];
+
+  return {
+    caseFacts: candidate.caseFacts as CanonicalCaseContext["caseFacts"],
+    confidence: typeof candidate.confidence === "number" ? candidate.confidence : 0,
+    missingFacts,
+    needsHumanReview: Boolean(candidate.needsHumanReview),
+    parsedDocumentFields: parsedDocumentFields === undefined ? null : parsedDocumentFields,
+    uploadedFileName:
+      typeof candidate.uploadedFileName === "string" ? candidate.uploadedFileName : null,
+    documentParseError:
+      typeof candidate.documentParseError === "string" ? candidate.documentParseError : null,
+    factSources:
+      candidate.factSources && typeof candidate.factSources === "object"
+        ? (candidate.factSources as CanonicalCaseContext["factSources"])
+        : {},
+    conflicts: Array.isArray(candidate.conflicts)
+      ? (candidate.conflicts as CanonicalCaseContext["conflicts"])
+      : [],
+  };
+}
+
 export function parseIntakeSessionPayload(raw: string): IntakeSessionPayload | null {
   try {
-    const v = JSON.parse(raw) as IntakeSessionPayload;
-    if (!v?.caseFacts || typeof v.caseFacts !== "object") return null;
-    const migrated = migrateLegacyParsedDocumentFields(v.parsedDocumentFields);
-    if (migrated !== undefined) {
-      v.parsedDocumentFields = migrated;
+    const parsed = JSON.parse(raw) as Record<string, unknown>;
+    if (parsed.caseContext && typeof parsed.caseContext === "object") {
+      const caseContext = ensureCanonicalCaseContext(parsed.caseContext);
+      if (!caseContext) return null;
+      return {
+        caseContext,
+        deadlineTrackerSession:
+          "deadlineTrackerSession" in parsed && parsed.deadlineTrackerSession !== undefined
+            ? (parsed.deadlineTrackerSession as IntakeSessionPayload["deadlineTrackerSession"])
+            : null,
+      };
     }
-    if (!("deadlineTrackerSession" in v) || v.deadlineTrackerSession === undefined) {
-      v.deadlineTrackerSession = null;
-    }
-    return v;
+
+    const legacyCaseContext = ensureCanonicalCaseContext(parsed);
+    if (!legacyCaseContext) return null;
+    return {
+      caseContext: legacyCaseContext,
+      deadlineTrackerSession:
+        "deadlineTrackerSession" in parsed && parsed.deadlineTrackerSession !== undefined
+          ? (parsed.deadlineTrackerSession as IntakeSessionPayload["deadlineTrackerSession"])
+          : null,
+    };
   } catch {
     return null;
   }

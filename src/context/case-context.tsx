@@ -8,21 +8,18 @@ import {
   type ReactNode,
 } from "react";
 import type {
-  CaseFacts,
+  CanonicalCaseContext,
   DeadlineResult,
   DefenseItem,
   LegalAidItem,
   ActionChecklistItem,
   FormArtifact,
   HitlGateState,
-  IntakeSessionPayload,
 } from "@/lib/types";
 
 interface CaseContextValue {
-  caseFacts: CaseFacts | null;
-  setCaseFacts: (facts: CaseFacts | null) => void;
-  intakeMeta: Omit<IntakeSessionPayload, "caseFacts"> | null;
-  setIntakeMeta: (meta: CaseContextValue["intakeMeta"]) => void;
+  caseContext: CanonicalCaseContext | null;
+  setCaseContext: (context: CanonicalCaseContext | null) => void;
   deadlineResult: DeadlineResult | null;
   setDeadlineResult: (result: DeadlineResult | null) => void;
   defenses: DefenseItem[];
@@ -36,10 +33,7 @@ interface CaseContextValue {
 const CaseContext = createContext<CaseContextValue | null>(null);
 
 export function CaseProvider({ children }: { children: ReactNode }) {
-  const [caseFacts, setCaseFacts] = useState<CaseFacts | null>(null);
-  const [intakeMeta, setIntakeMeta] = useState<
-    Omit<IntakeSessionPayload, "caseFacts"> | null
-  >(null);
+  const [caseContext, setCaseContext] = useState<CanonicalCaseContext | null>(null);
   const [deadlineResult, setDeadlineResult] = useState<DeadlineResult | null>(null);
   const [hitlGate, setHitlGate] = useState<HitlGateState>({
     isBlockedOnUser: false,
@@ -48,10 +42,8 @@ export function CaseProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo<CaseContextValue>(
     () => ({
-      caseFacts,
-      setCaseFacts,
-      intakeMeta,
-      setIntakeMeta,
+      caseContext,
+      setCaseContext,
       deadlineResult,
       setDeadlineResult,
       defenses: [],
@@ -61,7 +53,7 @@ export function CaseProvider({ children }: { children: ReactNode }) {
       hitlGate,
       setHitlGate,
     }),
-    [caseFacts, deadlineResult, hitlGate, intakeMeta],
+    [caseContext, deadlineResult, hitlGate],
   );
 
   return <CaseContext.Provider value={value}>{children}</CaseContext.Provider>;

@@ -5,7 +5,7 @@ import type { CaseFacts } from "@/lib/types";
 
 export const DEFAULT_INTAKE_MODEL = "gemini-2.5-flash";
 
-const intakeObjectSchema = z.object({
+export const intakeObjectSchema = z.object({
   evictionType: z.enum([
     "nonpayment",
     "no_fault",
@@ -51,7 +51,7 @@ export interface IntakeClassificationResult {
   needsHumanReview: boolean;
 }
 
-function structuredToCaseFacts(s: IntakeStructuredOutput): CaseFacts {
+export function structuredToCaseFacts(s: IntakeStructuredOutput): CaseFacts {
   return {
     evictionType: s.evictionType === "unknown" ? null : s.evictionType,
     proceedingStage: s.proceedingStage === "unknown" ? null : s.proceedingStage,
@@ -63,7 +63,7 @@ function structuredToCaseFacts(s: IntakeStructuredOutput): CaseFacts {
   };
 }
 
-const SYSTEM = `You are Agent 1 (Intake & Classification) for Pro Se Partner, focused on eviction defense in Los Angeles County.
+export const INTAKE_CLASSIFIER_SYSTEM = `You are Agent 1 (Intake & Classification) for Pro Se Partner, focused on eviction defense in Los Angeles County.
 
 Extract structured case facts from the user's plain-language description. Rules:
 - Never invent dates, amounts, or court events. Use null and "unknown" when not clearly stated.
@@ -85,7 +85,7 @@ export async function classifyIntake(
   const { output } = await generateText({
     model: google(modelId),
     temperature: 0,
-    system: SYSTEM,
+    system: INTAKE_CLASSIFIER_SYSTEM,
     prompt: `User intake:\n${caseSummary}`,
     output: Output.object({
       schema: intakeObjectSchema,

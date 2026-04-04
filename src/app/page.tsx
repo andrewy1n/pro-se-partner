@@ -4,8 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { IntakeForm } from "@/components/intake-form";
 import { intakeStorageKey } from "@/lib/intake-storage";
-import { mergeCaseFactsWithDocumentStage } from "@/lib/document-parse-normalize";
-import type { IntakeSessionPayload } from "@/lib/types";
+import type { IntakeSessionPayload, IntakeSubmitResponse } from "@/lib/types";
 
 export default function HomePage() {
   const router = useRouter();
@@ -19,14 +18,19 @@ export default function HomePage() {
     setSubmitError(null);
     setSubmitShowsDocParse(!!uploadedFile);
     try {
-      const res = await fetch("/api/intake/classify", {
+      const formData = new FormData();
+      formData.append("caseSummary", caseSummary);
+      if (uploadedFile) {
+        formData.append("file", uploadedFile);
+      }
+
+      const res = await fetch("/api/intake/submit", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ caseSummary }),
+        body: formData,
       });
 
       const data = (await res.json()) as
-        | (IntakeSessionPayload & { sessionId: string })
+        | IntakeSubmitResponse
         | { error?: string };
 
       if (!res.ok || !("sessionId" in data) || !data.sessionId) {
@@ -38,50 +42,9 @@ export default function HomePage() {
         return;
       }
 
-      let parsedDocumentFields: IntakeSessionPayload["parsedDocumentFields"];
-      let documentParseError: string | null = null;
-      let uploadedFileName: string | null = null;
-
-      if (uploadedFile) {
-        uploadedFileName = uploadedFile.name;
-        const fd = new FormData();
-        fd.append("file", uploadedFile);
-        const parseRes = await fetch("/api/intake/parse-document", {
-          method: "POST",
-          body: fd,
-        });
-        const parseData = (await parseRes.json()) as
-          | { parsedDocumentFields: IntakeSessionPayload["parsedDocumentFields"] }
-          | { error?: string };
-
-        if (parseRes.ok && "parsedDocumentFields" in parseData) {
-          parsedDocumentFields = parseData.parsedDocumentFields;
-        } else {
-          documentParseError =
-            "error" in parseData && typeof parseData.error === "string"
-              ? parseData.error
-              : "Document parsing failed";
-        }
-      }
-
-      let mergedCaseFacts = data.caseFacts;
-      if (parsedDocumentFields?.normalizedExtraction?.proceedingStage) {
-        mergedCaseFacts = mergeCaseFactsWithDocumentStage(
-          data.caseFacts,
-          parsedDocumentFields.normalizedExtraction.proceedingStage,
-        );
-      }
-
       const payload: IntakeSessionPayload = {
-        caseFacts: mergedCaseFacts,
-        confidence: data.confidence,
-        missingFields: data.missingFields,
-        needsHumanReview: data.needsHumanReview,
-        deadlineTrackerSession:
-          "deadlineTrackerSession" in data ? data.deadlineTrackerSession ?? null : null,
-        parsedDocumentFields,
-        uploadedFileName,
-        documentParseError,
+        caseContext: data.caseContext,
+        deadlineTrackerSession: data.deadlineTrackerSession ?? null,
       };
       sessionStorage.setItem(
         intakeStorageKey(data.sessionId),
@@ -102,8 +65,8 @@ export default function HomePage() {
       {isSubmitting && (
         <p className="mx-auto mt-3 max-w-3xl text-sm text-zinc-400">
           {submitShowsDocParse
-            ? "Classifying intake and parsing your document..."
-            : "Classifying intake..."}
+            ? "Analyzing your situation and uploaded document..."
+            : "Analyzing your situation..."}
         </p>
       )}
       {submitError && (

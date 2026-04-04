@@ -22,10 +22,8 @@ export default function SessionPage() {
     setTrackedSession,
   } = useSession();
   const {
-    caseFacts,
-    setCaseFacts,
-    intakeMeta,
-    setIntakeMeta,
+    caseContext,
+    setCaseContext,
     setDeadlineResult,
     setHitlGate,
     hitlGate,
@@ -43,16 +41,7 @@ export default function SessionPage() {
     if (!raw) return;
     const payload = parseIntakeSessionPayload(raw);
     if (!payload) return;
-    setCaseFacts(payload.caseFacts);
-    setIntakeMeta({
-      confidence: payload.confidence,
-      missingFields: payload.missingFields,
-      needsHumanReview: payload.needsHumanReview,
-      deadlineTrackerSession: payload.deadlineTrackerSession ?? null,
-      parsedDocumentFields: payload.parsedDocumentFields ?? null,
-      uploadedFileName: payload.uploadedFileName ?? null,
-      documentParseError: payload.documentParseError ?? null,
-    });
+    setCaseContext(payload.caseContext);
     setTrackedSession({
       appSessionId: id,
       browserSessionId: payload.deadlineTrackerSession?.sessionId ?? null,
@@ -61,7 +50,7 @@ export default function SessionPage() {
     return () => {
       setTrackedSession(null);
     };
-  }, [params.id, setCaseFacts, setIntakeMeta, setTrackedSession]);
+  }, [params.id, setCaseContext, setTrackedSession]);
 
   useEffect(() => {
     setDeadlineResult(polledDeadlineResult);
@@ -97,7 +86,7 @@ export default function SessionPage() {
       </section>
 
       <section className="space-y-4 lg:col-span-2">
-        <CaseFactsPanel caseFacts={caseFacts} intakeMeta={intakeMeta} />
+        <CaseFactsPanel caseContext={caseContext} />
 
         <StatusPanel
           model={{
@@ -107,7 +96,10 @@ export default function SessionPage() {
             consequenceSummary: deadlineResult?.consequenceSummary ?? null,
             projectedTrialWindow: deadlineResult?.projectedTrialWindow ?? null,
             citations: deadlineResult?.citations ?? [],
-            missingFacts: deadlineResult?.missingFacts ?? [],
+            missingFacts:
+              deadlineResult?.missingFacts.length
+                ? deadlineResult.missingFacts
+                : caseContext?.missingFacts ?? [],
             explanation: deadlineResult?.explanation ?? null,
           }}
         />

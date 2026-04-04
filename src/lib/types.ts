@@ -40,19 +40,49 @@ export interface CaseFacts {
   claimedAmount: number | null;
 }
 
-/** Persisted client-side after intake API success; hydrates CaseContext on the session page. */
-export interface IntakeSessionPayload {
+export type CaseFactField = keyof CaseFacts;
+
+export type CaseFactSourceKind =
+  | "user_text"
+  | "uploaded_document"
+  | "reconciled"
+  | "unknown";
+
+export interface CaseFactSource {
+  source: CaseFactSourceKind;
+  note?: string | null;
+}
+
+export interface CaseFactConflict {
+  field: CaseFactField;
+  intakeValue: string | number | null;
+  documentValue: string | number | null;
+  resolution: "kept_intake" | "used_document";
+  note?: string | null;
+}
+
+export type CaseFactSources = Partial<Record<CaseFactField, CaseFactSource>>;
+
+export interface CanonicalCaseContext {
   caseFacts: CaseFacts;
   confidence: number;
-  missingFields: string[];
+  missingFacts: string[];
   needsHumanReview: boolean;
-  deadlineTrackerSession: DeadlineTrackerSession | null;
-  /** Populated when the user uploaded a document and parsing succeeded. */
   parsedDocumentFields?: ParsedDocumentFields | null;
-  /** Original filename from intake upload (for display). */
   uploadedFileName?: string | null;
-  /** Set when upload existed but parsing failed; intake still proceeds. */
   documentParseError?: string | null;
+  factSources: CaseFactSources;
+  conflicts: CaseFactConflict[];
+}
+
+/** Persisted client-side after intake API success; hydrates CaseContext on the session page. */
+export interface IntakeSessionPayload {
+  caseContext: CanonicalCaseContext;
+  deadlineTrackerSession: DeadlineTrackerSession | null;
+}
+
+export interface IntakeSubmitResponse extends IntakeSessionPayload {
+  sessionId: string;
 }
 
 /**

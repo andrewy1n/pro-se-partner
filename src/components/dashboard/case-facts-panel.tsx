@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import type { CaseFacts, IntakeSessionPayload, ParsedDocumentFields } from "@/lib/types";
+import type { CanonicalCaseContext, ParsedDocumentFields } from "@/lib/types";
 import { formatCaseFactDisplay } from "@/lib/format-case-fact-display";
 import { filterDisplayAllegations } from "@/lib/document-summary-display";
 import {
@@ -54,14 +54,14 @@ function parsedDocumentHasContent(p: ParsedDocumentFields): boolean {
 }
 
 interface CaseFactsPanelProps {
-  caseFacts: CaseFacts | null;
-  intakeMeta: Omit<IntakeSessionPayload, "caseFacts"> | null;
+  caseContext: CanonicalCaseContext | null;
 }
 
-export function CaseFactsPanel({ caseFacts, intakeMeta }: CaseFactsPanelProps) {
+export function CaseFactsPanel({ caseContext }: CaseFactsPanelProps) {
+  const caseFacts = caseContext?.caseFacts ?? null;
   if (!caseFacts) return null;
 
-  const parsed = intakeMeta?.parsedDocumentFields;
+  const parsed = caseContext?.parsedDocumentFields;
   const n = parsed?.normalizedExtraction;
 
   const structuredAllegationCount = n
@@ -100,11 +100,25 @@ export function CaseFactsPanel({ caseFacts, intakeMeta }: CaseFactsPanelProps) {
         </button>
       </div>
 
-      {intakeMeta?.needsHumanReview && (
+      {caseContext?.needsHumanReview && (
         <div className="mb-4 rounded-md border border-amber-500/20 bg-amber-500/10 p-3 text-xs text-amber-500">
           Review suggested: Some facts may be incomplete or unclear.
         </div>
       )}
+
+      {caseContext?.conflicts.length ? (
+        <div className="mb-4 rounded-md border border-amber-500/20 bg-amber-500/10 p-3 text-xs text-amber-200">
+          <div className="mb-1 font-medium text-amber-400">Source conflicts to review</div>
+          <ul className="list-inside list-disc space-y-1 text-amber-200/90">
+            {caseContext.conflicts.map((conflict) => (
+              <li key={`${conflict.field}-${conflict.resolution}`}>
+                {conflict.field}: intake {String(conflict.intakeValue ?? "unknown")}, document{" "}
+                {String(conflict.documentValue ?? "unknown")}.
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
 
       <div className="grid grid-cols-2 gap-4 text-sm">
         <div>
@@ -180,26 +194,26 @@ export function CaseFactsPanel({ caseFacts, intakeMeta }: CaseFactsPanelProps) {
         </div>
       </div>
 
-      {(intakeMeta?.uploadedFileName ||
-        intakeMeta?.documentParseError ||
+      {(caseContext?.uploadedFileName ||
+        caseContext?.documentParseError ||
         parsed) && (
         <div className="mt-4 border-t border-zinc-800 pt-4">
           <h3 className="text-xs font-medium uppercase tracking-wide text-zinc-500">
             From your uploaded document
           </h3>
-          {intakeMeta?.uploadedFileName && (
+          {caseContext?.uploadedFileName && (
             <p className="mt-1 text-xs text-zinc-500">
               File:{" "}
-              <span className="text-zinc-300">{intakeMeta.uploadedFileName}</span>
+              <span className="text-zinc-300">{caseContext.uploadedFileName}</span>
             </p>
           )}
-          {intakeMeta?.documentParseError && (
+          {caseContext?.documentParseError && (
             <div className="mt-2 rounded-md border border-amber-500/20 bg-amber-500/10 p-3 text-xs text-amber-500">
-              Document parsing did not complete: {intakeMeta.documentParseError}. The
+              Document parsing did not complete: {caseContext.documentParseError}. The
               facts from your description above are still available.
             </div>
           )}
-          {parsed && !intakeMeta?.documentParseError && parsed.validationWarnings.length > 0 && (
+          {parsed && !caseContext?.documentParseError && parsed.validationWarnings.length > 0 && (
             <div className="mt-3 rounded-md border border-amber-500/20 bg-amber-500/10 p-3 text-xs text-amber-200">
               <div className="mb-1 flex items-center gap-1.5 font-medium text-amber-400">
                 <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
@@ -212,13 +226,13 @@ export function CaseFactsPanel({ caseFacts, intakeMeta }: CaseFactsPanelProps) {
               </ul>
             </div>
           )}
-          {parsed && !intakeMeta?.documentParseError && !parsedDocumentHasContent(parsed) && (
+          {parsed && !caseContext?.documentParseError && !parsedDocumentHasContent(parsed) && (
             <p className="mt-2 text-xs text-zinc-500">
               No extractable case details were found in this file. You can still use
               the summary from your description.
             </p>
           )}
-          {parsed && n && !intakeMeta?.documentParseError && parsedDocumentHasContent(parsed) && (
+          {parsed && n && !caseContext?.documentParseError && parsedDocumentHasContent(parsed) && (
             <div className="mt-3 space-y-3 text-sm">
               <div className="grid grid-cols-2 gap-4">
                 <ParsedDocField

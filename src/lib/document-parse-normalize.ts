@@ -1,4 +1,14 @@
-import type { CaseFacts, DocumentNormalizedExtraction, LlmRawDocumentFields } from "@/lib/types";
+import type {
+  CanonicalCaseContext,
+  CaseFactConflict,
+  CaseFactField,
+  CaseFactSource,
+  CaseFacts,
+  DocumentNormalizedExtraction,
+  LlmRawDocumentFields,
+  ParsedDocumentFields,
+  ServiceMethod,
+} from "@/lib/types";
 
 /** Intake / document proceeding stages (must align with intake classifier enums). */
 const STAGE_RANK: Record<string, number> = {
@@ -29,6 +39,198 @@ export function mergeCaseFactsWithDocumentStage(
     return { ...intake, proceedingStage: documentStage };
   }
   return intake;
+}
+
+function normalizeDocumentServiceMethod(value: string | null): ServiceMethod | null {
+  if (
+    value === "personal" ||
+    value === "substituted" ||
+    value === "posted_and_mailed"
+  ) {
+    return value;
+  }
+  return null;
+}
+
+function pushConflict(
+  conflicts: CaseFactConflict[],
+  field: CaseFactField,
+  intakeValue: string | number | null,
+  documentValue: string | number | null,
+  resolution: "kept_intake" | "used_document",
+  note?: string,
+) {
+  conflicts.push({
+    field,
+    intakeValue,
+    documentValue,
+    resolution,
+    note: note ?? null,
+  });
+}
+
+function setSource(
+  sources: Partial<Record<CaseFactField, CaseFactSource>>,
+  field: CaseFactField,
+  source: CaseFactSource["source"],
+  note?: string,
+) {
+  sources[field] = {
+    source,
+    note: note ?? null,
+  };
+}
+
+function ensureMissingFactNames(caseFacts: CaseFacts, existing: string[]): string[] {
+  const out = new Set(existing);
+  const requiredMap: Array<[CaseFactField, string]> = [
+    ["evictionType", "eviction_type"],
+    ["proceedingStage", "proceeding_stage"],
+    ["noticeType", "notice_type"],
+    ["serviceDate", "service_date"],
+    ["serviceMethod", "service_method"],
+    ["jurisdiction", "jurisdiction"],
+    ["claimedAmount", "claimed_amount"],
+  ];
+  for (const [field, missingName] of requiredMap) {
+    if (caseFacts[field] == null) out.add(missingName);
+  }
+  return [...out];
+}
+
+export function buildCanonicalCaseContext(input: {
+  caseFacts: CaseFacts;
+  confidence: number;
+  missingFacts: string[];
+  needsHumanReview: boolean;
+  parsedDocumentFields: ParsedDocumentFields | null;
+  uploadedFileName?: string | null;
+  documentParseError?: string | null;
+}): CanonicalCaseContext {
+  const nextCaseFacts: CaseFacts = { ...input.caseFacts };
+  const conflicts: CaseFactConflict[] = [];
+  const factSources: Partial<Record<CaseFactField, CaseFactSource>> = {};
+  const document = input.parsedDocumentFields?.normalizedExtraction ?? null;
+
+  for (const field of Object.keys(nextCaseFacts) as CaseFactField[]) {
+    if (nextCaseFacts[field] != null) {
+      setSource(factSources, field, "user_text", "Provided by unified intake narrative.");
+    }
+  }
+
+  if (document) {
+    if (nextCaseFacts.proceedingStage == null && document.proceedingStage) {
+      nextCaseFacts.proceedingStage = document.proceedingStage;
+      setSource(
+        factSources,
+        "proceedingStage",
+        "uploaded_document",
+        "Filled from uploaded document because intake text did not specify a stage.",
+      );
+    } else if (
+      document.proceedingStage &&
+      nextCaseFacts.proceedingStage &&
+      document.proceedingStage !== nextCaseFacts.proceedingStage
+    ) {
+      const merged = mergeCaseFactsWithDocumentStage(
+        { ...nextCaseFacts },
+        document.proceedingStage,
+      );
+      if (merged.proceedingStage !== nextCaseFacts.proceedingStage) {
+        pushConflict(
+          conflicts,
+          "proceedingStage",
+          nextCaseFacts.proceedingStage,
+          document.proceedingStage,
+          "used_document",
+          "Uploaded document indicated a later procedural stage.",
+        );
+        nextCaseFacts.proceedingStage = merged.proceedingStage;
+        setSource(
+          factSources,
+          "proceedingStage",
+          "reconciled",
+          "Advanced to the later stage supported by the uploaded document.",
+        );
+      } else {
+        pushConflict(
+          conflicts,
+          "proceedingStage",
+          nextCaseFacts.proceedingStage,
+          document.proceedingStage,
+          "kept_intake",
+          "Intake stage was kept because the uploaded document did not show a later stage.",
+        );
+      }
+    }
+
+    const documentServiceMethod = normalizeDocumentServiceMethod(document.serviceMethod);
+    const documentClaims: Array<[CaseFactField, string | number | null, string]> = [
+      ["noticeType", document.noticeType, "Uploaded document provided the notice type."],
+      ["serviceDate", document.serviceDate, "Uploaded document provided the service date."],
+      [
+        "serviceMethod",
+        documentServiceMethod,
+        "Uploaded document provided the service method.",
+      ],
+      ["claimedAmount", document.claimedAmount, "Uploaded document provided the claimed amount."],
+    ];
+
+    for (const [field, documentValue, note] of documentClaims) {
+      const intakeValue = nextCaseFacts[field];
+      if (documentValue == null) continue;
+      if (intakeValue == null) {
+        nextCaseFacts[field] = documentValue as never;
+        setSource(factSources, field, "uploaded_document", note);
+        continue;
+      }
+      if (intakeValue !== documentValue) {
+        pushConflict(
+          conflicts,
+          field,
+          intakeValue as string | number | null,
+          documentValue,
+          "kept_intake",
+          "Conflict preserved for review; intake value kept unless deterministic rules say otherwise.",
+        );
+      }
+    }
+
+    if (
+      nextCaseFacts.jurisdiction == null &&
+      document.courtName &&
+      /los angeles/i.test(document.courtName)
+    ) {
+      nextCaseFacts.jurisdiction = "Los Angeles County";
+      setSource(
+        factSources,
+        "jurisdiction",
+        "reconciled",
+        "Derived from the uploaded court name.",
+      );
+    }
+  }
+
+  for (const field of Object.keys(nextCaseFacts) as CaseFactField[]) {
+    if (!(field in factSources)) {
+      setSource(factSources, field, "unknown", "No reliable source resolved this fact.");
+    }
+  }
+
+  return {
+    caseFacts: nextCaseFacts,
+    confidence: input.confidence,
+    missingFacts: ensureMissingFactNames(nextCaseFacts, input.missingFacts),
+    needsHumanReview:
+      input.needsHumanReview ||
+      conflicts.length > 0 ||
+      (input.parsedDocumentFields?.validationWarnings.length ?? 0) > 0,
+    parsedDocumentFields: input.parsedDocumentFields,
+    uploadedFileName: input.uploadedFileName ?? null,
+    documentParseError: input.documentParseError ?? null,
+    factSources,
+    conflicts,
+  };
 }
 
 /** Deterministic UD-100 / complaint detection from visible document text (demo + production). */

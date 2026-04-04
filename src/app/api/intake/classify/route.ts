@@ -1,12 +1,9 @@
 import { NextResponse } from "next/server";
 import { randomUUID } from "crypto";
-import {
-  classifyIntake,
-  DEFAULT_INTAKE_MODEL,
-} from "@/lib/intake-classifier";
 import { dispatchWave1Agents } from "@/lib/agent-dispatcher";
+import { orchestrateUnifiedIntake } from "@/lib/intake-orchestrator";
 import { logServerError, logServerEvent } from "@/lib/server-log";
-import type { CaseFacts } from "@/lib/types";
+import type { IntakeSubmitResponse } from "@/lib/types";
 
 export const runtime = "nodejs";
 
@@ -14,11 +11,10 @@ const MAX_SUMMARY_LENGTH = 24_000;
 
 function logIntakeClassification(payload: {
   sessionId: string;
-  model: string;
   caseSummaryLength: number;
-  caseFacts: CaseFacts;
+  caseFacts: IntakeSubmitResponse["caseContext"]["caseFacts"];
   confidence: number;
-  missingFields: string[];
+  missingFacts: string[];
   needsHumanReview: boolean;
   browserSessionId: string;
   browserSessionStatus: string;
@@ -81,36 +77,34 @@ export async function POST(request: Request) {
 
   try {
     const sessionId = randomUUID();
-    const result = await classifyIntake(caseSummary);
-    const model =
-      process.env.INTAKE_CLASSIFICATION_MODEL?.trim() || DEFAULT_INTAKE_MODEL;
+    const caseContext = await orchestrateUnifiedIntake({ caseSummary });
     const wave1 = await dispatchWave1Agents({
       appSessionId: sessionId,
-      caseFacts: result.caseFacts,
-      parsedDocumentFields: null,
+      caseContext,
     });
 
     logIntakeClassification({
       sessionId,
-      model,
       caseSummaryLength: caseSummary.length,
-      caseFacts: result.caseFacts,
-      confidence: result.confidence,
-      missingFields: result.missingFields,
-      needsHumanReview: result.needsHumanReview,
+      caseFacts: caseContext.caseFacts,
+      confidence: caseContext.confidence,
+      missingFacts: caseContext.missingFacts,
+      needsHumanReview: caseContext.needsHumanReview,
       browserSessionId: wave1.deadlineTrackerSession.sessionId,
       browserSessionStatus: wave1.deadlineTrackerSession.status,
     });
 
-    return NextResponse.json({
+    const response: IntakeSubmitResponse = {
       sessionId,
-      ...result,
+      caseContext,
       deadlineTrackerSession: wave1.deadlineTrackerSession,
-    });
+    };
+
+    return NextResponse.json(response);
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Classification failed";
+    const message = err instanceof Error ? err.message : "Intake failed";
     logServerError("intake_classification_error", err, {
-      stage: "classify_or_wave1",
+      stage: "unified_intake_or_wave1",
     });
     return NextResponse.json({ error: message }, { status: 502 });
   }

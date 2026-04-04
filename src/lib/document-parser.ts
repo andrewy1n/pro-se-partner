@@ -8,7 +8,7 @@ export const DEFAULT_DOCUMENT_PARSER_MODEL = "gemini-2.5-flash";
 
 const allegationList = z.array(z.string());
 
-const llmRawSchema = z.object({
+export const llmRawSchema = z.object({
   plaintiffNameFromPlaintiffLabel: z.string().nullable(),
   defendantNameFromDefendantLabel: z.string().nullable(),
   landlordNameFromDocument: z.string().nullable(),
@@ -33,7 +33,7 @@ const llmRawSchema = z.object({
   proceedingStageGuess: z.string().nullable(),
 });
 
-const SYSTEM = `You are the Document Parser for Pro Se Partner (eviction defense, Los Angeles County).
+export const DOCUMENT_PARSER_SYSTEM = `You are the Document Parser for Pro Se Partner (eviction defense, Los Angeles County).
 
 Extract structured fields from the uploaded document. Paying parties may have unexpected real names in demos — never "correct" or substitute names you think are more plausible.
 
@@ -98,6 +98,43 @@ function toRawExtractionRecord(raw: LlmRawDocumentFields): Record<string, unknow
   return { ...raw } as Record<string, unknown>;
 }
 
+export function createEmptyRawDocumentFields(): LlmRawDocumentFields {
+  return {
+    plaintiffNameFromPlaintiffLabel: null,
+    defendantNameFromDefendantLabel: null,
+    landlordNameFromDocument: null,
+    caseNumber: null,
+    courtName: null,
+    claimedAmount: null,
+    noticeTypeFromDocument: null,
+    noticeServiceDate: null,
+    noticeExpirationDate: null,
+    serviceMethod: null,
+    propertyAddress: null,
+    tenancyAllegations: [],
+    noticeAllegations: [],
+    serviceAllegations: [],
+    rentalAssistanceAllegations: [],
+    reliefRequested: [],
+    plaintiffOccurrences: [],
+    defendantOccurrences: [],
+    signatureOrPrintedName: null,
+    documentHeaderOrTitleLine: null,
+    documentTypeGuess: null,
+    proceedingStageGuess: null,
+  };
+}
+
+export function toParsedDocumentFields(raw: LlmRawDocumentFields): ParsedDocumentFields {
+  const { normalizedExtraction, validationWarnings } = normalizeAndValidateDocument(raw);
+
+  return {
+    validationWarnings,
+    rawExtraction: toRawExtractionRecord(raw),
+    normalizedExtraction,
+  };
+}
+
 export async function parseDocumentFromUpload(
   input: ParseDocumentInput,
 ): Promise<ParsedDocumentFields> {
@@ -114,7 +151,7 @@ Extract structured fields from this document.`;
   const { output } = await generateText({
     model: google(modelId),
     temperature: 0,
-    system: SYSTEM,
+    system: DOCUMENT_PARSER_SYSTEM,
     messages: [
       {
         role: "user",
@@ -142,11 +179,5 @@ Extract structured fields from this document.`;
     throw new Error("Document parsing produced no structured output");
   }
 
-  const { normalizedExtraction, validationWarnings } = normalizeAndValidateDocument(output);
-
-  return {
-    validationWarnings,
-    rawExtraction: toRawExtractionRecord(output),
-    normalizedExtraction,
-  };
+  return toParsedDocumentFields(output);
 }

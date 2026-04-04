@@ -1,7 +1,6 @@
 import type {
-  CaseFacts,
+  CanonicalCaseContext,
   DeadlineTrackerSession,
-  ParsedDocumentFields,
   FeeWaiverResult,
   HitlGateState,
 } from "@/lib/types";
@@ -14,8 +13,7 @@ import { logServerError, logServerEvent } from "@/lib/server-log";
 
 export interface DispatchWave1Input {
   appSessionId: string;
-  caseFacts: CaseFacts;
-  parsedDocumentFields: ParsedDocumentFields | null;
+  caseContext: CanonicalCaseContext;
 }
 
 export interface DispatchWave2Input {
@@ -46,8 +44,7 @@ export async function dispatchWave1Agents(
       agentId: "agent-4-deadline-procedure",
       outputSchema: DEADLINE_RESULT_OUTPUT_SCHEMA,
       task: `${buildDeadlineTrackerTask({
-        caseFacts: input.caseFacts,
-        parsedDocumentFields: input.parsedDocumentFields,
+        caseContext: input.caseContext,
       })}
 
 Internal tracking id: ${input.appSessionId}`,

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { CaseFacts, DeadlineResult, ParsedDocumentFields } from "@/lib/types";
+import type { CanonicalCaseContext, DeadlineResult } from "@/lib/types";
 
 const deadlineCitationSchema = z.object({
   title: z.string().min(1),
@@ -96,8 +96,7 @@ export function parseDeadlineResult(value: unknown): DeadlineResult | null {
 }
 
 export function buildDeadlineTrackerTask(input: {
-  caseFacts: CaseFacts;
-  parsedDocumentFields: ParsedDocumentFields | null;
+  caseContext: CanonicalCaseContext;
 }): string {
   return `You are the Deadline Tracker agent for Pro Se Partner.
 
@@ -114,10 +113,16 @@ Requirements:
 - The final answer must match the provided structured output schema exactly.
 
 Case facts:
-${JSON.stringify(input.caseFacts, null, 2)}
+${JSON.stringify(input.caseContext.caseFacts, null, 2)}
 
 Parsed document fields:
-${JSON.stringify(input.parsedDocumentFields, null, 2)}
+${JSON.stringify(input.caseContext.parsedDocumentFields ?? null, null, 2)}
+
+Unified intake missing facts:
+${JSON.stringify(input.caseContext.missingFacts, null, 2)}
+
+Known source conflicts:
+${JSON.stringify(input.caseContext.conflicts, null, 2)}
 
 Additional guidance:
 - Treat serviceDate as the best available service-date anchor from intake.
