@@ -1,11 +1,19 @@
 import type {
   CaseFacts,
+  DeadlineTrackerSession,
   ParsedDocumentFields,
   FeeWaiverResult,
   HitlGateState,
 } from "@/lib/types";
+import { createBrowserSession, sendAgentTask } from "@/lib/api";
+import {
+  buildDeadlineTrackerTask,
+  DEADLINE_RESULT_OUTPUT_SCHEMA,
+} from "@/lib/deadline-tracker";
+import { logServerError, logServerEvent } from "@/lib/server-log";
 
 export interface DispatchWave1Input {
+  appSessionId: string;
   caseFacts: CaseFacts;
   parsedDocumentFields: ParsedDocumentFields | null;
 }
@@ -15,10 +23,59 @@ export interface DispatchWave2Input {
   efilingUsername: string;
 }
 
-export async function dispatchWave1Agents(_input: DispatchWave1Input): Promise<void> {
-  // TODO: Fan out Agents 2-7 in parallel after Agent 1 classification.
-  // TODO: Trigger Agent 3b immediately after Agent 3 form download completion.
-  throw new Error("Not implemented: dispatchWave1Agents");
+export interface DispatchWave1Result {
+  deadlineTrackerSession: DeadlineTrackerSession;
+}
+
+export async function dispatchWave1Agents(
+  input: DispatchWave1Input,
+): Promise<DispatchWave1Result> {
+  logServerEvent("dispatch_wave1_start", {
+    appSessionId: input.appSessionId,
+    agent: "agent-4-deadline-procedure",
+  });
+
+  try {
+    const session = await createBrowserSession({
+      keepAlive: true,
+      outputSchema: DEADLINE_RESULT_OUTPUT_SCHEMA,
+    });
+
+    await sendAgentTask({
+      sessionId: session.id,
+      agentId: "agent-4-deadline-procedure",
+      outputSchema: DEADLINE_RESULT_OUTPUT_SCHEMA,
+      task: `${buildDeadlineTrackerTask({
+        caseFacts: input.caseFacts,
+        parsedDocumentFields: input.parsedDocumentFields,
+      })}
+
+Internal tracking id: ${input.appSessionId}`,
+    });
+
+    const result = {
+      deadlineTrackerSession: {
+        sessionId: session.id,
+        liveUrl: session.liveUrl ?? null,
+        status: session.status,
+        activeAgentId: "agent-4-deadline-procedure" as const,
+      },
+    };
+
+    logServerEvent("dispatch_wave1_deadline_tracker_ok", {
+      appSessionId: input.appSessionId,
+      browserSessionId: result.deadlineTrackerSession.sessionId,
+      status: result.deadlineTrackerSession.status,
+      hasLiveUrl: Boolean(result.deadlineTrackerSession.liveUrl),
+    });
+
+    return result;
+  } catch (err) {
+    logServerError("dispatch_wave1_deadline_tracker_failed", err, {
+      appSessionId: input.appSessionId,
+    });
+    throw err;
+  }
 }
 
 export async function dispatchWave2Agent(_input: DispatchWave2Input): Promise<void> {

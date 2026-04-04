@@ -40,6 +40,8 @@ export default function HomePage() {
         confidence: data.confidence,
         missingFields: data.missingFields,
         needsHumanReview: data.needsHumanReview,
+        deadlineTrackerSession:
+          "deadlineTrackerSession" in data ? data.deadlineTrackerSession ?? null : null,
       };
       sessionStorage.setItem(
         intakeStorageKey(data.sessionId),

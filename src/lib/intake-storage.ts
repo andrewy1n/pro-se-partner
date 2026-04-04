@@ -10,6 +10,7 @@ export function parseIntakeSessionPayload(raw: string): IntakeSessionPayload | n
   try {
     const v = JSON.parse(raw) as IntakeSessionPayload;
     if (!v?.caseFacts || typeof v.caseFacts !== "object") return null;
+    if (!("deadlineTrackerSession" in v)) return null;
     return v;
   } catch {
     return null;

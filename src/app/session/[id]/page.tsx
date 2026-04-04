@@ -15,12 +15,19 @@ import { intakeStorageKey, parseIntakeSessionPayload } from "@/lib/intake-storag
 
 export default function SessionPage() {
   const params = useParams<{ id: string }>();
-  const { activeSession, activityFeed } = useSession();
+  const {
+    activeSession,
+    activityFeed,
+    deadlineResult: polledDeadlineResult,
+    setTrackedSession,
+  } = useSession();
   const {
     caseFacts,
     setCaseFacts,
     intakeMeta,
     setIntakeMeta,
+    setDeadlineResult,
+    setHitlGate,
     hitlGate,
     actionItems,
     formArtifacts,
@@ -41,8 +48,40 @@ export default function SessionPage() {
       confidence: payload.confidence,
       missingFields: payload.missingFields,
       needsHumanReview: payload.needsHumanReview,
+      deadlineTrackerSession: payload.deadlineTrackerSession,
     });
-  }, [params.id, setCaseFacts, setIntakeMeta]);
+    setTrackedSession({
+      appSessionId: id,
+      browserSessionId: payload.deadlineTrackerSession?.sessionId ?? null,
+    });
+
+    return () => {
+      setTrackedSession(null);
+    };
+  }, [params.id, setCaseFacts, setIntakeMeta, setTrackedSession]);
+
+  useEffect(() => {
+    setDeadlineResult(polledDeadlineResult);
+
+    if (polledDeadlineResult?.status === "needs_input") {
+      const missingFacts = polledDeadlineResult.missingFacts
+        .map((fact) => fact.replace(/_/g, " "))
+        .join(", ");
+
+      setHitlGate({
+        isBlockedOnUser: true,
+        instruction: missingFacts
+          ? `We need these facts to calculate your response deadline: ${missingFacts}.`
+          : "We need more case details before we can calculate your response deadline.",
+      });
+      return;
+    }
+
+    setHitlGate({
+      isBlockedOnUser: false,
+      instruction: null,
+    });
+  }, [polledDeadlineResult, setDeadlineResult, setHitlGate]);
 
   return (
     <main className="grid min-h-screen grid-cols-1 gap-4 p-4 lg:grid-cols-5">
@@ -62,6 +101,11 @@ export default function SessionPage() {
             countdownLabel: deadlineResult?.responseDeadline ?? "TBD",
             caseStage: activeSession?.stage ?? "stage-1-intake",
             callToAction: hitlGate.instruction,
+            consequenceSummary: deadlineResult?.consequenceSummary ?? null,
+            projectedTrialWindow: deadlineResult?.projectedTrialWindow ?? null,
+            citations: deadlineResult?.citations ?? [],
+            missingFacts: deadlineResult?.missingFacts ?? [],
+            explanation: deadlineResult?.explanation ?? null,
           }}
         />
 

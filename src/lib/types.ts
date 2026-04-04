@@ -1,3 +1,5 @@
+import type { MessageResponse, SessionResponse } from "browser-use-sdk/v3";
+
 export type { MessageResponse, SessionResponse } from "browser-use-sdk/v3";
 
 export type AgentId =
@@ -14,6 +16,18 @@ export type AgentId =
 export type AgentStatus = "idle" | "queued" | "running" | "done" | "error" | "paused";
 export type CaseStage = "stage-1-intake" | "stage-2-filing";
 export type WaveId = "wave-1" | "wave-2";
+export type ServiceMethod =
+  | "personal"
+  | "substituted"
+  | "posted_and_mailed";
+export type BrowserUseSessionStatus =
+  | "created"
+  | "idle"
+  | "running"
+  | "stopped"
+  | "timed_out"
+  | "error";
+export type DeadlineResultStatus = "ready" | "needs_input" | "error";
 
 export interface CaseFacts {
   // Structured output owned by Agent 1 Intake + Classification.
@@ -21,6 +35,7 @@ export interface CaseFacts {
   proceedingStage: string | null;
   noticeType: string | null;
   serviceDate: string | null;
+  serviceMethod: ServiceMethod | null;
   jurisdiction: string | null;
   claimedAmount: number | null;
 }
@@ -31,6 +46,7 @@ export interface IntakeSessionPayload {
   confidence: number;
   missingFields: string[];
   needsHumanReview: boolean;
+  deadlineTrackerSession: DeadlineTrackerSession | null;
 }
 
 export interface ParsedDocumentFields {
@@ -51,10 +67,13 @@ export interface FormArtifact {
 
 export interface DeadlineResult {
   // Produced by Agent 4 Deadline & Procedure.
+  status: DeadlineResultStatus;
   responseDeadline: string | null;
   consequenceSummary: string | null;
   projectedTrialWindow: string | null;
   citations: Citation[];
+  missingFacts: string[];
+  explanation: string | null;
 }
 
 export interface DefenseItem {
@@ -103,6 +122,11 @@ export interface StatusPanelModel {
   countdownLabel: string;
   caseStage: CaseStage;
   callToAction: string | null;
+  consequenceSummary: string | null;
+  projectedTrialWindow: string | null;
+  citations: Citation[];
+  missingFacts: string[];
+  explanation: string | null;
 }
 
 export interface ActionChecklistItem {
@@ -133,4 +157,18 @@ export interface SessionSnapshot {
   activeAgentId: AgentId | null;
   activeWave: WaveId | null;
   stage: CaseStage;
+  status: BrowserUseSessionStatus | null;
+}
+
+export interface DeadlineTrackerSession {
+  sessionId: string;
+  liveUrl: string | null;
+  status: BrowserUseSessionStatus;
+  activeAgentId: Extract<AgentId, "agent-4-deadline-procedure">;
+}
+
+export interface SessionPollResponse {
+  activeSession: SessionSnapshot | null;
+  deadlineResult: DeadlineResult | null;
+  messages: MessageResponse[];
 }

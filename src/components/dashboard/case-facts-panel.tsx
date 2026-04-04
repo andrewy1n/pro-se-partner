@@ -1,6 +1,15 @@
 import type { CaseFacts, IntakeSessionPayload } from "@/lib/types";
 import { formatCaseFactDisplay } from "@/lib/format-case-fact-display";
-import { Home, Scale, FileText, Calendar, DollarSign, MapPin, Edit2 } from "lucide-react";
+import {
+  Home,
+  Scale,
+  FileText,
+  Calendar,
+  DollarSign,
+  MapPin,
+  Edit2,
+  Mail,
+} from "lucide-react";
 
 interface CaseFactsPanelProps {
   caseFacts: CaseFacts | null;
@@ -65,10 +74,20 @@ export function CaseFactsPanel({ caseFacts, intakeMeta }: CaseFactsPanelProps) {
         <div>
           <div className="mb-1 flex items-center gap-1.5 text-zinc-500">
             <Calendar className="h-3.5 w-3.5" />
-            <span className="text-xs">Date Received</span>
+            <span className="text-xs">Service Date</span>
           </div>
           <p className="text-zinc-200">
             {formatCaseFactDisplay(caseFacts.serviceDate)}
+          </p>
+        </div>
+
+        <div>
+          <div className="mb-1 flex items-center gap-1.5 text-zinc-500">
+            <Mail className="h-3.5 w-3.5" />
+            <span className="text-xs">Service Method</span>
+          </div>
+          <p className="text-zinc-200">
+            {formatCaseFactDisplay(caseFacts.serviceMethod)}
           </p>
         </div>
 
