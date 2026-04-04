@@ -77,23 +77,20 @@ User Input (text + optional document upload)
               |
               v
 +-----------------------------+
-|   Agent 1: Intake &         |  <- Orchestrator, no browser
-|   Classification Agent      |     Extracts structured facts,
-|   (direct Claude API call)  |     dispatches Wave 1 agents
+|   Case Intake               |  <- Orchestrator, no browser
+|   (direct Claude API)       |     Classifies facts, dispatches Wave 1
 +------------+----------------+
              |
     +--------+-----------------+------------------+
     v        v                 v                  v
-Agent 2   Agent 3           Agent 4           Agent 5-7
-Doc       Forms              Deadline          Defense, Legal
-Parsing   Navigator          Agent             Aid, Fee Waiver
-(if       Agent                                Agents
-upload)   (bu-max)
+Document  Forms            Deadline          Defense Research,
+Parser    Navigator        Tracker           Legal Aid, Fee Waiver
+(if       (bu-max)
+upload)
              |
              v
-          Agent 3b
           PDF Filler
-          Agent
+          (after forms download)
     |        |                 |                  |
     +--------+-----------------+------------------+
                          |
@@ -108,21 +105,23 @@ upload)   (bu-max)
                +---------+---------+
                          |
                          v
-              Agent 9: E-Filing Agent (Wave 2)
+              E-Filing (Wave 2)
               Navigates portal -> uploads UD-105
               -> captures confirmation number
 ```
 
 **Execution model:**
-- **Wave 1** — Agents 2-7 run concurrently via parallel Browser Use sessions after intake. Agent 3b activates immediately after Agent 3 finishes downloading the form — it does not wait for other Wave 1 agents.
-- **Wave 2** — Agent 9 activates only after the user manually completes a task and returns with credentials
+- **Wave 1** — Document Parser, Forms Navigator, Deadline Tracker, Defense Research, Legal Aid, and Fee Waiver run concurrently via parallel Browser Use sessions after Case Intake. PDF Filler activates immediately after Forms Navigator finishes downloading the form — it does not wait for other Wave 1 agents.
+- **Wave 2** — E-Filing activates only after the user manually completes a task and returns with credentials
 - Each browser agent gets its own `session.liveUrl`; the Activity Strip cycles through all active sessions
 
 ---
 
 ## 5. Agent Roster
 
-### Agent 1 — Intake & Classification Agent
+Each agent has a role-based name below. Older references may have used numeric labels (e.g. “Agent 3” for Forms Navigator); the names here are the canonical product names.
+
+### Case Intake *(orchestrator)*
 - **Type:** Orchestrator, no browser, direct Claude API call
 - **Input:** Raw user text
 - **Output:** Structured JSON — eviction type, proceedings stage, notice type, service date, claimed amount, jurisdiction
@@ -130,29 +129,29 @@ upload)   (bu-max)
 
 ---
 
-### Agent 2 — Document Parsing Agent
+### Document Parser
 - **Type:** Browser Use session (or direct PDF extraction)
 - **Activates when:** User uploads a file (eviction notice, UD complaint, lease, pay stubs)
 - **Input:** Uploaded document
 - **Output:** Structured fields — case number, court name, landlord name, claimed amount, service date, allegations
-- **Behavior:** Dormant if no documents uploaded. Feeds parsed fields directly into Agent 3 and Agent 7.
+- **Behavior:** Dormant if no documents uploaded. Feeds parsed fields directly into Forms Navigator and Fee Waiver.
 
 ---
 
-### Agent 3 — Forms Navigator Agent
+### Forms Navigator
 - **Type:** Browser Use session (`bu-max`)
 - **Task:** Navigate LA Superior Court self-help website -> find current UD-105 and FW-001 -> download both to disk
 - **Key behaviors:**
   - Handles multi-step navigation and PDF downloads
   - Recovers from broken/redirected links (visible to audience during demo)
   - Verifies the form revision date before downloading
-- **Output:** Downloaded UD-105 and FW-001 PDF files + confirmation of form versions. Triggers Agent 3b on completion.
+- **Output:** Downloaded UD-105 and FW-001 PDF files + confirmation of form versions. Triggers PDF Filler on completion.
 
 ---
 
-### Agent 3b — PDF Filler Agent
+### PDF Filler
 - **Type:** Document processing agent, no browser (`pdf-lib` or `pdf.js`)
-- **Input:** PDF files from Agent 3 + structured facts from Agent 1 + parsed fields from Agent 2 (if uploaded) + eligibility result from Agent 7
+- **Input:** PDF files from Forms Navigator + structured facts from Case Intake + parsed fields from Document Parser (if uploaded) + eligibility result from Fee Waiver
 - **Task:** Fill all known fields in UD-105 and FW-001, flag any fields that require user input
 - **Key behaviors:**
   - Maps structured case facts to PDF field names
@@ -162,7 +161,7 @@ upload)   (bu-max)
 
 ---
 
-### Agent 4 — Deadline & Procedure Agent
+### Deadline Tracker
 - **Type:** Browser Use session
 - **Task:** Navigate California statutory sources and LA Superior Court local rules
 - **Logic:** Computes response deadline accounting for service method (personal vs. substituted vs. posted), business day rules, and local rules. Cross-verifies against CCP 1167 and LA Superior Local Rule 3.350.
@@ -170,7 +169,7 @@ upload)   (bu-max)
 
 ---
 
-### Agent 5 — Defense Research Agent
+### Defense Research
 - **Type:** Browser Use session
 - **Task:** Search California Courts self-help guides and case law for defenses matching the user's specific facts
 - **Defenses checked:** Warranty of habitability, improper notice, landlord acceptance of partial rent, retaliation
@@ -179,7 +178,7 @@ upload)   (bu-max)
 
 ---
 
-### Agent 6 — Legal Aid Agent
+### Legal Aid
 - **Type:** Browser Use session
 - **Task:** Geocoded search for legal aid organizations near the user
 - **Filters:** Case type accepted, income eligibility, current availability
@@ -187,15 +186,15 @@ upload)   (bu-max)
 
 ---
 
-### Agent 7 — Fee Waiver Qualification Agent
+### Fee Waiver
 - **Type:** Logic agent (Claude call + optional doc parse)
-- **Input:** Income from user input or extracted from pay stubs by Agent 2
+- **Input:** Income from user input or extracted from pay stubs by Document Parser
 - **Task:** Check against California fee waiver thresholds
-- **Output:** Eligibility determination. If qualified, passes result to Agent 3b to pre-fill FW-001. Eliminates the $225-$370 filing fee barrier.
+- **Output:** Eligibility determination. If qualified, passes result to PDF Filler to pre-fill FW-001. Eliminates the $225-$370 filing fee barrier.
 
 ---
 
-### Agent 9 — E-Filing Agent (Stage 2)
+### E-Filing *(Stage 2)*
 - **Type:** Browser Use session (`bu-max`)
 - **Activates:** After user creates an LA Superior Court e-filing account and returns with credentials
 - **Task:** Navigate the e-filing portal -> upload completed UD-105 -> capture confirmation number and timestamp
@@ -208,13 +207,13 @@ upload)   (bu-max)
 
 ### Stage 1 — Intake & Preparation *(hackathon MVP)*
 1. User describes situation, optionally uploads documents
-2. Agent 1 classifies and dispatches Wave 1 agents
-3. Agents 2-7 run in parallel; dashboard populates progressively
+2. Case Intake classifies and dispatches Wave 1 agents
+3. Document Parser through Fee Waiver run in parallel; dashboard populates progressively
 4. Ends with one clear call to action: "Your UD-105 is ready. To file it, you'll need an e-filing account. Here's how — it takes 5 minutes. Come back when you have your login."
 
 ### Stage 2 — Filing *(hackathon MVP)*
 1. User returns with e-filing credentials
-2. Agent 9 activates, navigates the portal, uploads UD-105
+2. E-Filing activates, navigates the portal, uploads UD-105
 3. Dashboard updates: "Answer filed. Confirmation #XXXXX. Trial date set within 20 days."
 
 ### Stage 3 — Trial Preparation *(post-hackathon v2)*
@@ -249,10 +248,10 @@ Single-page app. After submission the page splits into two columns: a **left col
 
 **Left column (~60% width):**
 
-1. **Live Browser iframe** — `session.liveUrl` from the active Browser Use session rendered as a full `<iframe>`. Shows the agent navigating real government websites in real time. During Wave 1 the iframe displays the Forms Agent (most visually compelling). During Stage 2 it switches to the E-Filing Agent session. Implemented via `browser-panel.tsx`, same pattern as the reference repo.
+1. **Live Browser iframe** — `session.liveUrl` from the active Browser Use session rendered as a full `<iframe>`. Shows the agent navigating real government websites in real time. During Wave 1 the iframe displays the Forms Navigator (most visually compelling). During Stage 2 it switches to the E-Filing session. Implemented via `browser-panel.tsx`, same pattern as the reference repo.
 
 2. **Activity Strip** — below the iframe. Live plain-language feed of what each agent is currently doing, updated via TanStack Query polling all active sessions.
-   - Example: `Agent 3: Searching LA Superior Court self-help portal... Found UD-105 (rev. 2024)... Checking filing fee schedule...`
+   - Example: `Forms Navigator: Searching LA Superior Court self-help portal... Found UD-105 (rev. 2024)... Checking filing fee schedule...`
    - Each line prefixed with the agent name and a status indicator dot (running / done / error)
 
 **Right column (~40% width):**
@@ -301,24 +300,24 @@ src/
 ## 8. MVP Scope
 
 ### Must Ship
-- [x] Intake form + Agent 1 classification
-- [ ] Agent 3: Forms Navigator Agent — live navigation and UD-105 + FW-001 download
-- [ ] Agent 3b: PDF Filler Agent — field mapping and pre-fill from structured case facts
-- [ ] Agent 4: Deadline computation with dual source citation
-- [ ] Agent 5: Defense research (minimum 2 defenses)
+- [x] Intake form + Case Intake classification
+- [ ] Forms Navigator — live navigation and UD-105 + FW-001 download
+- [ ] PDF Filler — field mapping and pre-fill from structured case facts
+- [ ] Deadline Tracker — deadline computation with dual source citation
+- [ ] Defense Research — minimum 2 defenses
 - [ ] Activity Strip with real-time agent feed
 - [ ] Dashboard — all four panels populating end-to-end from agent outputs *(Case Facts panel from intake classification is implemented; Status, Action Items, and Resources still placeholders until Wave 1 agents populate context)*
 - [ ] HITL gate card with clear user instructions *(component exists; gate state not wired to dispatch / pause flow)*
-- [ ] Stage 2: Agent 9 e-filing flow functional
+- [ ] Stage 2: E-Filing flow functional
 
 ### Repo progress (snapshot)
 
 What is implemented today: home intake form; `POST /api/intake/classify` (structured Gemini output); client `sessionStorage` handoff; session page layout (browser iframe shell, Activity Strip shell with empty feed, TanStack Query polling stub); **Case Facts** panel with human-readable labels; other dashboard panels and HITL are UI shells. `dispatchWave1Agents` / `dispatchWave2Agent` in `src/lib/agent-dispatcher.ts` are not implemented yet.
 
 ### Stretch Goals
-- [ ] Agent 2: Document parsing from uploaded files *(upload control exists; no upload pipeline)*
-- [ ] Agent 6: Live legal aid geocoded search
-- [ ] Agent 7: Fee waiver eligibility check + FW-001 pre-fill
+- [ ] Document Parser: parsing from uploaded files *(upload control exists; no upload pipeline)*
+- [ ] Legal Aid: live geocoded search
+- [ ] Fee Waiver: eligibility check + FW-001 pre-fill
 - [ ] Mobile-responsive layout
 - [ ] Session persistence (user can close and return)
 
@@ -348,6 +347,7 @@ Keep changes lightweight. Edit the relevant section in place, then append a one-
 | Time | Change |
 |---|---|
 | Hack start | Initial document created |
-| April 3 | Split Agent 3 (Forms Agent) into Agent 3 (Forms Navigator) and Agent 3b (PDF Filler). E-Filing Agent renumbered to Agent 9. |
-| April 4 | Added Case Facts panel for user verification of Intake Agent classification. |
-| April 4 | MVP checklist: marked intake + Agent 1 complete; added repo progress snapshot and notes on partial UI. |
+| April 3 | Split Forms Agent into Forms Navigator and PDF Filler. E-Filing kept as a separate Wave 2 step. |
+| April 4 | Added Case Facts panel for user verification of Case Intake classification. |
+| April 4 | MVP checklist: marked intake + Case Intake complete; added repo progress snapshot and notes on partial UI. |
+| April 4 | Renamed numbered agents to role-based names (Case Intake, Document Parser, Forms Navigator, PDF Filler, Deadline Tracker, Defense Research, Legal Aid, Fee Waiver, E-Filing). |
