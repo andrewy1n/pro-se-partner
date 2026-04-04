@@ -41,6 +41,9 @@ export default function SessionPage() {
       confidence: payload.confidence,
       missingFields: payload.missingFields,
       needsHumanReview: payload.needsHumanReview,
+      parsedDocumentFields: payload.parsedDocumentFields ?? null,
+      uploadedFileName: payload.uploadedFileName ?? null,
+      documentParseError: payload.documentParseError ?? null,
     });
   }, [params.id, setCaseFacts, setIntakeMeta]);
 
