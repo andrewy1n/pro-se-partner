@@ -9,7 +9,6 @@ import {
 } from "react";
 import type {
   CaseFacts,
-  ParsedDocumentFields,
   DeadlineResult,
   DefenseItem,
   LegalAidItem,
@@ -24,7 +23,6 @@ interface CaseContextValue {
   setCaseFacts: (facts: CaseFacts | null) => void;
   intakeMeta: Omit<IntakeSessionPayload, "caseFacts"> | null;
   setIntakeMeta: (meta: CaseContextValue["intakeMeta"]) => void;
-  parsedDocumentFields: ParsedDocumentFields | null;
   deadlineResult: DeadlineResult | null;
   setDeadlineResult: (result: DeadlineResult | null) => void;
   defenses: DefenseItem[];
@@ -54,7 +52,6 @@ export function CaseProvider({ children }: { children: ReactNode }) {
       setCaseFacts,
       intakeMeta,
       setIntakeMeta,
-      parsedDocumentFields: null,
       deadlineResult,
       setDeadlineResult,
       defenses: [],

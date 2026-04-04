@@ -47,14 +47,82 @@ export interface IntakeSessionPayload {
   missingFields: string[];
   needsHumanReview: boolean;
   deadlineTrackerSession: DeadlineTrackerSession | null;
+  /** Populated when the user uploaded a document and parsing succeeded. */
+  parsedDocumentFields?: ParsedDocumentFields | null;
+  /** Original filename from intake upload (for display). */
+  uploadedFileName?: string | null;
+  /** Set when upload existed but parsing failed; intake still proceeds. */
+  documentParseError?: string | null;
+}
+
+/**
+ * Model output before deterministic rules, validation, and merging.
+ * Party names must come only from explicit PLAINTIFF: / DEFENDANT: style labels when present.
+ */
+export interface LlmRawDocumentFields {
+  plaintiffNameFromPlaintiffLabel: string | null;
+  defendantNameFromDefendantLabel: string | null;
+  /** Only when an explicit "landlord" label exists; do not guess from signatures. */
+  landlordNameFromDocument: string | null;
+  caseNumber: string | null;
+  courtName: string | null;
+  claimedAmount: number | null;
+  noticeTypeFromDocument: string | null;
+  noticeServiceDate: string | null;
+  noticeExpirationDate: string | null;
+  serviceMethod: string | null;
+  propertyAddress: string | null;
+  /** Tenancy / lease facts from numbered complaint paragraphs (e.g. UD-100 items 6–7): rent, term, parties, TPA, etc. */
+  tenancyAllegations: string[];
+  /** Notice allegations (e.g. 3-day, contents, election of forfeiture) — not service facts. */
+  noticeAllegations: string[];
+  /** How and when notice was served; expiration; compliance (e.g. items 9–11, 13–14). */
+  serviceAllegations: string[];
+  /** Rental assistance certifications / statutory checkboxes when present (e.g. item 20). */
+  rentalAssistanceAllegations: string[];
+  /** Prayer for relief: possession, costs, judgment amounts (typically later-numbered items). */
+  reliefRequested: string[];
+  /** Distinct plaintiff strings taken only from labeled PLAINTIFF (or equivalent) lines — for validation. */
+  plaintiffOccurrences: string[];
+  defendantOccurrences: string[];
+  signatureOrPrintedName: string | null;
+  /** Prominent title/header line as read from the document (used for UD-100 detection). */
+  documentHeaderOrTitleLine: string | null;
+  documentTypeGuess: string | null;
+  proceedingStageGuess: string | null;
+}
+
+/** Canonical fields after normalization (rules + validation). */
+export interface DocumentNormalizedExtraction {
+  caseNumber: string | null;
+  courtName: string | null;
+  plaintiffName: string | null;
+  defendantName: string | null;
+  landlordName: string | null;
+  claimedAmount: number | null;
+  /** Alias for primary date from the document (typically notice or summons service). */
+  serviceDate: string | null;
+  noticeServiceDate: string | null;
+  noticeExpirationDate: string | null;
+  noticeType: string | null;
+  serviceMethod: string | null;
+  propertyAddress: string | null;
+  documentType: string | null;
+  proceedingStage: string | null;
+  tenancyAllegations: string[];
+  noticeAllegations: string[];
+  serviceAllegations: string[];
+  rentalAssistanceAllegations: string[];
+  reliefRequested: string[];
+  /** Flattened list for display: tenancy → notice → service → rental assistance → relief (order preserved). */
+  allegations: string[];
 }
 
 export interface ParsedDocumentFields {
-  // Structured fields owned by Agent 2 Document Parsing.
-  caseNumber: string | null;
-  courtName: string | null;
-  landlordName: string | null;
-  allegations: string[];
+  validationWarnings: string[];
+  /** Unmodified structured output from the extraction model (JSON-serializable). */
+  rawExtraction: Record<string, unknown>;
+  normalizedExtraction: DocumentNormalizedExtraction;
 }
 
 export interface FormArtifact {

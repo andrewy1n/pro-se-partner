@@ -48,7 +48,10 @@ export default function SessionPage() {
       confidence: payload.confidence,
       missingFields: payload.missingFields,
       needsHumanReview: payload.needsHumanReview,
-      deadlineTrackerSession: payload.deadlineTrackerSession,
+      deadlineTrackerSession: payload.deadlineTrackerSession ?? null,
+      parsedDocumentFields: payload.parsedDocumentFields ?? null,
+      uploadedFileName: payload.uploadedFileName ?? null,
+      documentParseError: payload.documentParseError ?? null,
     });
     setTrackedSession({
       appSessionId: id,
