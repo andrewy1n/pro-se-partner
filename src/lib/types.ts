@@ -25,6 +25,14 @@ export interface CaseFacts {
   claimedAmount: number | null;
 }
 
+/** Persisted client-side after intake API success; hydrates CaseContext on the session page. */
+export interface IntakeSessionPayload {
+  caseFacts: CaseFacts;
+  confidence: number;
+  missingFields: string[];
+  needsHumanReview: boolean;
+}
+
 export interface ParsedDocumentFields {
   // Structured fields owned by Agent 2 Document Parsing.
   caseNumber: string | null;

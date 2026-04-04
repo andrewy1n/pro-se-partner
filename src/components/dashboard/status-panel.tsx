@@ -16,6 +16,13 @@ export function StatusPanel({ model }: StatusPanelProps) {
       <div className="mt-3 space-y-2 text-sm text-zinc-300">
         <p>Countdown: {model?.countdownLabel ?? "TBD"}</p>
         <p>Current stage: {model?.caseStage ?? "stage-1-intake"}</p>
+        {model?.progressSteps && model.progressSteps.length > 0 && (
+          <ul className="list-inside list-disc text-xs text-zinc-400">
+            {model.progressSteps.map((step, index) => (
+              <li key={`${index}-${step}`}>{step}</li>
+            ))}
+          </ul>
+        )}
       </div>
     </section>
   );
