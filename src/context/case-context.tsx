@@ -23,7 +23,9 @@ interface CaseContextValue {
   deadlineResult: DeadlineResult | null;
   setDeadlineResult: (result: DeadlineResult | null) => void;
   defenses: DefenseItem[];
+  setDefenses: (items: DefenseItem[]) => void;
   legalAid: LegalAidItem[];
+  setLegalAid: (items: LegalAidItem[]) => void;
   actionItems: ActionChecklistItem[];
   formArtifacts: FormArtifact[];
   hitlGate: HitlGateState;
@@ -35,6 +37,8 @@ const CaseContext = createContext<CaseContextValue | null>(null);
 export function CaseProvider({ children }: { children: ReactNode }) {
   const [caseContext, setCaseContext] = useState<CanonicalCaseContext | null>(null);
   const [deadlineResult, setDeadlineResult] = useState<DeadlineResult | null>(null);
+  const [defenses, setDefenses] = useState<DefenseItem[]>([]);
+  const [legalAid, setLegalAid] = useState<LegalAidItem[]>([]);
   const [hitlGate, setHitlGate] = useState<HitlGateState>({
     isBlockedOnUser: false,
     instruction: null,
@@ -46,14 +50,16 @@ export function CaseProvider({ children }: { children: ReactNode }) {
       setCaseContext,
       deadlineResult,
       setDeadlineResult,
-      defenses: [],
-      legalAid: [],
+      defenses,
+      setDefenses,
+      legalAid,
+      setLegalAid,
       actionItems: [],
       formArtifacts: [],
       hitlGate,
       setHitlGate,
     }),
-    [caseContext, deadlineResult, hitlGate],
+    [caseContext, deadlineResult, defenses, legalAid, hitlGate],
   );
 
   return <CaseContext.Provider value={value}>{children}</CaseContext.Provider>;

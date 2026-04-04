@@ -17,14 +17,24 @@ export default function SessionPage() {
   const params = useParams<{ id: string }>();
   const {
     activeSession,
+    deadlineSession,
+    defenseSession,
+    legalAidSession,
     activityFeed,
     deadlineResult: polledDeadlineResult,
+    defenseResult: polledDefenseResult,
+    legalAidResult: polledLegalAidResult,
+    isPolling,
     setTrackedSession,
+    setTrackedDefenseSession,
+    setTrackedLegalAidSession,
   } = useSession();
   const {
     caseContext,
     setCaseContext,
     setDeadlineResult,
+    setDefenses,
+    setLegalAid,
     setHitlGate,
     hitlGate,
     actionItems,
@@ -34,6 +44,7 @@ export default function SessionPage() {
     deadlineResult,
   } = useCaseContext();
 
+  // Hydrate sessions from sessionStorage on mount
   useEffect(() => {
     const id = params.id;
     if (!id) return;
@@ -41,17 +52,30 @@ export default function SessionPage() {
     if (!raw) return;
     const payload = parseIntakeSessionPayload(raw);
     if (!payload) return;
+
     setCaseContext(payload.caseContext);
+
     setTrackedSession({
       appSessionId: id,
       browserSessionId: payload.deadlineTrackerSession?.sessionId ?? null,
     });
+    setTrackedDefenseSession({
+      appSessionId: id,
+      browserSessionId: payload.defenseResearchSession?.sessionId ?? null,
+    });
+    setTrackedLegalAidSession({
+      appSessionId: id,
+      browserSessionId: payload.legalAidSession?.sessionId ?? null,
+    });
 
     return () => {
       setTrackedSession(null);
+      setTrackedDefenseSession(null);
+      setTrackedLegalAidSession(null);
     };
-  }, [params.id, setCaseContext, setTrackedSession]);
+  }, [params.id, setCaseContext, setTrackedSession, setTrackedDefenseSession, setTrackedLegalAidSession]);
 
+  // Wire deadline result into case context
   useEffect(() => {
     setDeadlineResult(polledDeadlineResult);
 
@@ -75,12 +99,40 @@ export default function SessionPage() {
     });
   }, [polledDeadlineResult, setDeadlineResult, setHitlGate]);
 
+  // Wire defense result into case context
+  useEffect(() => {
+    if (polledDefenseResult) setDefenses(polledDefenseResult);
+  }, [polledDefenseResult, setDefenses]);
+
+  // Wire legal aid result into case context
+  useEffect(() => {
+    if (polledLegalAidResult) setLegalAid(polledLegalAidResult);
+  }, [polledLegalAidResult, setLegalAid]);
+
   return (
     <main className="grid min-h-screen grid-cols-1 gap-4 p-4 lg:grid-cols-5">
       <section className="space-y-4 lg:col-span-3">
         <BrowserPanel
-          liveUrl={activeSession?.liveUrl}
-          activeAgentId={activeSession?.activeAgentId ?? null}
+          tabs={[
+            {
+              agentId: "agent-4-deadline-procedure",
+              label: "Deadline Tracker",
+              liveUrl: deadlineSession?.liveUrl,
+              status: deadlineSession?.status ?? null,
+            },
+            {
+              agentId: "agent-5-defense-research",
+              label: "Defense Research",
+              liveUrl: defenseSession?.liveUrl,
+              status: defenseSession?.status ?? null,
+            },
+            {
+              agentId: "agent-6-legal-aid",
+              label: "Legal Aid",
+              liveUrl: legalAidSession?.liveUrl,
+              status: legalAidSession?.status ?? null,
+            },
+          ]}
         />
         <ActivityStrip items={activityFeed} />
       </section>
@@ -116,10 +168,9 @@ export default function SessionPage() {
         )}
 
         <ResourcesPanel
-          model={{
-            defenses,
-            legalAid,
-          }}
+          model={{ defenses, legalAid }}
+          isDefensesLoading={isPolling && defenses.length === 0}
+          isLegalAidLoading={isPolling && legalAid.length === 0}
         />
       </section>
 
