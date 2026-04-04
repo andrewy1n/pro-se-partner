@@ -90,14 +90,16 @@ export async function POST(request: Request) {
       confidence: caseContext.confidence,
       missingFacts: caseContext.missingFacts,
       needsHumanReview: caseContext.needsHumanReview,
-      browserSessionId: wave1.deadlineTrackerSession.sessionId,
-      browserSessionStatus: wave1.deadlineTrackerSession.status,
+      browserSessionId: wave1.deadlineTrackerSession?.sessionId ?? "none",
+      browserSessionStatus: wave1.deadlineTrackerSession?.status ?? "none",
     });
 
     const response: IntakeSubmitResponse = {
       sessionId,
       caseContext,
       deadlineTrackerSession: wave1.deadlineTrackerSession,
+      defenseResearchSession: wave1.defenseResearchSession,
+      legalAidSession: wave1.legalAidSession,
     };
 
     return NextResponse.json(response);

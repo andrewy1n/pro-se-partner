@@ -79,6 +79,8 @@ export interface CanonicalCaseContext {
 export interface IntakeSessionPayload {
   caseContext: CanonicalCaseContext;
   deadlineTrackerSession: DeadlineTrackerSession | null;
+  defenseResearchSession: DefenseResearchSession | null;
+  legalAidSession: LegalAidSession | null;
 }
 
 export interface IntakeSubmitResponse extends IntakeSessionPayload {
@@ -177,6 +179,7 @@ export interface DeadlineResult {
 export interface DefenseItem {
   // Produced by Agent 5 Defense Research.
   title: string;
+  strength: "strong" | "possible";
   explanation: string;
   citations: Citation[];
 }
@@ -187,6 +190,7 @@ export interface LegalAidItem {
   distanceMiles?: number;
   hours?: string;
   contact?: string;
+  walkInAvailable?: boolean;
   eligibilityNotes?: string;
 }
 
@@ -265,8 +269,24 @@ export interface DeadlineTrackerSession {
   activeAgentId: Extract<AgentId, "agent-4-deadline-procedure">;
 }
 
+export interface DefenseResearchSession {
+  sessionId: string;
+  liveUrl: string | null;
+  status: BrowserUseSessionStatus;
+  activeAgentId: Extract<AgentId, "agent-5-defense-research">;
+}
+
+export interface LegalAidSession {
+  sessionId: string;
+  liveUrl: string | null;
+  status: BrowserUseSessionStatus;
+  activeAgentId: Extract<AgentId, "agent-6-legal-aid">;
+}
+
 export interface SessionPollResponse {
   activeSession: SessionSnapshot | null;
   deadlineResult: DeadlineResult | null;
+  defenseResult: DefenseItem[] | null;
+  legalAidResult: LegalAidItem[] | null;
   messages: MessageResponse[];
 }
