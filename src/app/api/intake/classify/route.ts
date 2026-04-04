@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { randomUUID } from "crypto";
-import { dispatchWave1Agents } from "@/lib/agent-dispatcher";
 import { orchestrateUnifiedIntake } from "@/lib/intake-orchestrator";
 import { logServerError, logServerEvent } from "@/lib/server-log";
 import type { IntakeSubmitResponse } from "@/lib/types";
@@ -16,8 +15,6 @@ function logIntakeClassification(payload: {
   confidence: number;
   missingFacts: string[];
   needsHumanReview: boolean;
-  browserSessionId: string;
-  browserSessionStatus: string;
 }) {
   logServerEvent("intake_classification", payload);
 }
@@ -65,23 +62,9 @@ export async function POST(request: Request) {
       { status: 503 },
     );
   }
-  if (!process.env.BROWSER_USE_API_KEY?.trim()) {
-    return NextResponse.json(
-      {
-        error:
-          "Server is not configured for Browser Use. Set BROWSER_USE_API_KEY (see .env.local).",
-      },
-      { status: 503 },
-    );
-  }
-
   try {
     const sessionId = randomUUID();
     const caseContext = await orchestrateUnifiedIntake({ caseSummary });
-    const wave1 = await dispatchWave1Agents({
-      appSessionId: sessionId,
-      caseContext,
-    });
 
     logIntakeClassification({
       sessionId,
@@ -90,23 +73,18 @@ export async function POST(request: Request) {
       confidence: caseContext.confidence,
       missingFacts: caseContext.missingFacts,
       needsHumanReview: caseContext.needsHumanReview,
-      browserSessionId: wave1.deadlineTrackerSession?.sessionId ?? "none",
-      browserSessionStatus: wave1.deadlineTrackerSession?.status ?? "none",
     });
 
     const response: IntakeSubmitResponse = {
       sessionId,
       caseContext,
-      deadlineTrackerSession: wave1.deadlineTrackerSession,
-      defenseResearchSession: wave1.defenseResearchSession,
-      legalAidSession: wave1.legalAidSession,
     };
 
     return NextResponse.json(response);
   } catch (err) {
     const message = err instanceof Error ? err.message : "Intake failed";
     logServerError("intake_classification_error", err, {
-      stage: "unified_intake_or_wave1",
+      stage: "unified_intake",
     });
     return NextResponse.json({ error: message }, { status: 502 });
   }

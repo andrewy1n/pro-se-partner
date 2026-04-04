@@ -78,13 +78,22 @@ export interface CanonicalCaseContext {
 /** Persisted client-side after intake API success; hydrates CaseContext on the session page. */
 export interface IntakeSessionPayload {
   caseContext: CanonicalCaseContext;
+  /** Whether Wave 1 agents have been dispatched. False until user clicks "Run Analysis". */
+  dispatched: boolean;
   deadlineTrackerSession: DeadlineTrackerSession | null;
   defenseResearchSession: DefenseResearchSession | null;
   legalAidSession: LegalAidSession | null;
 }
 
-export interface IntakeSubmitResponse extends IntakeSessionPayload {
+export interface IntakeSubmitResponse {
   sessionId: string;
+  caseContext: CanonicalCaseContext;
+}
+
+export interface DispatchWave1Response {
+  deadlineTrackerSession: DeadlineTrackerSession | null;
+  defenseResearchSession: DefenseResearchSession | null;
+  legalAidSession: LegalAidSession | null;
 }
 
 /**

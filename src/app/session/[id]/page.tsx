@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { BrowserPanel } from "@/components/browser-panel";
 import { ActivityStrip } from "@/components/activity-strip";
@@ -12,9 +12,11 @@ import { HitlGate } from "@/components/hitl-gate";
 import { useSession } from "@/context/session-context";
 import { useCaseContext } from "@/context/case-context";
 import { intakeStorageKey, parseIntakeSessionPayload } from "@/lib/intake-storage";
+import type { DispatchWave1Response } from "@/lib/types";
 
 export default function SessionPage() {
   const params = useParams<{ id: string }>();
+  const [dispatched, setDispatched] = useState(false);
   const {
     activeSession,
     deadlineSession,
@@ -54,6 +56,7 @@ export default function SessionPage() {
     if (!payload) return;
 
     setCaseContext(payload.caseContext);
+    setDispatched(payload.dispatched ?? false);
 
     setTrackedSession({
       appSessionId: id,
@@ -109,6 +112,52 @@ export default function SessionPage() {
     if (polledLegalAidResult) setLegalAid(polledLegalAidResult);
   }, [polledLegalAidResult, setLegalAid]);
 
+  async function handleRunAnalysis() {
+    const id = params.id;
+    if (!id || !caseContext) return;
+
+    const res = await fetch("/api/agents/dispatch", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ sessionId: id, caseContext }),
+    });
+
+    if (!res.ok) return;
+
+    const data = (await res.json()) as DispatchWave1Response;
+
+    setTrackedSession({
+      appSessionId: id,
+      browserSessionId: data.deadlineTrackerSession?.sessionId ?? null,
+    });
+    setTrackedDefenseSession({
+      appSessionId: id,
+      browserSessionId: data.defenseResearchSession?.sessionId ?? null,
+    });
+    setTrackedLegalAidSession({
+      appSessionId: id,
+      browserSessionId: data.legalAidSession?.sessionId ?? null,
+    });
+
+    setDispatched(true);
+
+    // Persist dispatched state + sessions to storage so refresh works
+    const raw = sessionStorage.getItem(intakeStorageKey(id));
+    const payload = parseIntakeSessionPayload(raw ?? "");
+    if (payload) {
+      sessionStorage.setItem(
+        intakeStorageKey(id),
+        JSON.stringify({
+          ...payload,
+          dispatched: true,
+          deadlineTrackerSession: data.deadlineTrackerSession,
+          defenseResearchSession: data.defenseResearchSession,
+          legalAidSession: data.legalAidSession,
+        }),
+      );
+    }
+  }
+
   return (
     <main className="grid min-h-screen grid-cols-1 gap-4 p-4 lg:grid-cols-5">
       <section className="space-y-4 lg:col-span-3">
@@ -138,7 +187,11 @@ export default function SessionPage() {
       </section>
 
       <section className="space-y-4 lg:col-span-2">
-        <CaseFactsPanel caseContext={caseContext} />
+        <CaseFactsPanel
+          caseContext={caseContext}
+          dispatched={dispatched}
+          onRunAnalysis={dispatched ? undefined : handleRunAnalysis}
+        />
 
         <StatusPanel
           model={{

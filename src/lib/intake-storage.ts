@@ -152,6 +152,7 @@ export function parseIntakeSessionPayload(raw: string): IntakeSessionPayload | n
       if (!caseContext) return null;
       return {
         caseContext,
+        dispatched: Boolean(parsed.dispatched),
         deadlineTrackerSession:
           "deadlineTrackerSession" in parsed && parsed.deadlineTrackerSession !== undefined
             ? (parsed.deadlineTrackerSession as IntakeSessionPayload["deadlineTrackerSession"])
@@ -171,6 +172,7 @@ export function parseIntakeSessionPayload(raw: string): IntakeSessionPayload | n
     if (!legacyCaseContext) return null;
     return {
       caseContext: legacyCaseContext,
+      dispatched: Boolean(parsed.dispatched),
       deadlineTrackerSession:
         "deadlineTrackerSession" in parsed && parsed.deadlineTrackerSession !== undefined
           ? (parsed.deadlineTrackerSession as IntakeSessionPayload["deadlineTrackerSession"])
