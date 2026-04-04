@@ -40,11 +40,11 @@ export async function POST(request: Request) {
     );
   }
 
-  if (!process.env.AI_GATEWAY_API_KEY?.trim()) {
+  if (!process.env.GOOGLE_GENERATIVE_AI_API_KEY?.trim()) {
     return NextResponse.json(
       {
         error:
-          "Server is not configured for AI classification. Set AI_GATEWAY_API_KEY (see .env.example).",
+          "Server is not configured for AI classification. Set GOOGLE_GENERATIVE_AI_API_KEY (see .env.example).",
       },
       { status: 503 },
     );

@@ -1,3 +1,4 @@
+import { google } from "@ai-sdk/google";
 import { generateText, Output } from "ai";
 import { z } from "zod";
 import type { CaseFacts } from "@/lib/types";
@@ -67,11 +68,11 @@ Extract structured case facts from the user's plain-language description. Rules:
 export async function classifyIntake(
   caseSummary: string,
 ): Promise<IntakeClassificationResult> {
-  const model =
-    process.env.INTAKE_CLASSIFICATION_MODEL ?? "openai/gpt-5.4";
+  const modelId =
+    process.env.INTAKE_CLASSIFICATION_MODEL ?? "gemini-2.5-flash";
 
   const { output } = await generateText({
-    model,
+    model: google(modelId),
     temperature: 0,
     system: SYSTEM,
     prompt: `User intake:\n${caseSummary}`,
