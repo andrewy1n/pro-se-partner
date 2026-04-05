@@ -29,14 +29,17 @@ type TrackedSessionInput = {
 
 interface SessionContextType {
   activeSession: SessionSnapshot | null;
+  formsSession: SessionSnapshot | null;
   deadlineSession: SessionSnapshot | null;
   defenseSession: SessionSnapshot | null;
   legalAidSession: SessionSnapshot | null;
   activityFeed: ActivityFeedItem[];
+  formsNavigatorResult: SessionPollResponse["formsNavigatorResult"];
   deadlineResult: DeadlineResult | null;
   defenseResult: DefenseItem[] | null;
   legalAidResult: LegalAidItem[] | null;
   isPolling: boolean;
+  setTrackedFormsSession: (next: TrackedSessionInput | null) => void;
   setTrackedSession: (next: TrackedSessionInput | null) => void;
   setTrackedDefenseSession: (next: TrackedSessionInput | null) => void;
   setTrackedLegalAidSession: (next: TrackedSessionInput | null) => void;
@@ -108,12 +111,18 @@ async function fetchSessionPoll(url: string): Promise<SessionPollResponse> {
 }
 
 export function SessionProvider({ children }: { children: ReactNode }) {
+  const [trackedFormsSession, setTrackedFormsSession] = useState<TrackedSessionInput | null>(null);
   const [trackedSession, setTrackedSession] = useState<TrackedSessionInput | null>(null);
   const [trackedDefenseSession, setTrackedDefenseSession] = useState<TrackedSessionInput | null>(null);
   const [trackedLegalAidSession, setTrackedLegalAidSession] = useState<TrackedSessionInput | null>(null);
+  const [formsMessages, setFormsMessages] = useState<MessageResponse[]>([]);
   const [deadlineMessages, setDeadlineMessages] = useState<MessageResponse[]>([]);
   const [defenseMessages, setDefenseMessages] = useState<MessageResponse[]>([]);
   const [legalAidMessages, setLegalAidMessages] = useState<MessageResponse[]>([]);
+
+  useEffect(() => {
+    setFormsMessages([]);
+  }, [trackedFormsSession?.browserSessionId]);
 
   useEffect(() => {
     setDeadlineMessages([]);
@@ -126,6 +135,43 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     setLegalAidMessages([]);
   }, [trackedLegalAidSession?.browserSessionId]);
+
+  useEffect(() => {
+    if (!trackedFormsSession?.appSessionId || !trackedFormsSession.browserSessionId) return;
+
+    let closed = false;
+    const stream = new EventSource(
+      buildStreamUrl(
+        trackedFormsSession.appSessionId,
+        trackedFormsSession.browserSessionId,
+        "agent-3-forms-navigator",
+      ),
+    );
+
+    stream.onmessage = (event) => {
+      const payload = JSON.parse(event.data) as SessionStreamEvent;
+      if (payload.type === "message") {
+        setFormsMessages((current) => appendMessage(current, payload.message));
+        return;
+      }
+      if (payload.type === "error") {
+        console.error("[session-stream:forms]", payload.message);
+        return;
+      }
+      closed = true;
+      stream.close();
+    };
+
+    stream.onerror = () => {
+      if (closed) return;
+      console.error("[session-stream:forms] connection failed");
+    };
+
+    return () => {
+      closed = true;
+      stream.close();
+    };
+  }, [trackedFormsSession?.appSessionId, trackedFormsSession?.browserSessionId]);
 
   useEffect(() => {
     if (!trackedSession?.appSessionId || !trackedSession.browserSessionId) return;
@@ -238,6 +284,33 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     };
   }, [trackedLegalAidSession?.appSessionId, trackedLegalAidSession?.browserSessionId]);
 
+  // Forms navigator polling
+  const formsQuery = useQuery({
+    queryKey: [
+      "sessions",
+      "forms",
+      trackedFormsSession?.appSessionId,
+      trackedFormsSession?.browserSessionId,
+    ],
+    enabled: Boolean(trackedFormsSession?.appSessionId && trackedFormsSession?.browserSessionId),
+    queryFn: () =>
+      fetchSessionPoll(
+        buildPollUrl(
+          trackedFormsSession!.appSessionId,
+          trackedFormsSession!.browserSessionId!,
+          "agent-3-forms-navigator",
+        ),
+      ),
+    retry: 2,
+    retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 8000),
+    refetchInterval: (query) => {
+      if (isTerminalState(query.state.data)) {
+        return false;
+      }
+      return trackedFormsSession?.browserSessionId ? 1000 : false;
+    },
+  });
+
   // Deadline tracker polling
   const deadlineQuery = useQuery({
     queryKey: [
@@ -322,6 +395,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   // Pick the active session for the iframe: whichever is currently running, with deadline as fallback
   const activeSession = useMemo<SessionSnapshot | null>(() => {
     const candidates = [
+      formsQuery.data?.activeSession,
       deadlineQuery.data?.activeSession,
       defenseQuery.data?.activeSession,
       legalAidQuery.data?.activeSession,
@@ -333,10 +407,17 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       candidates[0] ??
       null
     );
-  }, [deadlineQuery.data, defenseQuery.data, legalAidQuery.data]);
+  }, [formsQuery.data, deadlineQuery.data, defenseQuery.data, legalAidQuery.data]);
 
   // Merge activity feeds from all sessions, sorted chronologically
   const activityFeed = useMemo<ActivityFeedItem[]>(() => {
+    const formsFeed = convertMessagesToActivityFeed(
+      formsMessages,
+      {
+        agentId: "agent-3-forms-navigator",
+        sessionStatus: formsQuery.data?.activeSession?.status ?? null,
+      },
+    );
     const deadlineFeed = convertMessagesToActivityFeed(
       deadlineMessages,
       {
@@ -359,10 +440,12 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       },
     );
 
-    return [...deadlineFeed, ...defenseFeed, ...legalAidFeed].sort(
+    return [...formsFeed, ...deadlineFeed, ...defenseFeed, ...legalAidFeed].sort(
       (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
     );
   }, [
+    formsMessages,
+    formsQuery.data,
     deadlineMessages,
     deadlineQuery.data,
     defenseMessages,
@@ -373,6 +456,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     for (const [query, label] of [
+      [formsQuery, "forms"] as const,
       [deadlineQuery, "deadline"] as const,
       [defenseQuery, "defense"] as const,
       [legalAidQuery, "legal-aid"] as const,
@@ -382,6 +466,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       }
     }
   }, [
+    formsQuery.isError, formsQuery.error,
     deadlineQuery.isError, deadlineQuery.error,
     defenseQuery.isError, defenseQuery.error,
     legalAidQuery.isError, legalAidQuery.error,
@@ -390,15 +475,21 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   const value = useMemo<SessionContextType>(
     () => ({
       activeSession,
+      formsSession: formsQuery.data?.activeSession ?? null,
       deadlineSession: deadlineQuery.data?.activeSession ?? null,
       defenseSession: defenseQuery.data?.activeSession ?? null,
       legalAidSession: legalAidQuery.data?.activeSession ?? null,
       activityFeed,
+      formsNavigatorResult: formsQuery.data?.formsNavigatorResult ?? null,
       deadlineResult: deadlineQuery.data?.deadlineResult ?? null,
       defenseResult: defenseQuery.data?.defenseResult ?? null,
       legalAidResult: legalAidQuery.data?.legalAidResult ?? null,
       isPolling:
-        deadlineQuery.isFetching || defenseQuery.isFetching || legalAidQuery.isFetching,
+        formsQuery.isFetching ||
+        deadlineQuery.isFetching ||
+        defenseQuery.isFetching ||
+        legalAidQuery.isFetching,
+      setTrackedFormsSession,
       setTrackedSession,
       setTrackedDefenseSession,
       setTrackedLegalAidSession,
@@ -406,6 +497,8 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     [
       activeSession,
       activityFeed,
+      formsQuery.data,
+      formsQuery.isFetching,
       deadlineQuery.data,
       deadlineQuery.isFetching,
       defenseQuery.data,

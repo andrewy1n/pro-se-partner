@@ -3,6 +3,7 @@
 import {
   createContext,
   useContext,
+  useCallback,
   useMemo,
   useState,
   type ReactNode,
@@ -15,6 +16,7 @@ import type {
   ActionChecklistItem,
   FormArtifact,
   HitlGateState,
+  PdfFillState,
 } from "@/lib/types";
 
 interface CaseContextValue {
@@ -28,8 +30,11 @@ interface CaseContextValue {
   setLegalAid: (items: LegalAidItem[]) => void;
   actionItems: ActionChecklistItem[];
   formArtifacts: FormArtifact[];
+  addFormArtifact: (artifact: FormArtifact) => void;
   hitlGate: HitlGateState;
   setHitlGate: (state: HitlGateState) => void;
+  pdfFillState: PdfFillState;
+  setPdfFillState: (state: PdfFillState) => void;
 }
 
 const CaseContext = createContext<CaseContextValue | null>(null);
@@ -39,11 +44,26 @@ export function CaseProvider({ children }: { children: ReactNode }) {
   const [deadlineResult, setDeadlineResult] = useState<DeadlineResult | null>(null);
   const [defenses, setDefenses] = useState<DefenseItem[]>([]);
   const [legalAid, setLegalAid] = useState<LegalAidItem[]>([]);
+  const [formArtifacts, setFormArtifacts] = useState<FormArtifact[]>([]);
   const [hitlGate, setHitlGate] = useState<HitlGateState>({
     isBlockedOnUser: false,
     instruction: null,
     missingFacts: [],
   });
+  const [pdfFillState, setPdfFillState] = useState<PdfFillState>({
+    status: "idle",
+    errorCode: null,
+    errorMessage: null,
+  });
+
+  const addFormArtifact = useCallback((artifact: FormArtifact) => {
+    setFormArtifacts((prev) => {
+      const without = prev.filter(
+        (a) => !(a.formCode === artifact.formCode && a.variant === artifact.variant),
+      );
+      return [...without, artifact];
+    });
+  }, []);
 
   const value = useMemo<CaseContextValue>(
     () => ({
@@ -56,11 +76,23 @@ export function CaseProvider({ children }: { children: ReactNode }) {
       legalAid,
       setLegalAid,
       actionItems: [],
-      formArtifacts: [],
+      formArtifacts,
+      addFormArtifact,
       hitlGate,
       setHitlGate,
+      pdfFillState,
+      setPdfFillState,
     }),
-    [caseContext, deadlineResult, defenses, legalAid, hitlGate],
+    [
+      caseContext,
+      deadlineResult,
+      defenses,
+      legalAid,
+      formArtifacts,
+      addFormArtifact,
+      hitlGate,
+      pdfFillState,
+    ],
   );
 
   return <CaseContext.Provider value={value}>{children}</CaseContext.Provider>;

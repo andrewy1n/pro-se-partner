@@ -18,9 +18,10 @@ export type CaseStage = "stage-1-intake" | "stage-2-filing";
 export type WaveId = "wave-1" | "wave-2";
 
 /** Subset of Wave 1 browser agents the user can dispatch from the session dashboard. */
-export type Wave1AgentKey = "deadline" | "defense" | "legalAid";
+export type Wave1AgentKey = "forms" | "deadline" | "defense" | "legalAid";
 
 export const WAVE1_AGENT_KEYS_ALL: readonly Wave1AgentKey[] = [
+  "forms",
   "deadline",
   "defense",
   "legalAid",
@@ -97,6 +98,7 @@ export interface IntakeSessionPayload {
   caseContext: CanonicalCaseContext;
   /** True once at least one Wave 1 browser session id is stored (successful launch). */
   dispatched: boolean;
+  formsNavigatorSession: FormsNavigatorSession | null;
   deadlineTrackerSession: DeadlineTrackerSession | null;
   defenseResearchSession: DefenseResearchSession | null;
   legalAidSession: LegalAidSession | null;
@@ -108,6 +110,7 @@ export interface IntakeSubmitResponse {
 }
 
 export interface DispatchWave1Response {
+  formsNavigatorSession: FormsNavigatorSession | null;
   deadlineTrackerSession: DeadlineTrackerSession | null;
   defenseResearchSession: DefenseResearchSession | null;
   legalAidSession: LegalAidSession | null;
@@ -186,9 +189,51 @@ export interface ParsedDocumentFields {
 export interface FormArtifact {
   // Produced by Agent 3 and Agent 3b.
   formCode: "UD-105" | "FW-001";
+  variant: "original" | "filled";
   fileName: string;
   downloadUrl: string;
   revisionLabel?: string;
+}
+
+export type PdfFillStatus = "idle" | "preparing" | "filling" | "done" | "failed";
+export type PdfFillErrorCode =
+  | "FORM_ARTIFACT_MISSING"
+  | "PDF_DECODE_FAILED"
+  | "PDF_PARSE_FAILED"
+  | "PDF_FILL_FAILED"
+  | "PDF_SERIALIZE_FAILED"
+  | "corrupt_pdf_structure"
+  | "encrypted_pdf"
+  | "xfa_or_unsupported_form"
+  | "invalid_pdf_structure"
+  | "unknown_fill_error";
+
+/** POST /api/sessions/[id]/fill-pdf success body */
+export interface PdfFillResult {
+  formCode: "UD-105";
+  fileName: string;
+  pdfBase64: string;
+  missingFields: string[];
+  warnings: string[];
+}
+
+export interface PdfFillState {
+  status: PdfFillStatus;
+  errorCode: PdfFillErrorCode | null;
+  errorMessage: string | null;
+}
+
+export interface DownloadedForm {
+  formTitleVerified: string;
+  revisionLabel: string | null;
+  fileName: string;
+  pdfBase64: string;
+}
+
+export interface FormsNavigatorResult {
+  ud105: DownloadedForm | null;
+  fw001?: DownloadedForm | null;
+  notes: string[];
 }
 
 export interface TimelineMilestone {
@@ -327,6 +372,13 @@ export interface DeadlineTrackerSession {
   activeAgentId: Extract<AgentId, "agent-4-deadline-procedure">;
 }
 
+export interface FormsNavigatorSession {
+  sessionId: string;
+  liveUrl: string | null;
+  status: BrowserUseSessionStatus;
+  activeAgentId: Extract<AgentId, "agent-3-forms-navigator">;
+}
+
 export interface DefenseResearchSession {
   sessionId: string;
   liveUrl: string | null;
@@ -343,6 +395,7 @@ export interface LegalAidSession {
 
 export interface SessionPollResponse {
   activeSession: SessionSnapshot | null;
+  formsNavigatorResult: FormsNavigatorResult | null;
   deadlineResult: DeadlineResult | null;
   defenseResult: DefenseItem[] | null;
   legalAidResult: LegalAidItem[] | null;

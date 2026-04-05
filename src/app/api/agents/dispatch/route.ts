@@ -19,7 +19,7 @@ function parseWave1AgentsField(raw: unknown): Wave1AgentKey[] | null {
   }
   const seen = new Set<Wave1AgentKey>();
   for (const x of raw) {
-    if (x === "deadline" || x === "defense" || x === "legalAid") {
+    if (x === "forms" || x === "deadline" || x === "defense" || x === "legalAid") {
       seen.add(x);
     } else {
       return null;
@@ -67,7 +67,7 @@ export async function POST(request: Request) {
     return NextResponse.json(
       {
         error:
-          'Optional field "agents" must be a non-empty array of "deadline", "defense", and/or "legalAid".',
+          'Optional field "agents" must be a non-empty array of "forms", "deadline", "defense", and/or "legalAid".',
       },
       { status: 400 },
     );
@@ -82,12 +82,14 @@ export async function POST(request: Request) {
 
     logServerEvent("agents_dispatch_wave1", {
       sessionId,
+      formsSessionId: wave1.formsNavigatorSession?.sessionId ?? "none",
       deadlineSessionId: wave1.deadlineTrackerSession?.sessionId ?? "none",
       defenseSessionId: wave1.defenseResearchSession?.sessionId ?? "none",
       legalAidSessionId: wave1.legalAidSession?.sessionId ?? "none",
     });
 
     const response: DispatchWave1Response = {
+      formsNavigatorSession: wave1.formsNavigatorSession,
       deadlineTrackerSession: wave1.deadlineTrackerSession,
       defenseResearchSession: wave1.defenseResearchSession,
       legalAidSession: wave1.legalAidSession,

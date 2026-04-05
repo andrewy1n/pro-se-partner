@@ -1,16 +1,28 @@
 "use client";
 
 import { useState } from "react";
-import { FileDown, Eye, AlertTriangle, CheckCircle2, Loader2, X } from "lucide-react";
+import {
+  FileDown,
+  Eye,
+  AlertTriangle,
+  CheckCircle2,
+  Loader2,
+  X,
+  FileEdit,
+} from "lucide-react";
 import { PdfBlobViewer } from "@/components/pdf-blob-viewer";
 import { logPdfArtifact } from "@/lib/client-pdf-artifact";
 import type { ActionItemsPanelModel, FormArtifact, PdfFillStatus, PdfFillErrorCode } from "@/lib/types";
 
 interface ActionItemsPanelProps {
   model: ActionItemsPanelModel | null;
-  pdfFillStatus: PdfFillStatus;
-  pdfFillErrorCode: PdfFillErrorCode | null;
-  pdfFillErrorMessage: string | null;
+  pdfFillStatus?: PdfFillStatus;
+  pdfFillErrorCode?: PdfFillErrorCode | null;
+  pdfFillErrorMessage?: string | null;
+  /** When set, shows Fill UD-105 / Retry fill using case facts (server pdf-lib fill). */
+  onFillUd105?: () => void | Promise<void>;
+  /** True when no UD-105 bytes available or case context missing. */
+  fillUd105Disabled?: boolean;
 }
 
 const FILL_STATUS_LABELS: Record<PdfFillStatus, string> = {
@@ -28,12 +40,23 @@ function fillStatusColor(s: PdfFillStatus): string {
   return "text-zinc-500";
 }
 
+type OriginalAutoFill = {
+  onClick: () => void;
+  disabled: boolean;
+  busy: boolean;
+  showRetry: boolean;
+  showNoSourceHint: boolean;
+};
+
 function ArtifactRow({
   artifact,
   onPreviewOpen,
+  autoFill,
 }: {
   artifact: FormArtifact;
   onPreviewOpen: (blobUrl: string, title: string) => void;
+  /** Small row action for UD-105 originals only. */
+  autoFill?: OriginalAutoFill;
 }) {
   const label =
     artifact.variant === "original"
@@ -52,52 +75,89 @@ function ArtifactRow({
   }
 
   return (
-    <li className="flex items-center gap-3 rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2">
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-zinc-200 truncate">
-          {label}
-          {artifact.revisionLabel ? (
-            <span className="ml-1.5 text-xs text-zinc-500">
-              ({artifact.revisionLabel})
-            </span>
+    <li className="rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2">
+      <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-medium text-zinc-200 truncate">
+            {label}
+            {artifact.revisionLabel ? (
+              <span className="ml-1.5 text-xs text-zinc-500">
+                ({artifact.revisionLabel})
+              </span>
+            ) : null}
+          </p>
+          <p className="text-xs text-zinc-500 truncate">{artifact.fileName}</p>
+        </div>
+        <div className="flex shrink-0 flex-wrap items-center gap-2">
+          {autoFill ? (
+            <button
+              type="button"
+              disabled={autoFill.disabled}
+              onClick={() => void autoFill.onClick()}
+              title={
+                autoFill.showNoSourceHint
+                  ? "Case context or PDF data not ready"
+                  : "Fill known fields from your case facts (pdf-lib)"
+              }
+              className="inline-flex items-center gap-1 rounded border border-zinc-600 bg-zinc-800/90 px-2 py-1 text-[11px] font-medium text-zinc-200 hover:bg-zinc-700 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {autoFill.busy ? (
+                <Loader2 className="h-3 w-3 animate-spin" aria-hidden />
+              ) : (
+                <FileEdit className="h-3 w-3" aria-hidden />
+              )}
+              {autoFill.busy
+                ? autoFill.showRetry
+                  ? "Retrying\u2026"
+                  : "Filling\u2026"
+                : autoFill.showRetry
+                  ? "Retry fill"
+                  : "Auto-fill"}
+            </button>
           ) : null}
-        </p>
-        <p className="text-xs text-zinc-500 truncate">{artifact.fileName}</p>
+          <button
+            type="button"
+            className="inline-flex items-center gap-1 text-xs text-blue-300 hover:text-blue-200 transition"
+            title={`Preview ${label}`}
+            onClick={handlePreview}
+          >
+            <Eye className="h-3.5 w-3.5" aria-hidden />
+            Preview
+          </button>
+          <a
+            href={artifact.downloadUrl}
+            download={artifact.fileName}
+            className="inline-flex items-center gap-1 text-xs text-blue-300 hover:text-blue-200 transition"
+            title={`Download ${label}`}
+            onClick={() =>
+              logPdfArtifact("info", "download_link_clicked", {
+                variant: artifact.variant,
+                formCode: artifact.formCode,
+                fileName: artifact.fileName,
+              })
+            }
+          >
+            <FileDown className="h-3.5 w-3.5" aria-hidden />
+            Download
+          </a>
+        </div>
       </div>
-      <button
-        type="button"
-        className="inline-flex items-center gap-1 text-xs text-blue-300 hover:text-blue-200 transition"
-        title={`Preview ${label}`}
-        onClick={handlePreview}
-      >
-        <Eye className="h-3.5 w-3.5" aria-hidden />
-        Preview
-      </button>
-      <a
-        href={artifact.downloadUrl}
-        download={artifact.fileName}
-        className="inline-flex items-center gap-1 text-xs text-blue-300 hover:text-blue-200 transition"
-        title={`Download ${label}`}
-        onClick={() =>
-          logPdfArtifact("info", "download_link_clicked", {
-            variant: artifact.variant,
-            formCode: artifact.formCode,
-            fileName: artifact.fileName,
-          })
-        }
-      >
-        <FileDown className="h-3.5 w-3.5" aria-hidden />
-        Download
-      </a>
+      {autoFill?.showNoSourceHint && !autoFill.busy ? (
+        <p className="mt-1.5 text-[11px] text-zinc-500">
+          Run Find &amp; Fill Forms to download UD-105, or ensure case facts are loaded.
+        </p>
+      ) : null}
     </li>
   );
 }
 
 export function ActionItemsPanel({
   model,
-  pdfFillStatus,
-  pdfFillErrorCode,
-  pdfFillErrorMessage,
+  pdfFillStatus = "idle",
+  pdfFillErrorCode = null,
+  pdfFillErrorMessage = null,
+  onFillUd105,
+  fillUd105Disabled = false,
 }: ActionItemsPanelProps) {
   const [pdfPreview, setPdfPreview] = useState<{ url: string; title: string } | null>(null);
 
@@ -105,6 +165,17 @@ export function ActionItemsPanel({
   const filled = model?.formArtifacts.filter((a) => a.variant === "filled") ?? [];
   const hasAnyArtifact = originals.length > 0 || filled.length > 0;
   const showFillStatus = pdfFillStatus !== "idle";
+  const fillInProgress = pdfFillStatus === "preparing" || pdfFillStatus === "filling";
+  const showFillHandler = typeof onFillUd105 === "function";
+  const ud105AutoFill = showFillHandler
+    ? {
+        onClick: () => void onFillUd105?.(),
+        disabled: fillUd105Disabled || fillInProgress,
+        busy: fillInProgress,
+        showRetry: pdfFillStatus === "failed",
+        showNoSourceHint: fillUd105Disabled,
+      }
+    : undefined;
 
   return (
     <section className="rounded-xl border border-zinc-800 bg-zinc-950 p-4">
@@ -112,7 +183,7 @@ export function ActionItemsPanel({
 
       {/* Fill-step status indicator */}
       {showFillStatus && (
-        <div className={`mt-2 flex items-center gap-2 text-xs ${fillStatusColor(pdfFillStatus)}`}>
+        <div className={`mt-3 flex items-center gap-2 text-xs ${fillStatusColor(pdfFillStatus)}`}>
           {(pdfFillStatus === "preparing" || pdfFillStatus === "filling") && (
             <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
           )}
@@ -155,6 +226,11 @@ export function ActionItemsPanel({
                 key={`${a.formCode}-original`}
                 artifact={a}
                 onPreviewOpen={(url, title) => setPdfPreview({ url, title })}
+                autoFill={
+                  a.formCode === "UD-105" && a.variant === "original"
+                    ? ud105AutoFill
+                    : undefined
+                }
               />
             ))}
           </ul>

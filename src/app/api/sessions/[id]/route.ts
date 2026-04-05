@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getBrowserSession } from "@/lib/api";
+import { parseFormsNavigatorResult } from "@/lib/forms-navigator";
 import { parseDeadlineResult } from "@/lib/deadline-tracker";
 import { parseDefenseResult } from "@/lib/defense-research";
 import { parseLegalAidResult } from "@/lib/legal-aid";
@@ -34,11 +35,24 @@ export async function GET(
 
   try {
     const session = await getBrowserSession(browserSessionId);
+    let formsNavigatorResult = null;
     let deadlineResult = null;
     let defenseResult = null;
     let legalAidResult = null;
 
-    if (agentId === "agent-5-defense-research") {
+    if (agentId === "agent-3-forms-navigator") {
+      formsNavigatorResult = parseFormsNavigatorResult(session.output);
+      if (session.output != null && formsNavigatorResult == null) {
+        logServerEvent("session_poll_forms_parse_mismatch", {
+          appSessionId: id,
+          browserSessionId,
+          outputPreview:
+            typeof session.output === "string"
+              ? session.output.slice(0, 400)
+              : JSON.stringify(session.output).slice(0, 400),
+        });
+      }
+    } else if (agentId === "agent-5-defense-research") {
       defenseResult = parseDefenseResult(session.output);
       if (session.output != null && defenseResult == null) {
         logServerEvent("session_poll_defense_parse_mismatch", {
@@ -82,6 +96,7 @@ export async function GET(
         browserSessionId,
         agentId,
         sessionStatus: session.status,
+        hasFormsNavigatorResult: Boolean(formsNavigatorResult),
         hasDeadlineResult: Boolean(deadlineResult),
         hasDefenseResult: Boolean(defenseResult),
         hasLegalAidResult: Boolean(legalAidResult),
@@ -97,6 +112,7 @@ export async function GET(
         stage: "stage-1-intake",
         status: session.status,
       },
+      formsNavigatorResult,
       deadlineResult,
       defenseResult,
       legalAidResult,

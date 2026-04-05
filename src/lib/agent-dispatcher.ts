@@ -1,5 +1,6 @@
 import type {
   CanonicalCaseContext,
+  FormsNavigatorSession,
   DeadlineTrackerSession,
   DefenseResearchSession,
   FeeWaiverResult,
@@ -8,6 +9,10 @@ import type {
   Wave1AgentKey,
 } from "@/lib/types";
 import { createBrowserTaskSession } from "@/lib/api";
+import {
+  buildFormsNavigatorTask,
+  FORMS_NAVIGATOR_OUTPUT_SCHEMA,
+} from "@/lib/forms-navigator";
 import {
   buildDeadlineTrackerTask,
   DEADLINE_RESULT_OUTPUT_SCHEMA,
@@ -35,9 +40,29 @@ export interface DispatchWave2Input {
 }
 
 export interface DispatchWave1Result {
+  formsNavigatorSession: FormsNavigatorSession | null;
   deadlineTrackerSession: DeadlineTrackerSession | null;
   defenseResearchSession: DefenseResearchSession | null;
   legalAidSession: LegalAidSession | null;
+}
+
+async function launchFormsNavigatorSession(
+  appSessionId: string,
+  caseContext: CanonicalCaseContext,
+): Promise<FormsNavigatorSession> {
+  const session = await createBrowserTaskSession({
+    agentId: "agent-3-forms-navigator",
+    keepAlive: true,
+    outputSchema: FORMS_NAVIGATOR_OUTPUT_SCHEMA,
+    task: buildFormsNavigatorTask({ appSessionId, caseContext }),
+  });
+
+  return {
+    sessionId: session.id,
+    liveUrl: session.liveUrl ?? null,
+    status: session.status,
+    activeAgentId: "agent-3-forms-navigator",
+  };
 }
 
 async function launchDeadlineTrackerSession(
@@ -99,8 +124,12 @@ async function launchLegalAidSession(
 
 const AGENT_ID_BY_WAVE1_KEY: Record<
   Wave1AgentKey,
-  "agent-4-deadline-procedure" | "agent-5-defense-research" | "agent-6-legal-aid"
+  | "agent-3-forms-navigator"
+  | "agent-4-deadline-procedure"
+  | "agent-5-defense-research"
+  | "agent-6-legal-aid"
 > = {
+  forms: "agent-3-forms-navigator",
   deadline: "agent-4-deadline-procedure",
   defense: "agent-5-defense-research",
   legalAid: "agent-6-legal-aid",
@@ -118,6 +147,7 @@ export async function dispatchWave1Agents(
   });
 
   type Entry =
+    | { key: "forms"; promise: Promise<FormsNavigatorSession> }
     | { key: "deadline"; promise: Promise<DeadlineTrackerSession> }
     | { key: "defense"; promise: Promise<DefenseResearchSession> }
     | { key: "legalAid"; promise: Promise<LegalAidSession> };
@@ -125,7 +155,12 @@ export async function dispatchWave1Agents(
   const entries: Entry[] = [];
 
   for (const key of agents) {
-    if (key === "deadline") {
+    if (key === "forms") {
+      entries.push({
+        key: "forms",
+        promise: launchFormsNavigatorSession(input.appSessionId, input.caseContext),
+      });
+    } else if (key === "deadline") {
       entries.push({
         key: "deadline",
         promise: launchDeadlineTrackerSession(input.appSessionId, input.caseContext),
@@ -146,6 +181,7 @@ export async function dispatchWave1Agents(
   const settled = await Promise.allSettled(entries.map((e) => e.promise));
 
   const result: DispatchWave1Result = {
+    formsNavigatorSession: null,
     deadlineTrackerSession: null,
     defenseResearchSession: null,
     legalAidSession: null,
@@ -156,7 +192,15 @@ export async function dispatchWave1Agents(
     const s = settled[i];
 
     if (s.status === "fulfilled") {
-      if (key === "deadline") {
+      if (key === "forms") {
+        const value = s.value as FormsNavigatorSession;
+        logServerEvent("dispatch_wave1_forms_navigator_ok", {
+          appSessionId: input.appSessionId,
+          browserSessionId: value.sessionId,
+          status: value.status,
+        });
+        result.formsNavigatorSession = value;
+      } else if (key === "deadline") {
         const value = s.value as DeadlineTrackerSession;
         logServerEvent("dispatch_wave1_deadline_tracker_ok", {
           appSessionId: input.appSessionId,
@@ -182,7 +226,11 @@ export async function dispatchWave1Agents(
         result.legalAidSession = value;
       }
     } else {
-      if (key === "deadline") {
+      if (key === "forms") {
+        logServerError("dispatch_wave1_forms_navigator_failed", s.reason, {
+          appSessionId: input.appSessionId,
+        });
+      } else if (key === "deadline") {
         logServerError("dispatch_wave1_deadline_tracker_failed", s.reason, {
           appSessionId: input.appSessionId,
         });

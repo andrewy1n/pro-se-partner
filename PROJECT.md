@@ -369,3 +369,4 @@ Keep changes lightweight. Edit the relevant section in place, then append a one-
 | April 4 | Document Parser: direct multimodal extraction API + Case Facts panel section for structured fields from uploads. |
 | April 4 | Layout: replaced 60/40 two-column split with tabbed view toggle (Live Browser / Your Case Dashboard). Added persistent status bar. Both views use full width. |
 | April 4 | E-Filing agent: filing navigation and HITL account-creation URL updated from lacourt.org to courtfiling.net. |
+| April 4 | Re-integrated Forms Navigator into Wave 1 dispatch, session polling/streaming, and dashboard form artifact wiring so downloaded UD-105/FW-001 files appear in Action Items. |

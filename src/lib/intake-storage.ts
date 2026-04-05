@@ -153,6 +153,10 @@ export function parseIntakeSessionPayload(raw: string): IntakeSessionPayload | n
       return {
         caseContext,
         dispatched: Boolean(parsed.dispatched),
+        formsNavigatorSession:
+          "formsNavigatorSession" in parsed && parsed.formsNavigatorSession !== undefined
+            ? (parsed.formsNavigatorSession as IntakeSessionPayload["formsNavigatorSession"])
+            : null,
         deadlineTrackerSession:
           "deadlineTrackerSession" in parsed && parsed.deadlineTrackerSession !== undefined
             ? (parsed.deadlineTrackerSession as IntakeSessionPayload["deadlineTrackerSession"])
@@ -173,6 +177,7 @@ export function parseIntakeSessionPayload(raw: string): IntakeSessionPayload | n
     return {
       caseContext: legacyCaseContext,
       dispatched: Boolean(parsed.dispatched),
+      formsNavigatorSession: null,
       deadlineTrackerSession:
         "deadlineTrackerSession" in parsed && parsed.deadlineTrackerSession !== undefined
           ? (parsed.deadlineTrackerSession as IntakeSessionPayload["deadlineTrackerSession"])

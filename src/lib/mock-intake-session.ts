@@ -63,6 +63,10 @@ export function buildMockCaseContext(): CanonicalCaseContext {
 export function buildMockIntakeSessionPayload(): IntakeSessionPayload {
   return {
     caseContext: buildMockCaseContext(),
+    dispatched: false,
+    formsNavigatorSession: null,
     deadlineTrackerSession: null,
+    defenseResearchSession: null,
+    legalAidSession: null,
   };
 }

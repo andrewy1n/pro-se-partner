@@ -13,17 +13,19 @@ interface Wave1DispatchPanelProps {
 
 export function Wave1DispatchPanel({ caseContext, onDispatchWave1 }: Wave1DispatchPanelProps) {
   const [isDispatching, setIsDispatching] = useState(false);
+  const [runForms, setRunForms] = useState(true);
   const [runDeadline, setRunDeadline] = useState(true);
   const [runDefense, setRunDefense] = useState(true);
   const [runLegalAid, setRunLegalAid] = useState(true);
 
   const selectedAgents = useMemo((): Wave1AgentKey[] => {
     const keys: Wave1AgentKey[] = [];
+    if (runForms) keys.push("forms");
     if (runDeadline) keys.push("deadline");
     if (runDefense) keys.push("defense");
     if (runLegalAid) keys.push("legalAid");
     return keys;
-  }, [runDeadline, runDefense, runLegalAid]);
+  }, [runForms, runDeadline, runDefense, runLegalAid]);
 
   const allSelected = selectedAgents.length === WAVE1_AGENT_KEYS_ALL.length;
 
@@ -80,6 +82,15 @@ export function Wave1DispatchPanel({ caseContext, onDispatchWave1 }: Wave1Dispat
           Leave all selected to run the full Wave 1. Uncheck agents you do not want to launch.
         </p>
         <div className="space-y-2 text-sm text-zinc-300">
+          <label className="flex cursor-pointer items-center gap-2">
+            <input
+              type="checkbox"
+              checked={runForms}
+              onChange={(e) => setRunForms(e.target.checked)}
+              className="rounded border-zinc-600"
+            />
+            Forms Navigator
+          </label>
           <label className="flex cursor-pointer items-center gap-2">
             <input
               type="checkbox"

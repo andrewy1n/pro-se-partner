@@ -79,6 +79,7 @@ export default function HomePage() {
       const payload: IntakeSessionPayload = {
         caseContext: data.caseContext,
         dispatched: false,
+        formsNavigatorSession: null,
         deadlineTrackerSession: null,
         defenseResearchSession: null,
         legalAidSession: null,
