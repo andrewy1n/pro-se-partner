@@ -41,7 +41,7 @@ When the user hits a step requiring human action (like creating an e-filing acco
 | Defense surfacing | Identifies applicable defenses (habitability, improper notice, retaliation) with citations |
 | Legal aid search | Geocoded search filtered by case type, income eligibility, and availability |
 | Fee waiver check | Evaluates eligibility against California thresholds, pre-fills FW-001 if qualified |
-| E-filing | Navigates LA Superior Court portal, uploads completed UD-105, captures confirmation number |
+| E-filing | Navigates courtfiling.net (LA Superior Court e-filing), uploads completed UD-105, captures confirmation number |
 
 ---
 
@@ -106,7 +106,7 @@ upload)
                          |
                          v
               E-Filing (Wave 2)
-              Navigates portal -> uploads UD-105
+              Navigates courtfiling.net -> uploads UD-105
               -> captures confirmation number
 ```
 
@@ -196,8 +196,8 @@ Each agent has a role-based name below. Older references may have used numeric l
 
 ### E-Filing *(Stage 2)*
 - **Type:** Browser Use session (`bu-max`)
-- **Activates:** After user creates an LA Superior Court e-filing account and returns with credentials
-- **Task:** Navigate the e-filing portal -> upload completed UD-105 -> capture confirmation number and timestamp
+- **Activates:** After user creates an LA Superior Court e-filing account at courtfiling.net and returns with credentials
+- **Task:** Navigate courtfiling.net -> upload completed UD-105 -> capture confirmation number and timestamp
 - **Human-in-the-loop:** System detects task completion and resumes autonomously. This is the visible handoff moment in the demo.
 - **Output:** Confirmation number, timestamp, dashboard update — "Answer filed."
 
@@ -209,11 +209,11 @@ Each agent has a role-based name below. Older references may have used numeric l
 1. User describes situation, optionally uploads documents
 2. Case Intake classifies and dispatches Wave 1 agents
 3. Document Parser through Fee Waiver run in parallel; dashboard populates progressively
-4. Ends with one clear call to action: "Your UD-105 is ready. To file it, you'll need an e-filing account. Here's how — it takes 5 minutes. Come back when you have your login."
+4. Ends with one clear call to action: "Your UD-105 is ready. To file it, you'll need an e-filing account at courtfiling.net. Here's how — it takes 5 minutes. Come back when you have your login."
 
 ### Stage 2 — Filing *(hackathon MVP)*
 1. User returns with e-filing credentials
-2. E-Filing activates, navigates the portal, uploads UD-105
+2. E-Filing activates, navigates courtfiling.net, uploads UD-105
 3. Dashboard updates: "Answer filed. Confirmation #XXXXX. Trial date set within 20 days."
 
 ### Stage 3 — Trial Preparation *(post-hackathon v2)*
@@ -278,7 +278,7 @@ Single-page app with a **tabbed view toggle** on the session page. After intake 
 | **Action Items** | Third | Numbered prioritized checklist, pre-filled forms attached for download, each item expandable with detail |
 | **Context & Resources** | Last | Applicable defenses with plain-language explanations and citations, legal aid clinics with distance/hours/eligibility |
 
-4. **HITL Gate card** — replaces the Action Items panel content when the system is waiting on the user. Single focused instruction, e.g. *"Create a free e-filing account at lacourt.org. It takes 5 minutes. Come back when you have your login."* Dismissed automatically when Stage 2 begins.
+4. **HITL Gate card** — replaces the Action Items panel content when the system is waiting on the user. Single focused instruction, e.g. *"Create a free e-filing account at courtfiling.net. It takes 5 minutes. Come back when you have your login."* Dismissed automatically when Stage 2 begins.
 
 ### Component Structure
 
@@ -368,3 +368,4 @@ Keep changes lightweight. Edit the relevant section in place, then append a one-
 | April 4 | Renamed numbered agents to role-based names (Case Intake, Document Parser, Forms Navigator, PDF Filler, Deadline Tracker, Defense Research, Legal Aid, Fee Waiver, E-Filing). |
 | April 4 | Document Parser: direct multimodal extraction API + Case Facts panel section for structured fields from uploads. |
 | April 4 | Layout: replaced 60/40 two-column split with tabbed view toggle (Live Browser / Your Case Dashboard). Added persistent status bar. Both views use full width. |
+| April 4 | E-Filing agent: filing navigation and HITL account-creation URL updated from lacourt.org to courtfiling.net. |
