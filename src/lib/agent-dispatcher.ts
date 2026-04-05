@@ -63,7 +63,6 @@ async function launchFormsNavigatorSession(
 ): Promise<FormsNavigatorSession> {
   const session = await createBrowserTaskSession({
     agentId: "agent-3-forms-navigator",
-    keepAlive: true,
     outputSchema: FORMS_NAVIGATOR_OUTPUT_SCHEMA,
     task: buildFormsNavigatorTask({ appSessionId, caseContext }),
   });
@@ -82,7 +81,6 @@ async function launchDeadlineTrackerSession(
 ): Promise<DeadlineTrackerSession> {
   const session = await createBrowserTaskSession({
     agentId: "agent-4-deadline-procedure",
-    keepAlive: true,
     outputSchema: DEADLINE_RESULT_OUTPUT_SCHEMA,
     task: `${buildDeadlineTrackerTask({ caseContext })}\n\nInternal tracking id: ${appSessionId}`,
   });
@@ -101,7 +99,6 @@ async function launchDefenseResearchSession(
 ): Promise<DefenseResearchSession> {
   const session = await createBrowserTaskSession({
     agentId: "agent-5-defense-research",
-    keepAlive: true,
     outputSchema: DEFENSE_RESULT_OUTPUT_SCHEMA,
     task: `${buildDefenseResearchTask({ caseContext })}\n\nInternal tracking id: ${appSessionId}`,
   });
@@ -120,7 +117,6 @@ async function launchLegalAidSession(
 ): Promise<LegalAidSession> {
   const session = await createBrowserTaskSession({
     agentId: "agent-6-legal-aid",
-    keepAlive: true,
     outputSchema: LEGAL_AID_RESULT_OUTPUT_SCHEMA,
     task: `${buildLegalAidTask({ caseContext })}\n\nInternal tracking id: ${appSessionId}`,
   });
@@ -270,7 +266,6 @@ export async function dispatchWave2Agent(
 
   const session = await createBrowserTaskSession({
     agentId: "agent-9-efiling",
-    keepAlive: true,
     outputSchema: EFILING_OUTPUT_SCHEMA,
     task: buildEfilingTask({
       appSessionId: input.sessionId,

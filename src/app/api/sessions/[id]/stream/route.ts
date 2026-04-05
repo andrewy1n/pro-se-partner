@@ -1,10 +1,9 @@
 import { getBrowserSession, listSessionMessages } from "@/lib/api";
+import { BROWSER_SESSION_TERMINAL_STATUSES } from "@/lib/browser-session-slots";
 import { logServerError, logServerEvent } from "@/lib/server-log";
 import type { AgentId, SessionStreamEvent } from "@/lib/types";
 
 export const runtime = "nodejs";
-
-const TERMINAL_STATUSES = new Set(["idle", "stopped", "timed_out", "error"]);
 
 function encodeSse(payload: SessionStreamEvent): Uint8Array {
   return new TextEncoder().encode(`data: ${JSON.stringify(payload)}\n\n`);
@@ -77,7 +76,7 @@ export async function GET(
             }
 
             const session = await getBrowserSession(browserSessionId);
-            if (TERMINAL_STATUSES.has(session.status)) {
+            if (BROWSER_SESSION_TERMINAL_STATUSES.has(session.status)) {
               write({
                 type: "terminal",
                 agentId,

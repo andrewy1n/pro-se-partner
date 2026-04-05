@@ -44,6 +44,8 @@ export default function SessionPage() {
   const [liveOverlayOpen, setLiveOverlayOpen] = useState(false);
   const [selectedBrowserAgentId, setSelectedBrowserAgentId] = useState<AgentId | null>(null);
   const [isEfilingDispatching, setIsEfilingDispatching] = useState(false);
+  /** True while Wave 1 POST /api/agents/dispatch is in flight — show Watch Live before the response (needed when the 4th agent waits on the slot queue). */
+  const [wave1DispatchInFlight, setWave1DispatchInFlight] = useState(false);
 
   const {
     activeSession,
@@ -59,6 +61,7 @@ export default function SessionPage() {
     legalAidResult: polledLegalAidResult,
     efilingResult: polledEfilingResult,
     isPolling,
+    hasTrackedBrowserSession,
     setTrackedFormsSession,
     setTrackedSession,
     setTrackedDefenseSession,
@@ -383,58 +386,63 @@ export default function SessionPage() {
     const ctx = contextOverride ?? caseContext;
     if (!id || !ctx || agents.length === 0) return;
 
-    const res = await fetch("/api/agents/dispatch", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ sessionId: id, caseContext: ctx, agents }),
-    });
+    setWave1DispatchInFlight(true);
+    try {
+      const res = await fetch("/api/agents/dispatch", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionId: id, caseContext: ctx, agents }),
+      });
 
-    if (!res.ok) return;
+      if (!res.ok) return;
 
-    const data = (await res.json()) as DispatchWave1Response;
+      const data = (await res.json()) as DispatchWave1Response;
 
-    const raw = sessionStorage.getItem(intakeStorageKey(id));
-    const payload = parseIntakeSessionPayloadOrNew(raw, ctx);
+      const raw = sessionStorage.getItem(intakeStorageKey(id));
+      const payload = parseIntakeSessionPayloadOrNew(raw, ctx);
 
-    const next: IntakeSessionPayload = {
-      ...payload,
-      caseContext: ctx,
-      formsNavigatorSession:
-        data.formsNavigatorSession ?? payload.formsNavigatorSession,
-      deadlineTrackerSession:
-        data.deadlineTrackerSession ?? payload.deadlineTrackerSession,
-      defenseResearchSession:
-        data.defenseResearchSession ?? payload.defenseResearchSession,
-      legalAidSession: data.legalAidSession ?? payload.legalAidSession,
-    };
+      const next: IntakeSessionPayload = {
+        ...payload,
+        caseContext: ctx,
+        formsNavigatorSession:
+          data.formsNavigatorSession ?? payload.formsNavigatorSession,
+        deadlineTrackerSession:
+          data.deadlineTrackerSession ?? payload.deadlineTrackerSession,
+        defenseResearchSession:
+          data.defenseResearchSession ?? payload.defenseResearchSession,
+        legalAidSession: data.legalAidSession ?? payload.legalAidSession,
+      };
 
-    const hasAnyBrowserSession =
-      Boolean(next.formsNavigatorSession?.sessionId) ||
-      Boolean(next.deadlineTrackerSession?.sessionId) ||
-      Boolean(next.defenseResearchSession?.sessionId) ||
-      Boolean(next.legalAidSession?.sessionId);
-    next.dispatched = hasAnyBrowserSession;
+      const hasAnyBrowserSession =
+        Boolean(next.formsNavigatorSession?.sessionId) ||
+        Boolean(next.deadlineTrackerSession?.sessionId) ||
+        Boolean(next.defenseResearchSession?.sessionId) ||
+        Boolean(next.legalAidSession?.sessionId);
+      next.dispatched = hasAnyBrowserSession;
 
-    sessionStorage.setItem(intakeStorageKey(id), JSON.stringify(next));
+      sessionStorage.setItem(intakeStorageKey(id), JSON.stringify(next));
 
-    setTrackedFormsSession({
-      appSessionId: id,
-      browserSessionId: next.formsNavigatorSession?.sessionId ?? null,
-    });
-    setTrackedSession({
-      appSessionId: id,
-      browserSessionId: next.deadlineTrackerSession?.sessionId ?? null,
-    });
-    setTrackedDefenseSession({
-      appSessionId: id,
-      browserSessionId: next.defenseResearchSession?.sessionId ?? null,
-    });
-    setTrackedLegalAidSession({
-      appSessionId: id,
-      browserSessionId: next.legalAidSession?.sessionId ?? null,
-    });
+      setTrackedFormsSession({
+        appSessionId: id,
+        browserSessionId: next.formsNavigatorSession?.sessionId ?? null,
+      });
+      setTrackedSession({
+        appSessionId: id,
+        browserSessionId: next.deadlineTrackerSession?.sessionId ?? null,
+      });
+      setTrackedDefenseSession({
+        appSessionId: id,
+        browserSessionId: next.defenseResearchSession?.sessionId ?? null,
+      });
+      setTrackedLegalAidSession({
+        appSessionId: id,
+        browserSessionId: next.legalAidSession?.sessionId ?? null,
+      });
 
-    setDispatched(next.dispatched);
+      setDispatched(next.dispatched);
+    } finally {
+      setWave1DispatchInFlight(false);
+    }
   }
 
   async function handleDispatchWithPreCheck(agents: Wave1AgentKey[]) {
@@ -559,7 +567,7 @@ export default function SessionPage() {
         countdownLabel={deadlineResult?.responseDeadline ?? "TBD"}
         agentStatuses={browserTabs.map((t) => ({ label: t.label, status: t.status }))}
         isPolling={isPolling}
-        showWatchLive={dispatched}
+        showWatchLive={dispatched || hasTrackedBrowserSession || wave1DispatchInFlight}
         onWatchLive={() => setLiveOverlayOpen(true)}
       />
 

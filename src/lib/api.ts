@@ -7,6 +7,14 @@ import type {
 } from "browser-use-sdk/v3";
 import type { AgentId } from "@/lib/types";
 import {
+  acquireBrowserSessionSlot,
+  finalizeBrowserSessionSlotIfTerminal,
+  getTrackedBrowserSessionSlotIds,
+  registerBrowserSessionSlot,
+  releaseBrowserSessionSlotIfFailed,
+  waitQueueLengthForSlots,
+} from "@/lib/browser-session-slots";
+import {
   isVerboseSessionPoll,
   logServerError,
   logServerEvent,
@@ -39,6 +47,7 @@ export interface SendAgentTaskInput {
   agentId: AgentId;
   task: string;
   model?: BrowserUseModelId;
+  keepAlive?: boolean;
   outputSchema?: Record<string, unknown>;
 }
 
@@ -57,7 +66,7 @@ export async function createBrowserSession(
 
   const body = {
     model: input.model ?? getBrowserUseModel(),
-    keepAlive: input.keepAlive ?? true,
+    keepAlive: input.keepAlive ?? false,
     ...(input.outputSchema ? { outputSchema: input.outputSchema } : {}),
     browserScreenWidth: 1280,
     browserScreenHeight: 720,
@@ -101,7 +110,7 @@ export async function sendAgentTask(input: SendAgentTaskInput): Promise<SessionR
       sessionId: input.sessionId,
       task: input.task,
       model: input.model ?? getBrowserUseModel(),
-      keepAlive: true,
+      keepAlive: input.keepAlive ?? false,
       outputSchema: input.outputSchema,
     });
     logServerEvent("browser_use_send_task_ok", {
@@ -123,12 +132,17 @@ export async function createBrowserTaskSession(
   input: CreateBrowserTaskSessionInput,
 ): Promise<SessionResponse> {
   assertBrowserUseConfigured();
+  ensureBrowserSessionSlotReleasePoller();
+
+  const keepAlive = input.keepAlive ?? false;
+
+  await acquireBrowserSessionSlot();
 
   logServerEvent("browser_use_run_task_start", {
     agentId: input.agentId,
     model: input.model ?? getBrowserUseModel(),
     taskChars: input.task.length,
-    keepAlive: input.keepAlive ?? true,
+    keepAlive,
     hasOutputSchema: Boolean(input.outputSchema),
   });
 
@@ -136,11 +150,12 @@ export async function createBrowserTaskSession(
     const session = await client.sessions.create({
       task: input.task,
       model: input.model ?? getBrowserUseModel(),
-      keepAlive: input.keepAlive ?? true,
+      keepAlive,
       outputSchema: input.outputSchema,
       browserScreenWidth: 1280,
       browserScreenHeight: 720,
     } as CreateSessionBody);
+    registerBrowserSessionSlot(session.id);
     logServerEvent("browser_use_run_task_ok", {
       sessionId: session.id,
       agentId: input.agentId,
@@ -149,6 +164,7 @@ export async function createBrowserTaskSession(
     });
     return session;
   } catch (err) {
+    releaseBrowserSessionSlotIfFailed();
     logServerError("browser_use_run_task_failed", err, {
       agentId: input.agentId,
     });
@@ -160,6 +176,7 @@ export async function getBrowserSession(sessionId: string): Promise<SessionRespo
   assertBrowserUseConfigured();
   try {
     const session = await client.sessions.get(sessionId);
+    finalizeBrowserSessionSlotIfTerminal(sessionId, session.status);
     if (isVerboseSessionPoll()) {
       logServerEvent("browser_use_get_session_ok", {
         sessionId,
@@ -171,6 +188,38 @@ export async function getBrowserSession(sessionId: string): Promise<SessionRespo
   } catch (err) {
     logServerError("browser_use_get_session_failed", err, { sessionId });
     throw err;
+  }
+}
+
+let slotReleasePollInterval: ReturnType<typeof setInterval> | null = null;
+
+/** Frequent enough to unblock the slot queue soon after agents 1–3 finish (vs 2s). */
+const SLOT_RELEASE_POLL_MS = 600;
+
+/**
+ * Polls Browser Use for tracked sessions so slots release on terminal even before
+ * the client receives session ids (e.g. fourth Wave 1 agent waiting on acquire).
+ */
+function ensureBrowserSessionSlotReleasePoller(): void {
+  if (slotReleasePollInterval != null) return;
+  if (typeof setInterval === "undefined") return;
+  slotReleasePollInterval = setInterval(() => {
+    void tickBrowserSessionSlotReleases();
+  }, SLOT_RELEASE_POLL_MS);
+}
+
+async function tickBrowserSessionSlotReleases(): Promise<void> {
+  if (!apiKey.trim()) return;
+  const ids = getTrackedBrowserSessionSlotIds();
+  const waiting = waitQueueLengthForSlots();
+  if (ids.length === 0 && waiting === 0) return;
+
+  for (const sessionId of ids) {
+    try {
+      await getBrowserSession(sessionId);
+    } catch {
+      /* session may be expired or invalid */
+    }
   }
 }
 
@@ -220,6 +269,7 @@ export async function stopBrowserSession(sessionId: string): Promise<SessionResp
   assertBrowserUseConfigured();
   try {
     const session = await client.sessions.stop(sessionId, { strategy: "session" });
+    finalizeBrowserSessionSlotIfTerminal(sessionId, session.status);
     logServerEvent("browser_use_stop_session_ok", { sessionId, status: session.status });
     return session;
   } catch (err) {

@@ -46,6 +46,8 @@ interface SessionContextType {
   isPolling: boolean;
   /** True while the e-filing agent session is polling. */
   isEfilingPolling: boolean;
+  /** True when we have any browser session id wired for polling (Wave 1 / e-filing). */
+  hasTrackedBrowserSession: boolean;
   setTrackedFormsSession: (next: TrackedSessionInput | null) => void;
   setTrackedSession: (next: TrackedSessionInput | null) => void;
   setTrackedDefenseSession: (next: TrackedSessionInput | null) => void;
@@ -579,6 +581,14 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     efilingQuery.isError, efilingQuery.error,
   ]);
 
+  const hasTrackedBrowserSession = Boolean(
+    trackedFormsSession?.browserSessionId ||
+      trackedSession?.browserSessionId ||
+      trackedDefenseSession?.browserSessionId ||
+      trackedLegalAidSession?.browserSessionId ||
+      trackedEfilingSession?.browserSessionId,
+  );
+
   const value = useMemo<SessionContextType>(
     () => ({
       activeSession,
@@ -599,6 +609,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         isWave1QueryBusy(trackedDefenseSession, defenseQuery) ||
         isWave1QueryBusy(trackedLegalAidSession, legalAidQuery),
       isEfilingPolling: efilingQuery.isFetching,
+      hasTrackedBrowserSession,
       setTrackedFormsSession,
       setTrackedSession,
       setTrackedDefenseSession,
@@ -624,8 +635,10 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       trackedSession,
       trackedDefenseSession,
       trackedLegalAidSession,
+      trackedEfilingSession,
       efilingQuery.data,
       efilingQuery.isFetching,
+      hasTrackedBrowserSession,
     ],
   );
 
