@@ -245,14 +245,36 @@ export interface Citation {
   url?: string;
 }
 
-export interface ActivityFeedItem {
+export type ActivityFeedKind = "text" | "tool_call" | "thinking" | "fallback";
+
+interface ActivityFeedItemBase {
   id: string;
   agentId: AgentId;
   agentLabel: string;
   status: Extract<AgentStatus, "running" | "done" | "error">;
-  message: string;
   createdAt: string;
 }
+
+export type ActivityFeedItem =
+  | (ActivityFeedItemBase & {
+      feedKind: "text";
+      message: string;
+    })
+  | (ActivityFeedItemBase & {
+      feedKind: "tool_call";
+      toolName: string;
+      displayName: string;
+      displayValue: string;
+    })
+  | (ActivityFeedItemBase & {
+      feedKind: "thinking";
+      fullText: string;
+    })
+  | (ActivityFeedItemBase & {
+      feedKind: "fallback";
+      label: string;
+      rawSnippet: string;
+    });
 
 export interface StatusPanelModel {
   countdownLabel: string;
@@ -326,3 +348,26 @@ export interface SessionPollResponse {
   legalAidResult: LegalAidItem[] | null;
   messages: MessageResponse[];
 }
+
+export interface SessionStreamMessageEvent {
+  type: "message";
+  agentId: AgentId;
+  message: MessageResponse;
+}
+
+export interface SessionStreamTerminalEvent {
+  type: "terminal";
+  agentId: AgentId;
+  status: BrowserUseSessionStatus | null;
+}
+
+export interface SessionStreamErrorEvent {
+  type: "error";
+  agentId: AgentId;
+  message: string;
+}
+
+export type SessionStreamEvent =
+  | SessionStreamMessageEvent
+  | SessionStreamTerminalEvent
+  | SessionStreamErrorEvent;

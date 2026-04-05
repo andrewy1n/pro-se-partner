@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import { BrowserPanel } from "@/components/browser-panel";
 import { ActivityStrip } from "@/components/activity-strip";
@@ -14,13 +14,22 @@ import { HitlGate } from "@/components/hitl-gate";
 import { useSession } from "@/context/session-context";
 import { useCaseContext } from "@/context/case-context";
 import { intakeStorageKey, parseIntakeSessionPayload } from "@/lib/intake-storage";
-import type { CaseFacts, DispatchWave1Response, IntakeSessionPayload, Wave1AgentKey } from "@/lib/types";
+import { resolveEffectiveBrowserTab } from "@/lib/browser-panel-tabs";
+import type {
+  AgentId,
+  CaseFacts,
+  DispatchWave1Response,
+  IntakeSessionPayload,
+  Wave1AgentKey,
+} from "@/lib/types";
 
 export default function SessionPage() {
   const params = useParams<{ id: string }>();
   const [dispatched, setDispatched] = useState(false);
   const [activeView, setActiveView] = useState<SessionView>("browser");
   const autoSwitchedRef = useRef(false);
+  const [selectedBrowserAgentId, setSelectedBrowserAgentId] = useState<AgentId | null>(null);
+
   const {
     activeSession,
     deadlineSession,
@@ -49,6 +58,40 @@ export default function SessionPage() {
     legalAid,
     deadlineResult,
   } = useCaseContext();
+
+  const browserTabs = useMemo(
+    () => [
+      {
+        agentId: "agent-4-deadline-procedure" as const,
+        label: "Deadline Tracker",
+        liveUrl: deadlineSession?.liveUrl,
+        status: deadlineSession?.status ?? null,
+      },
+      {
+        agentId: "agent-5-defense-research" as const,
+        label: "Defense Research",
+        liveUrl: defenseSession?.liveUrl,
+        status: defenseSession?.status ?? null,
+      },
+      {
+        agentId: "agent-6-legal-aid" as const,
+        label: "Legal Aid",
+        liveUrl: legalAidSession?.liveUrl,
+        status: legalAidSession?.status ?? null,
+      },
+    ],
+    [deadlineSession, defenseSession, legalAidSession],
+  );
+
+  const effectiveBrowserTab = useMemo(
+    () => resolveEffectiveBrowserTab(browserTabs, selectedBrowserAgentId),
+    [browserTabs, selectedBrowserAgentId],
+  );
+
+  const visibleActivityFeed = useMemo(() => {
+    if (!effectiveBrowserTab) return [];
+    return activityFeed.filter((item) => item.agentId === effectiveBrowserTab.agentId);
+  }, [activityFeed, effectiveBrowserTab]);
 
   // Hydrate sessions from sessionStorage on mount
   useEffect(() => {
@@ -225,30 +268,16 @@ export default function SessionPage() {
       <SessionViewToggle activeView={activeView} onViewChange={setActiveView} />
 
       {activeView === "browser" ? (
-        <section className="flex min-h-0 flex-1 flex-col gap-4">
+        <section className="flex min-h-0 flex-1 flex-col gap-4 xl:flex-row">
           <BrowserPanel
-            tabs={[
-              {
-                agentId: "agent-4-deadline-procedure",
-                label: "Deadline Tracker",
-                liveUrl: deadlineSession?.liveUrl,
-                status: deadlineSession?.status ?? null,
-              },
-              {
-                agentId: "agent-5-defense-research",
-                label: "Defense Research",
-                liveUrl: defenseSession?.liveUrl,
-                status: defenseSession?.status ?? null,
-              },
-              {
-                agentId: "agent-6-legal-aid",
-                label: "Legal Aid",
-                liveUrl: legalAidSession?.liveUrl,
-                status: legalAidSession?.status ?? null,
-              },
-            ]}
+            tabs={browserTabs}
+            effectiveTab={effectiveBrowserTab}
+            onSelectAgentId={setSelectedBrowserAgentId}
           />
-          <ActivityStrip items={activityFeed} />
+          <ActivityStrip
+            items={visibleActivityFeed}
+            contextLabel={effectiveBrowserTab?.label ?? null}
+          />
         </section>
       ) : (
         <section className="grid gap-4 xl:grid-cols-[minmax(0,1.4fr)_minmax(320px,1fr)]">

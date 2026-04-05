@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getBrowserSession, listSessionMessages } from "@/lib/api";
+import { getBrowserSession } from "@/lib/api";
 import { parseDeadlineResult } from "@/lib/deadline-tracker";
 import { parseDefenseResult } from "@/lib/defense-research";
 import { parseLegalAidResult } from "@/lib/legal-aid";
@@ -34,17 +34,6 @@ export async function GET(
 
   try {
     const session = await getBrowserSession(browserSessionId);
-    let messages: Awaited<ReturnType<typeof listSessionMessages>> = [];
-    try {
-      messages = await listSessionMessages(browserSessionId);
-    } catch (messagesErr) {
-      logServerError("session_poll_messages_non_fatal", messagesErr, {
-        appSessionId: id,
-        browserSessionId,
-        agentId,
-      });
-    }
-
     let deadlineResult = null;
     let defenseResult = null;
     let legalAidResult = null;
@@ -93,7 +82,6 @@ export async function GET(
         browserSessionId,
         agentId,
         sessionStatus: session.status,
-        messageCount: messages.length,
         hasDeadlineResult: Boolean(deadlineResult),
         hasDefenseResult: Boolean(defenseResult),
         hasLegalAidResult: Boolean(legalAidResult),
@@ -112,7 +100,7 @@ export async function GET(
       deadlineResult,
       defenseResult,
       legalAidResult,
-      messages,
+      messages: [],
     };
 
     return NextResponse.json(response);

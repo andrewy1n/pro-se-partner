@@ -7,7 +7,7 @@ import type {
   LegalAidSession,
   Wave1AgentKey,
 } from "@/lib/types";
-import { createBrowserSession, sendAgentTask } from "@/lib/api";
+import { createBrowserTaskSession } from "@/lib/api";
 import {
   buildDeadlineTrackerTask,
   DEADLINE_RESULT_OUTPUT_SCHEMA,
@@ -44,14 +44,9 @@ async function launchDeadlineTrackerSession(
   appSessionId: string,
   caseContext: CanonicalCaseContext,
 ): Promise<DeadlineTrackerSession> {
-  const session = await createBrowserSession({
-    keepAlive: true,
-    outputSchema: DEADLINE_RESULT_OUTPUT_SCHEMA,
-  });
-
-  await sendAgentTask({
-    sessionId: session.id,
+  const session = await createBrowserTaskSession({
     agentId: "agent-4-deadline-procedure",
+    keepAlive: true,
     outputSchema: DEADLINE_RESULT_OUTPUT_SCHEMA,
     task: `${buildDeadlineTrackerTask({ caseContext })}\n\nInternal tracking id: ${appSessionId}`,
   });
@@ -68,14 +63,9 @@ async function launchDefenseResearchSession(
   appSessionId: string,
   caseContext: CanonicalCaseContext,
 ): Promise<DefenseResearchSession> {
-  const session = await createBrowserSession({
-    keepAlive: true,
-    outputSchema: DEFENSE_RESULT_OUTPUT_SCHEMA,
-  });
-
-  await sendAgentTask({
-    sessionId: session.id,
+  const session = await createBrowserTaskSession({
     agentId: "agent-5-defense-research",
+    keepAlive: true,
     outputSchema: DEFENSE_RESULT_OUTPUT_SCHEMA,
     task: `${buildDefenseResearchTask({ caseContext })}\n\nInternal tracking id: ${appSessionId}`,
   });
@@ -92,14 +82,9 @@ async function launchLegalAidSession(
   appSessionId: string,
   caseContext: CanonicalCaseContext,
 ): Promise<LegalAidSession> {
-  const session = await createBrowserSession({
-    keepAlive: true,
-    outputSchema: LEGAL_AID_RESULT_OUTPUT_SCHEMA,
-  });
-
-  await sendAgentTask({
-    sessionId: session.id,
+  const session = await createBrowserTaskSession({
     agentId: "agent-6-legal-aid",
+    keepAlive: true,
     outputSchema: LEGAL_AID_RESULT_OUTPUT_SCHEMA,
     task: `${buildLegalAidTask({ caseContext })}\n\nInternal tracking id: ${appSessionId}`,
   });

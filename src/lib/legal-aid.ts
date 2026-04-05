@@ -11,7 +11,7 @@ const legalAidItemSchema = z.object({
 });
 
 export const legalAidResultSchema = z.object({
-  organizations: z.array(legalAidItemSchema).max(8),
+  organizations: z.array(legalAidItemSchema).max(2),
 });
 
 export const LEGAL_AID_RESULT_OUTPUT_SCHEMA = {
@@ -21,7 +21,7 @@ export const LEGAL_AID_RESULT_OUTPUT_SCHEMA = {
   properties: {
     organizations: {
       type: "array",
-      maxItems: 8,
+      maxItems: 2,
       items: {
         type: "object",
         additionalProperties: false,
@@ -80,29 +80,20 @@ export function buildLegalAidTask(input: {
 Your job is to find legal aid organizations that can help a tenant facing an unlawful detainer (eviction) action in Los Angeles County.
 
 Requirements:
-- Navigate the websites listed below to find current contact information, hours, and eligibility for each organization.
+- Navigate both websites below and return up to 5 organizations in the output.
+- Find current contact information, hours, and eligibility for each organization from its site.
 - Record walk-in availability accurately — only mark walkInAvailable as true if the organization explicitly offers walk-in services.
 - Estimate distance in miles from the tenant's location when possible; use null if you cannot determine it.
 - Record eligibility notes only from what the organization states on its website — do not invent criteria.
-- Return up to 8 organizations, prioritized by relevance and proximity.
 - The final answer must match the provided structured output schema exactly.
 
-Organizations to research (navigate each site):
+Organizations to show (navigate each site):
 
 1. Bet Tzedek Legal Services — https://bettzedek.org
    Specialty: Eviction defense, housing law. Check their intake hours and self-help clinics.
 
 2. Legal Aid Foundation of Los Angeles (LAFLA) — https://lafla.org
    Specialty: Eviction defense. Check office locations, hours, and how to apply.
-
-3. Inner City Law Center — https://innercitylaw.org
-   Specialty: Housing and homelessness prevention. Check eligibility and intake process.
-
-4. Neighborhood Legal Services of Los Angeles County — https://nlsla.org
-   Specialty: Housing, benefits, family law.
-
-5. LA Superior Court Self-Help Centers — https://www.lacourt.org/selfhelp/ui/index.aspx
-   In-person assistance at the courthouse. Find the location closest to the tenant and record walk-in hours.
 
 Tenant location context:
 ${locationContext}

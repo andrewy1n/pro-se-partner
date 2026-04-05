@@ -2,6 +2,7 @@ import { BrowserUse } from "browser-use-sdk/v3";
 import type {
   CreateSessionBody,
   MessageResponse,
+  SessionMessagesParams,
   SessionResponse,
 } from "browser-use-sdk/v3";
 import type { AgentId } from "@/lib/types";
@@ -38,6 +39,14 @@ export interface SendAgentTaskInput {
   agentId: AgentId;
   task: string;
   model?: BrowserUseModelId;
+  outputSchema?: Record<string, unknown>;
+}
+
+export interface CreateBrowserTaskSessionInput {
+  agentId: AgentId;
+  task: string;
+  model?: BrowserUseModelId;
+  keepAlive?: boolean;
   outputSchema?: Record<string, unknown>;
 }
 
@@ -110,6 +119,43 @@ export async function sendAgentTask(input: SendAgentTaskInput): Promise<SessionR
   }
 }
 
+export async function createBrowserTaskSession(
+  input: CreateBrowserTaskSessionInput,
+): Promise<SessionResponse> {
+  assertBrowserUseConfigured();
+
+  logServerEvent("browser_use_run_task_start", {
+    agentId: input.agentId,
+    model: input.model ?? getBrowserUseModel(),
+    taskChars: input.task.length,
+    keepAlive: input.keepAlive ?? true,
+    hasOutputSchema: Boolean(input.outputSchema),
+  });
+
+  try {
+    const session = await client.sessions.create({
+      task: input.task,
+      model: input.model ?? getBrowserUseModel(),
+      keepAlive: input.keepAlive ?? true,
+      outputSchema: input.outputSchema,
+      browserScreenWidth: 1280,
+      browserScreenHeight: 720,
+    } as CreateSessionBody);
+    logServerEvent("browser_use_run_task_ok", {
+      sessionId: session.id,
+      agentId: input.agentId,
+      status: session.status,
+      hasLiveUrl: Boolean(session.liveUrl),
+    });
+    return session;
+  } catch (err) {
+    logServerError("browser_use_run_task_failed", err, {
+      agentId: input.agentId,
+    });
+    throw err;
+  }
+}
+
 export async function getBrowserSession(sessionId: string): Promise<SessionResponse> {
   assertBrowserUseConfigured();
   try {
@@ -128,21 +174,43 @@ export async function getBrowserSession(sessionId: string): Promise<SessionRespo
   }
 }
 
-export async function listSessionMessages(sessionId: string): Promise<MessageResponse[]> {
+export async function listSessionMessages(
+  sessionId: string,
+  params?: SessionMessagesParams,
+): Promise<MessageResponse[]> {
   assertBrowserUseConfigured();
+  const normalizedParams = {
+    limit: Math.min(params?.limit ?? 100, 100),
+    ...(params?.after ? { after: params.after } : {}),
+    ...(params?.before ? { before: params.before } : {}),
+  } satisfies SessionMessagesParams;
 
   try {
-    const { messages } = await client.sessions.messages(sessionId, {
-      limit: 200,
-    });
+    const { messages } = await client.sessions.messages(sessionId, normalizedParams);
     if (isVerboseSessionPoll()) {
       logServerEvent("browser_use_list_messages_ok", {
         sessionId,
         messageCount: messages.length,
+        hasAfter: Boolean(normalizedParams.after),
       });
     }
     return messages;
   } catch (err) {
+    const debugErr = err as {
+      status?: number;
+      statusCode?: number;
+      code?: string;
+      detail?: unknown;
+      cause?: unknown;
+      details?: unknown;
+      response?: { status?: number; data?: unknown };
+    };
+    const detailPreview =
+      debugErr.detail == null
+        ? null
+        : typeof debugErr.detail === "string"
+          ? debugErr.detail
+          : JSON.stringify(debugErr.detail).slice(0, 500);
     logServerError("browser_use_list_messages_failed", err, { sessionId });
     throw err;
   }

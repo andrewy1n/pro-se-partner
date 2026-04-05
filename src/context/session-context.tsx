@@ -15,8 +15,10 @@ import type {
   DefenseItem,
   DeadlineResult,
   LegalAidItem,
+  MessageResponse,
   SessionPollResponse,
   SessionSnapshot,
+  SessionStreamEvent,
 } from "@/lib/types";
 import { convertMessagesToActivityFeed } from "@/lib/message-converter";
 
@@ -50,9 +52,27 @@ function buildPollUrl(
   return `/api/sessions/${appSessionId}?browserSessionId=${browserSessionId}&agentId=${agentId}`;
 }
 
-function isTerminalState(data: SessionPollResponse | undefined, hasResult: boolean): boolean {
+function buildStreamUrl(
+  appSessionId: string,
+  browserSessionId: string,
+  agentId: AgentId,
+): string {
+  return `/api/sessions/${appSessionId}/stream?browserSessionId=${browserSessionId}&agentId=${agentId}`;
+}
+
+function appendMessage(
+  current: MessageResponse[],
+  nextMessage: MessageResponse,
+): MessageResponse[] {
+  if (current.some((message) => message.id === nextMessage.id)) return current;
+  return [...current, nextMessage].sort(
+    (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+  );
+}
+
+function isTerminalState(data: SessionPollResponse | undefined): boolean {
   const status = data?.activeSession?.status;
-  if (status === "idle" && (hasResult || Boolean(data?.messages.length))) return true;
+  if (status === "idle") return true;
   if (status === "stopped" || status === "timed_out" || status === "error") return true;
   return false;
 }
@@ -91,6 +111,132 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   const [trackedSession, setTrackedSession] = useState<TrackedSessionInput | null>(null);
   const [trackedDefenseSession, setTrackedDefenseSession] = useState<TrackedSessionInput | null>(null);
   const [trackedLegalAidSession, setTrackedLegalAidSession] = useState<TrackedSessionInput | null>(null);
+  const [deadlineMessages, setDeadlineMessages] = useState<MessageResponse[]>([]);
+  const [defenseMessages, setDefenseMessages] = useState<MessageResponse[]>([]);
+  const [legalAidMessages, setLegalAidMessages] = useState<MessageResponse[]>([]);
+
+  useEffect(() => {
+    setDeadlineMessages([]);
+  }, [trackedSession?.browserSessionId]);
+
+  useEffect(() => {
+    setDefenseMessages([]);
+  }, [trackedDefenseSession?.browserSessionId]);
+
+  useEffect(() => {
+    setLegalAidMessages([]);
+  }, [trackedLegalAidSession?.browserSessionId]);
+
+  useEffect(() => {
+    if (!trackedSession?.appSessionId || !trackedSession.browserSessionId) return;
+
+    let closed = false;
+    const stream = new EventSource(
+      buildStreamUrl(
+        trackedSession.appSessionId,
+        trackedSession.browserSessionId,
+        "agent-4-deadline-procedure",
+      ),
+    );
+
+    stream.onmessage = (event) => {
+      const payload = JSON.parse(event.data) as SessionStreamEvent;
+      if (payload.type === "message") {
+        setDeadlineMessages((current) => appendMessage(current, payload.message));
+        return;
+      }
+      if (payload.type === "error") {
+        console.error("[session-stream:deadline]", payload.message);
+        return;
+      }
+      closed = true;
+      stream.close();
+    };
+
+    stream.onerror = () => {
+      if (closed) return;
+      console.error("[session-stream:deadline] connection failed");
+    };
+
+    return () => {
+      closed = true;
+      stream.close();
+    };
+  }, [trackedSession?.appSessionId, trackedSession?.browserSessionId]);
+
+  useEffect(() => {
+    if (!trackedDefenseSession?.appSessionId || !trackedDefenseSession.browserSessionId) return;
+
+    let closed = false;
+    const stream = new EventSource(
+      buildStreamUrl(
+        trackedDefenseSession.appSessionId,
+        trackedDefenseSession.browserSessionId,
+        "agent-5-defense-research",
+      ),
+    );
+
+    stream.onmessage = (event) => {
+      const payload = JSON.parse(event.data) as SessionStreamEvent;
+      if (payload.type === "message") {
+        setDefenseMessages((current) => appendMessage(current, payload.message));
+        return;
+      }
+      if (payload.type === "error") {
+        console.error("[session-stream:defense]", payload.message);
+        return;
+      }
+      closed = true;
+      stream.close();
+    };
+
+    stream.onerror = () => {
+      if (closed) return;
+      console.error("[session-stream:defense] connection failed");
+    };
+
+    return () => {
+      closed = true;
+      stream.close();
+    };
+  }, [trackedDefenseSession?.appSessionId, trackedDefenseSession?.browserSessionId]);
+
+  useEffect(() => {
+    if (!trackedLegalAidSession?.appSessionId || !trackedLegalAidSession.browserSessionId) return;
+
+    let closed = false;
+    const stream = new EventSource(
+      buildStreamUrl(
+        trackedLegalAidSession.appSessionId,
+        trackedLegalAidSession.browserSessionId,
+        "agent-6-legal-aid",
+      ),
+    );
+
+    stream.onmessage = (event) => {
+      const payload = JSON.parse(event.data) as SessionStreamEvent;
+      if (payload.type === "message") {
+        setLegalAidMessages((current) => appendMessage(current, payload.message));
+        return;
+      }
+      if (payload.type === "error") {
+        console.error("[session-stream:legal-aid]", payload.message);
+        return;
+      }
+      closed = true;
+      stream.close();
+    };
+
+    stream.onerror = () => {
+      if (closed) return;
+      console.error("[session-stream:legal-aid] connection failed");
+    };
+
+    return () => {
+      closed = true;
+      stream.close();
+    };
+  }, [trackedLegalAidSession?.appSessionId, trackedLegalAidSession?.browserSessionId]);
 
   // Deadline tracker polling
   const deadlineQuery = useQuery({
@@ -112,7 +258,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     retry: 2,
     retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 8000),
     refetchInterval: (query) => {
-      if (isTerminalState(query.state.data, Boolean(query.state.data?.deadlineResult))) {
+      if (isTerminalState(query.state.data)) {
         return false;
       }
       return trackedSession?.browserSessionId ? 1000 : false;
@@ -139,7 +285,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     retry: 2,
     retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 8000),
     refetchInterval: (query) => {
-      if (isTerminalState(query.state.data, Boolean(query.state.data?.defenseResult))) {
+      if (isTerminalState(query.state.data)) {
         return false;
       }
       return trackedDefenseSession?.browserSessionId ? 1000 : false;
@@ -166,7 +312,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     retry: 2,
     retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 8000),
     refetchInterval: (query) => {
-      if (isTerminalState(query.state.data, Boolean(query.state.data?.legalAidResult))) {
+      if (isTerminalState(query.state.data)) {
         return false;
       }
       return trackedLegalAidSession?.browserSessionId ? 1000 : false;
@@ -192,21 +338,21 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   // Merge activity feeds from all sessions, sorted chronologically
   const activityFeed = useMemo<ActivityFeedItem[]>(() => {
     const deadlineFeed = convertMessagesToActivityFeed(
-      deadlineQuery.data?.messages ?? [],
+      deadlineMessages,
       {
         agentId: "agent-4-deadline-procedure",
         sessionStatus: deadlineQuery.data?.activeSession?.status ?? null,
       },
     );
     const defenseFeed = convertMessagesToActivityFeed(
-      defenseQuery.data?.messages ?? [],
+      defenseMessages,
       {
         agentId: "agent-5-defense-research",
         sessionStatus: defenseQuery.data?.activeSession?.status ?? null,
       },
     );
     const legalAidFeed = convertMessagesToActivityFeed(
-      legalAidQuery.data?.messages ?? [],
+      legalAidMessages,
       {
         agentId: "agent-6-legal-aid",
         sessionStatus: legalAidQuery.data?.activeSession?.status ?? null,
@@ -216,7 +362,14 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     return [...deadlineFeed, ...defenseFeed, ...legalAidFeed].sort(
       (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
     );
-  }, [deadlineQuery.data, defenseQuery.data, legalAidQuery.data]);
+  }, [
+    deadlineMessages,
+    deadlineQuery.data,
+    defenseMessages,
+    defenseQuery.data,
+    legalAidMessages,
+    legalAidQuery.data,
+  ]);
 
   useEffect(() => {
     for (const [query, label] of [
