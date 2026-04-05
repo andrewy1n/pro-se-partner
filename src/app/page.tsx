@@ -120,8 +120,8 @@ export default function HomePage() {
       {isSubmitting && (
         <p className="mx-auto mt-3 max-w-3xl text-sm text-zinc-400">
           {submitShowsDocParse
-            ? "Analyzing your situation and uploaded document..."
-            : "Analyzing your situation..."}
+            ? "Taking a careful look at what you shared and your document..."
+            : "Taking a careful look at what you shared..."}
         </p>
       )}
       {submitError && (
