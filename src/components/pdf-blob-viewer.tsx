@@ -7,8 +7,11 @@ import { logPdfArtifact } from "@/lib/client-pdf-artifact";
 
 if (typeof window !== "undefined") {
   try {
+    // Must match the pdfjs-dist version react-pdf uses internally (its nested copy).
+    // Using "pdfjs-dist/..." would resolve the top-level package (different version) causing
+    // "API version does not match Worker version" errors.
     pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-      "pdfjs-dist/build/pdf.worker.min.mjs",
+      "react-pdf/node_modules/pdfjs-dist/build/pdf.worker.min.mjs",
       import.meta.url,
     ).toString();
   } catch {

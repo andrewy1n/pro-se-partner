@@ -499,6 +499,10 @@ export default function SessionPage() {
             }
             isEfilingDispatching={isEfilingDispatching}
             onDispatchEfiling={handleDispatchWave2}
+            onUploadForm={(file) => {
+              // TODO: wire to backend upload endpoint
+              console.log("[upload] user uploaded form:", file.name, file.size);
+            }}
           />
         </div>
 

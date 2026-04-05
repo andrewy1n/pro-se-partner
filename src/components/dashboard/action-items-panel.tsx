@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   FileDown,
   Eye,
@@ -9,6 +9,7 @@ import {
   Loader2,
   X,
   FileEdit,
+  Upload,
 } from "lucide-react";
 import { PdfBlobViewer } from "@/components/pdf-blob-viewer";
 import { EfilingGate } from "@/components/efiling-gate";
@@ -20,7 +21,7 @@ interface ActionItemsPanelProps {
   pdfFillStatus?: PdfFillStatus;
   pdfFillErrorCode?: PdfFillErrorCode | null;
   pdfFillErrorMessage?: string | null;
-  /** When set, shows Fill UD-105 / Retry fill using case facts (server pdf-lib fill). */
+  /** When set, shows Auto-fill button on originals. */
   onFillUd105?: () => void | Promise<void>;
   /** True when no UD-105 bytes available or case context missing. */
   fillUd105Disabled?: boolean;
@@ -28,6 +29,8 @@ interface ActionItemsPanelProps {
   showEfilingGate?: boolean;
   isEfilingDispatching?: boolean;
   onDispatchEfiling?: (username: string) => void | Promise<void>;
+  /** Called when the user uploads a completed form file. */
+  onUploadForm?: (file: File) => void | Promise<void>;
 }
 
 const FILL_STATUS_LABELS: Record<PdfFillStatus, string> = {
@@ -45,7 +48,7 @@ function fillStatusColor(s: PdfFillStatus): string {
   return "text-zinc-500";
 }
 
-type OriginalAutoFill = {
+type AutoFillConfig = {
   onClick: () => void;
   disabled: boolean;
   busy: boolean;
@@ -53,20 +56,16 @@ type OriginalAutoFill = {
   showNoSourceHint: boolean;
 };
 
-function ArtifactRow({
+function OriginalArtifactRow({
   artifact,
   onPreviewOpen,
   autoFill,
 }: {
   artifact: FormArtifact;
   onPreviewOpen: (blobUrl: string, title: string) => void;
-  /** Small row action for UD-105 originals only. */
-  autoFill?: OriginalAutoFill;
+  autoFill?: AutoFillConfig;
 }) {
-  const label =
-    artifact.variant === "original"
-      ? `Original ${artifact.formCode}`
-      : `Filled ${artifact.formCode}`;
+  const label = `Original ${artifact.formCode}`;
 
   function handlePreview() {
     logPdfArtifact("info", "preview_link_clicked", {
@@ -74,7 +73,6 @@ function ArtifactRow({
       formCode: artifact.formCode,
       fileName: artifact.fileName,
       urlPrefix: artifact.downloadUrl.slice(0, 40),
-      hint: "Opening in-page pdf.js viewer (no browser PDF plugin).",
     });
     onPreviewOpen(artifact.downloadUrl, `${label} — ${artifact.fileName}`);
   }
@@ -86,9 +84,7 @@ function ArtifactRow({
           <p className="text-sm font-medium text-zinc-200 truncate">
             {label}
             {artifact.revisionLabel ? (
-              <span className="ml-1.5 text-xs text-zinc-500">
-                ({artifact.revisionLabel})
-              </span>
+              <span className="ml-1.5 text-xs text-zinc-500">({artifact.revisionLabel})</span>
             ) : null}
           </p>
           <p className="text-xs text-zinc-500 truncate">{artifact.fileName}</p>
@@ -102,7 +98,7 @@ function ArtifactRow({
               title={
                 autoFill.showNoSourceHint
                   ? "Case context or PDF data not ready"
-                  : "Fill known fields from your case facts (pdf-lib)"
+                  : "Fill known fields from your case facts"
               }
               className="inline-flex items-center gap-1 rounded border border-zinc-600 bg-zinc-800/90 px-2 py-1 text-[11px] font-medium text-zinc-200 hover:bg-zinc-700 disabled:cursor-not-allowed disabled:opacity-50"
             >
@@ -112,18 +108,13 @@ function ArtifactRow({
                 <FileEdit className="h-3 w-3" aria-hidden />
               )}
               {autoFill.busy
-                ? autoFill.showRetry
-                  ? "Retrying\u2026"
-                  : "Filling\u2026"
-                : autoFill.showRetry
-                  ? "Retry fill"
-                  : "Auto-fill"}
+                ? autoFill.showRetry ? "Retrying\u2026" : "Filling\u2026"
+                : autoFill.showRetry ? "Retry fill" : "Auto-fill"}
             </button>
           ) : null}
           <button
             type="button"
             className="inline-flex items-center gap-1 text-xs text-blue-300 hover:text-blue-200 transition"
-            title={`Preview ${label}`}
             onClick={handlePreview}
           >
             <Eye className="h-3.5 w-3.5" aria-hidden />
@@ -133,7 +124,6 @@ function ArtifactRow({
             href={artifact.downloadUrl}
             download={artifact.fileName}
             className="inline-flex items-center gap-1 text-xs text-blue-300 hover:text-blue-200 transition"
-            title={`Download ${label}`}
             onClick={() =>
               logPdfArtifact("info", "download_link_clicked", {
                 variant: artifact.variant,
@@ -156,6 +146,125 @@ function ArtifactRow({
   );
 }
 
+function FilledArtifactRow({
+  artifact,
+  onPreviewOpen,
+}: {
+  artifact: FormArtifact;
+  onPreviewOpen: (blobUrl: string, title: string) => void;
+}) {
+  const label = `Pre-filled ${artifact.formCode}`;
+
+  function handlePreview() {
+    logPdfArtifact("info", "preview_link_clicked", {
+      variant: artifact.variant,
+      formCode: artifact.formCode,
+      fileName: artifact.fileName,
+      urlPrefix: artifact.downloadUrl.slice(0, 40),
+    });
+    onPreviewOpen(artifact.downloadUrl, `${label} — ${artifact.fileName}`);
+  }
+
+  return (
+    <li className="rounded-lg border border-green-800/50 bg-green-950/20 px-3 py-2">
+      <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-1.5">
+            <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-green-500" aria-hidden />
+            <p className="text-sm font-medium text-green-200 truncate">
+              {label}
+              {artifact.revisionLabel ? (
+                <span className="ml-1.5 text-xs text-green-600">({artifact.revisionLabel})</span>
+              ) : null}
+            </p>
+          </div>
+          <p className="mt-0.5 text-xs text-zinc-500 truncate">{artifact.fileName}</p>
+        </div>
+        <div className="flex shrink-0 flex-wrap items-center gap-2">
+          <button
+            type="button"
+            className="inline-flex items-center gap-1 text-xs text-green-400 hover:text-green-300 transition"
+            onClick={handlePreview}
+          >
+            <Eye className="h-3.5 w-3.5" aria-hidden />
+            Preview
+          </button>
+          <a
+            href={artifact.downloadUrl}
+            download={artifact.fileName}
+            className="inline-flex items-center gap-1 text-xs text-green-400 hover:text-green-300 transition"
+            onClick={() =>
+              logPdfArtifact("info", "download_link_clicked", {
+                variant: artifact.variant,
+                formCode: artifact.formCode,
+                fileName: artifact.fileName,
+              })
+            }
+          >
+            <FileDown className="h-3.5 w-3.5" aria-hidden />
+            Download
+          </a>
+        </div>
+      </div>
+    </li>
+  );
+}
+
+function UploadFormSection({ onUploadForm }: { onUploadForm: (file: File) => void | Promise<void> }) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [uploadedName, setUploadedName] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+
+  async function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      await Promise.resolve(onUploadForm(file));
+      setUploadedName(file.name);
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  return (
+    <div className="rounded-lg border border-zinc-700 border-dashed bg-zinc-900/40 px-3 py-3">
+      <p className="text-xs font-medium text-zinc-300">Upload your completed form</p>
+      <p className="mt-0.5 text-xs text-zinc-500">
+        Filled it out yourself? Upload your signed PDF here for filing.
+      </p>
+      <div className="mt-2.5 flex flex-wrap items-center gap-2">
+        <button
+          type="button"
+          disabled={uploading}
+          onClick={() => inputRef.current?.click()}
+          className="inline-flex items-center gap-1.5 rounded border border-zinc-600 bg-zinc-800 px-3 py-1.5 text-xs font-medium text-zinc-200 hover:bg-zinc-700 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {uploading ? (
+            <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
+          ) : (
+            <Upload className="h-3.5 w-3.5" aria-hidden />
+          )}
+          {uploading ? "Uploading\u2026" : "Choose file\u2026"}
+        </button>
+        {uploadedName && !uploading && (
+          <span className="flex items-center gap-1 text-xs text-green-400">
+            <CheckCircle2 className="h-3.5 w-3.5" aria-hidden />
+            {uploadedName}
+          </span>
+        )}
+      </div>
+      <input
+        ref={inputRef}
+        type="file"
+        accept=".pdf"
+        className="sr-only"
+        onChange={handleChange}
+      />
+    </div>
+  );
+}
+
 export function ActionItemsPanel({
   model,
   pdfFillStatus = "idle",
@@ -166,6 +275,7 @@ export function ActionItemsPanel({
   showEfilingGate = false,
   isEfilingDispatching = false,
   onDispatchEfiling,
+  onUploadForm,
 }: ActionItemsPanelProps) {
   const [pdfPreview, setPdfPreview] = useState<{ url: string; title: string } | null>(null);
 
@@ -195,12 +305,8 @@ export function ActionItemsPanel({
           {(pdfFillStatus === "preparing" || pdfFillStatus === "filling") && (
             <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
           )}
-          {pdfFillStatus === "done" && (
-            <CheckCircle2 className="h-3.5 w-3.5" aria-hidden />
-          )}
-          {pdfFillStatus === "failed" && (
-            <AlertTriangle className="h-3.5 w-3.5" aria-hidden />
-          )}
+          {pdfFillStatus === "done" && <CheckCircle2 className="h-3.5 w-3.5" aria-hidden />}
+          {pdfFillStatus === "failed" && <AlertTriangle className="h-3.5 w-3.5" aria-hidden />}
           <span>{FILL_STATUS_LABELS[pdfFillStatus]}</span>
         </div>
       )}
@@ -225,46 +331,65 @@ export function ActionItemsPanel({
         </div>
       )}
 
-      <div className="mt-3 space-y-2">
-        {/* Original downloads */}
-        {originals.length > 0 && (
-          <ul className="space-y-2">
-            {originals.map((a) => (
-              <ArtifactRow
-                key={`${a.formCode}-original`}
-                artifact={a}
-                onPreviewOpen={(url, title) => setPdfPreview({ url, title })}
-                autoFill={
-                  a.formCode === "UD-105" && a.variant === "original"
-                    ? ud105AutoFill
-                    : undefined
-                }
-              />
-            ))}
-          </ul>
-        )}
-
-        {/* Filled downloads */}
-        {filled.length > 0 && (
-          <ul className="space-y-2">
-            {filled.map((a) => (
-              <ArtifactRow
-                key={`${a.formCode}-filled`}
-                artifact={a}
-                onPreviewOpen={(url, title) => setPdfPreview({ url, title })}
-              />
-            ))}
-          </ul>
-        )}
-
+      <div className="mt-3 space-y-4">
         {!hasAnyArtifact && (
           <p className="text-xs text-zinc-500">
             No forms yet &mdash; run Find &amp; Fill Forms to get started.
           </p>
         )}
 
+        {/* Original court form */}
+        {originals.length > 0 && (
+          <div>
+            <p className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-zinc-500">
+              Official court form
+            </p>
+            <ul className="space-y-2">
+              {originals.map((a) => (
+                <OriginalArtifactRow
+                  key={`${a.formCode}-original`}
+                  artifact={a}
+                  onPreviewOpen={(url, title) => setPdfPreview({ url, title })}
+                  autoFill={
+                    a.formCode === "UD-105" && a.variant === "original" ? ud105AutoFill : undefined
+                  }
+                />
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {/* Pre-filled version — visually distinct */}
+        {filled.length > 0 && (
+          <div>
+            <div className="mb-1.5 flex items-center gap-1.5">
+              <CheckCircle2 className="h-3 w-3 text-green-500" aria-hidden />
+              <p className="text-xs font-semibold uppercase tracking-wider text-green-600">
+                Pre-filled for you
+              </p>
+            </div>
+            <p className="mb-2 text-xs text-zinc-500">
+              Fields filled from your case information. Review before filing.
+            </p>
+            <ul className="space-y-2">
+              {filled.map((a) => (
+                <FilledArtifactRow
+                  key={`${a.formCode}-filled`}
+                  artifact={a}
+                  onPreviewOpen={(url, title) => setPdfPreview({ url, title })}
+                />
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {/* Upload completed form */}
+        {onUploadForm && hasAnyArtifact && (
+          <UploadFormSection onUploadForm={onUploadForm} />
+        )}
+
         {(model?.checklist.length ?? 0) > 0 && (
-          <p className="text-xs text-zinc-400 mt-1">
+          <p className="text-xs text-zinc-400">
             Checklist items: {model!.checklist.length}
           </p>
         )}
