@@ -226,6 +226,7 @@ export function deriveHitlGateState(): HitlGateState {
   return {
     isBlockedOnUser: false,
     instruction: null,
+    missingFacts: [],
   };
 }
 

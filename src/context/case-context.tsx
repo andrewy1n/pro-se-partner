@@ -42,6 +42,7 @@ export function CaseProvider({ children }: { children: ReactNode }) {
   const [hitlGate, setHitlGate] = useState<HitlGateState>({
     isBlockedOnUser: false,
     instruction: null,
+    missingFacts: [],
   });
 
   const value = useMemo<CaseContextValue>(

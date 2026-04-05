@@ -14,7 +14,7 @@ import { HitlGate } from "@/components/hitl-gate";
 import { useSession } from "@/context/session-context";
 import { useCaseContext } from "@/context/case-context";
 import { intakeStorageKey, parseIntakeSessionPayload } from "@/lib/intake-storage";
-import type { DispatchWave1Response, IntakeSessionPayload, Wave1AgentKey } from "@/lib/types";
+import type { CaseFacts, DispatchWave1Response, IntakeSessionPayload, Wave1AgentKey } from "@/lib/types";
 
 export default function SessionPage() {
   const params = useParams<{ id: string }>();
@@ -98,15 +98,17 @@ export default function SessionPage() {
     setDeadlineResult(polledDeadlineResult);
 
     if (polledDeadlineResult?.status === "needs_input") {
-      const missingFacts = polledDeadlineResult.missingFacts
+      const missingFacts = polledDeadlineResult.missingFacts;
+      const factsLabel = missingFacts
         .map((fact) => fact.replace(/_/g, " "))
         .join(", ");
 
       setHitlGate({
         isBlockedOnUser: true,
-        instruction: missingFacts
-          ? `We need these facts to calculate your response deadline: ${missingFacts}.`
+        instruction: factsLabel
+          ? `We need a few more details to calculate your response deadline: ${factsLabel}.`
           : "We need more case details before we can calculate your response deadline.",
+        missingFacts,
       });
       return;
     }
@@ -114,6 +116,7 @@ export default function SessionPage() {
     setHitlGate({
       isBlockedOnUser: false,
       instruction: null,
+      missingFacts: [],
     });
   }, [polledDeadlineResult, setDeadlineResult, setHitlGate]);
 
@@ -186,6 +189,37 @@ export default function SessionPage() {
     setDispatched(next.dispatched);
   }
 
+  async function handleHitlSubmit(updates: Partial<CaseFacts>) {
+    if (!caseContext) return;
+
+    const enriched = {
+      ...caseContext,
+      caseFacts: { ...caseContext.caseFacts, ...updates },
+      // Remove facts that the user just provided from the missing list
+      missingFacts: caseContext.missingFacts.filter(
+        (f) => !Object.keys(updates).some((k) => k === f || k.replace(/([A-Z])/g, "_$1").toLowerCase() === f),
+      ),
+    };
+
+    setCaseContext(enriched);
+
+    // Persist enriched context so polling picks it up after re-dispatch
+    const id = params.id;
+    if (id) {
+      const raw = sessionStorage.getItem(intakeStorageKey(id));
+      const payload = parseIntakeSessionPayload(raw ?? "");
+      if (payload) {
+        sessionStorage.setItem(
+          intakeStorageKey(id),
+          JSON.stringify({ ...payload, caseContext: enriched }),
+        );
+      }
+    }
+
+    // Re-run only the deadline agent with the enriched context
+    await handleDispatchWave1(["deadline"]);
+  }
+
   return (
     <main className="flex min-h-dvh flex-col gap-4 p-4">
       <SessionViewToggle activeView={activeView} onViewChange={setActiveView} />
@@ -237,7 +271,11 @@ export default function SessionPage() {
             />
 
             {hitlGate.isBlockedOnUser ? (
-              <HitlGate instruction={hitlGate.instruction ?? "Complete the required task to continue."} />
+              <HitlGate
+                instruction={hitlGate.instruction ?? "Complete the required task to continue."}
+                missingFacts={hitlGate.missingFacts}
+                onSubmit={handleHitlSubmit}
+              />
             ) : (
               <ActionItemsPanel
                 model={{

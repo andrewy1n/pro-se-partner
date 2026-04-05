@@ -286,6 +286,7 @@ export interface ResourcesPanelModel {
 export interface HitlGateState {
   isBlockedOnUser: boolean;
   instruction: string | null;
+  missingFacts: string[];
 }
 
 export interface SessionSnapshot {
