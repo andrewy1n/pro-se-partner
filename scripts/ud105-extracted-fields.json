@@ -1,0 +1,2573 @@
+{
+  "meta": {
+    "originalPath": "C:\\dev\\pro-se-partner\\scripts\\ud105-original.pdf",
+    "blankPath": "C:\\dev\\pro-se-partner\\src\\lib\\pdf\\forms\\ud105-blank.pdf",
+    "pages": [
+      {
+        "page": 1,
+        "original": {
+          "width": 612,
+          "height": 792
+        },
+        "blank": {
+          "width": 612,
+          "height": 792
+        },
+        "scaleX": 1,
+        "scaleY": 1
+      },
+      {
+        "page": 2,
+        "original": {
+          "width": 612,
+          "height": 792
+        },
+        "blank": {
+          "width": 612,
+          "height": 792
+        },
+        "scaleX": 1,
+        "scaleY": 1
+      },
+      {
+        "page": 3,
+        "original": {
+          "width": 612,
+          "height": 792
+        },
+        "blank": {
+          "width": 612,
+          "height": 792
+        },
+        "scaleX": 1,
+        "scaleY": 1
+      },
+      {
+        "page": 4,
+        "original": {
+          "width": 612,
+          "height": 792
+        },
+        "blank": {
+          "width": 612,
+          "height": 792
+        },
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    ],
+    "scaleSummary": {
+      "originalPageWidth": 612,
+      "originalPageHeight": 792,
+      "blankPageWidth": 612,
+      "blankPageHeight": 792,
+      "scaleX": 1,
+      "scaleY": 1,
+      "dimensionsMatch": true
+    }
+  },
+  "fields": [
+    {
+      "pageIndex0": 0,
+      "pageNumber1": 1,
+      "fieldName": "UD-105[0].Page1[0].P1Caption[0].CaptionSub[0].CaseNumber[0].CaseNumber[0]",
+      "kind": "text",
+      "fieldType": "Tx",
+      "readOnly": false,
+      "alternativeText": "CASE NUMBER:",
+      "rect": [
+        400.005,
+        536.252,
+        572.805,
+        550.641
+      ],
+      "multiLine": false,
+      "scaled": {
+        "x": 401.005,
+        "y": 544.1719999999999,
+        "fontSize": 9,
+        "maxWidth": 172.79999999999995,
+        "isCheckbox": false,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 0,
+      "pageNumber1": 1,
+      "fieldName": "UD-105[0].Page1[0].P1Caption[0].AttyPartyInfo[0].AttyBarNo[0]",
+      "kind": "text",
+      "fieldType": "Tx",
+      "readOnly": false,
+      "alternativeText": "STATE BAR NUMBER:",
+      "rect": [
+        308.827,
+        733.128,
+        393.993,
+        742.128
+      ],
+      "multiLine": false,
+      "scaled": {
+        "x": 309.827,
+        "y": 741.048,
+        "fontSize": 9,
+        "maxWidth": 85.166,
+        "isCheckbox": false,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 0,
+      "pageNumber1": 1,
+      "fieldName": "UD-105[0].Page1[0].P1Caption[0].AttyPartyInfo[0].Name[0]",
+      "kind": "text",
+      "fieldType": "Tx",
+      "readOnly": false,
+      "alternativeText": "NAME:",
+      "rect": [
+        57.553,
+        722.155,
+        393.993,
+        731.155
+      ],
+      "multiLine": false,
+      "scaled": {
+        "x": 58.553,
+        "y": 730.0749999999999,
+        "fontSize": 9,
+        "maxWidth": 336.44,
+        "isCheckbox": false,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 0,
+      "pageNumber1": 1,
+      "fieldName": "UD-105[0].Page1[0].P1Caption[0].AttyPartyInfo[0].AttyFirm[0]",
+      "kind": "text",
+      "fieldType": "Tx",
+      "readOnly": false,
+      "alternativeText": "FIRM NAME:",
+      "rect": [
+        73.671,
+        710.584,
+        393.993,
+        719.584
+      ],
+      "multiLine": false,
+      "scaled": {
+        "x": 74.671,
+        "y": 718.5039999999999,
+        "fontSize": 9,
+        "maxWidth": 320.322,
+        "isCheckbox": false,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 0,
+      "pageNumber1": 1,
+      "fieldName": "UD-105[0].Page1[0].P1Caption[0].AttyPartyInfo[0].Street[0]",
+      "kind": "text",
+      "fieldType": "Tx",
+      "readOnly": false,
+      "alternativeText": "STREET ADDRESS:",
+      "rect": [
+        95.56,
+        699.015,
+        393.993,
+        708.015
+      ],
+      "multiLine": false,
+      "scaled": {
+        "x": 96.56,
+        "y": 706.935,
+        "fontSize": 9,
+        "maxWidth": 298.433,
+        "isCheckbox": false,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 0,
+      "pageNumber1": 1,
+      "fieldName": "UD-105[0].Page1[0].P1Caption[0].AttyPartyInfo[0].City[0]",
+      "kind": "text",
+      "fieldType": "Tx",
+      "readOnly": false,
+      "alternativeText": "CITY:",
+      "rect": [
+        54.338,
+        687.447,
+        240.409,
+        696.447
+      ],
+      "multiLine": false,
+      "scaled": {
+        "x": 55.338,
+        "y": 695.367,
+        "fontSize": 9,
+        "maxWidth": 186.071,
+        "isCheckbox": false,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 0,
+      "pageNumber1": 1,
+      "fieldName": "UD-105[0].Page1[0].P1Caption[0].AttyPartyInfo[0].State[0]",
+      "kind": "text",
+      "fieldType": "Tx",
+      "readOnly": false,
+      "alternativeText": "STATE:",
+      "rect": [
+        263.519,
+        687.447,
+        293.672,
+        696.447
+      ],
+      "multiLine": false,
+      "scaled": {
+        "x": 264.519,
+        "y": 695.367,
+        "fontSize": 9,
+        "maxWidth": 30.15300000000002,
+        "isCheckbox": false,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 0,
+      "pageNumber1": 1,
+      "fieldName": "UD-105[0].Page1[0].P1Caption[0].AttyPartyInfo[0].Zip[0]",
+      "kind": "text",
+      "fieldType": "Tx",
+      "readOnly": false,
+      "alternativeText": "ZIP CODE:",
+      "rect": [
+        326.753,
+        687.447,
+        393.993,
+        696.447
+      ],
+      "multiLine": false,
+      "scaled": {
+        "x": 327.753,
+        "y": 695.367,
+        "fontSize": 9,
+        "maxWidth": 67.24000000000001,
+        "isCheckbox": false,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 0,
+      "pageNumber1": 1,
+      "fieldName": "UD-105[0].Page1[0].P1Caption[0].AttyPartyInfo[0].Phone[0]",
+      "kind": "text",
+      "fieldType": "Tx",
+      "readOnly": false,
+      "alternativeText": "Telephone number:",
+      "rect": [
+        89.765,
+        675.879,
+        216.83,
+        684.879
+      ],
+      "multiLine": false,
+      "scaled": {
+        "x": 90.765,
+        "y": 683.799,
+        "fontSize": 9,
+        "maxWidth": 127.06500000000001,
+        "isCheckbox": false,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 0,
+      "pageNumber1": 1,
+      "fieldName": "UD-105[0].Page1[0].P1Caption[0].AttyPartyInfo[0].Fax[0]",
+      "kind": "text",
+      "fieldType": "Tx",
+      "readOnly": false,
+      "alternativeText": "Fax number",
+      "rect": [
+        266.114,
+        675.879,
+        393.993,
+        684.879
+      ],
+      "multiLine": false,
+      "scaled": {
+        "x": 267.114,
+        "y": 683.799,
+        "fontSize": 9,
+        "maxWidth": 127.87900000000002,
+        "isCheckbox": false,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 0,
+      "pageNumber1": 1,
+      "fieldName": "UD-105[0].Page1[0].P1Caption[0].AttyPartyInfo[0].Email[0]",
+      "kind": "text",
+      "fieldType": "Tx",
+      "readOnly": false,
+      "alternativeText": "EMAIL ADDRESS:",
+      "rect": [
+        91.056,
+        664.308,
+        393.993,
+        673.308
+      ],
+      "multiLine": false,
+      "scaled": {
+        "x": 92.056,
+        "y": 672.228,
+        "fontSize": 9,
+        "maxWidth": 302.937,
+        "isCheckbox": false,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 0,
+      "pageNumber1": 1,
+      "fieldName": "UD-105[0].Page1[0].P1Caption[0].AttyPartyInfo[0].AttyFor[0]",
+      "kind": "text",
+      "fieldType": "Tx",
+      "readOnly": false,
+      "alternativeText": "ATTORNEY FOR (name):",
+      "rect": [
+        107.807,
+        652.74,
+        393.993,
+        661.74
+      ],
+      "multiLine": false,
+      "scaled": {
+        "x": 108.807,
+        "y": 660.66,
+        "fontSize": 9,
+        "maxWidth": 286.186,
+        "isCheckbox": false,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 0,
+      "pageNumber1": 1,
+      "fieldName": "UD-105[0].Page1[0].P1Caption[0].CourtInfo[0].CrtCounty[0]",
+      "kind": "text",
+      "fieldType": "Tx",
+      "readOnly": false,
+      "alternativeText": "SUPERIOR COURT OF CALIFORNIA, COUNTY OF",
+      "rect": [
+        227.713,
+        637.155,
+        393.993,
+        646.155
+      ],
+      "multiLine": false,
+      "scaled": {
+        "x": 228.713,
+        "y": 644.1949999999999,
+        "fontSize": 8,
+        "maxWidth": 166.28,
+        "isCheckbox": false,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 0,
+      "pageNumber1": 1,
+      "fieldName": "UD-105[0].Page1[0].P1Caption[0].CourtInfo[0].CrtStreet[0]",
+      "kind": "text",
+      "fieldType": "Tx",
+      "readOnly": false,
+      "alternativeText": "STREET ADDRESS:",
+      "rect": [
+        96.987,
+        626.811,
+        393.993,
+        635.811
+      ],
+      "multiLine": false,
+      "scaled": {
+        "x": 97.987,
+        "y": 634.731,
+        "fontSize": 9,
+        "maxWidth": 297.006,
+        "isCheckbox": false,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 0,
+      "pageNumber1": 1,
+      "fieldName": "UD-105[0].Page1[0].P1Caption[0].CourtInfo[0].CrtMailingAdd[0]",
+      "kind": "text",
+      "fieldType": "Tx",
+      "readOnly": false,
+      "alternativeText": "MAILING ADDRESS:",
+      "rect": [
+        96.987,
+        615.873,
+        393.993,
+        624.873
+      ],
+      "multiLine": false,
+      "scaled": {
+        "x": 97.987,
+        "y": 623.793,
+        "fontSize": 9,
+        "maxWidth": 297.006,
+        "isCheckbox": false,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 0,
+      "pageNumber1": 1,
+      "fieldName": "UD-105[0].Page1[0].P1Caption[0].CourtInfo[0].CrtCityZip[0]",
+      "kind": "text",
+      "fieldType": "Tx",
+      "readOnly": false,
+      "alternativeText": "CITY AND ZIP CODE:",
+      "rect": [
+        96.989,
+        604.61,
+        393.981,
+        613.61
+      ],
+      "multiLine": false,
+      "scaled": {
+        "x": 97.989,
+        "y": 612.53,
+        "fontSize": 9,
+        "maxWidth": 296.99199999999996,
+        "isCheckbox": false,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 0,
+      "pageNumber1": 1,
+      "fieldName": "UD-105[0].Page1[0].P1Caption[0].CourtInfo[0].CrtBranch[0]",
+      "kind": "text",
+      "fieldType": "Tx",
+      "readOnly": false,
+      "alternativeText": "BRANCH NAME:",
+      "rect": [
+        96.987,
+        593.258,
+        393.993,
+        602.258
+      ],
+      "multiLine": false,
+      "scaled": {
+        "x": 97.987,
+        "y": 601.178,
+        "fontSize": 9,
+        "maxWidth": 297.006,
+        "isCheckbox": false,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 0,
+      "pageNumber1": 1,
+      "fieldName": "UD-105[0].Page1[0].P1Caption[0].TitlePartyName[0].Party1[0]",
+      "kind": "text",
+      "fieldType": "Tx",
+      "readOnly": false,
+      "alternativeText": "PLAINTIFF:",
+      "rect": [
+        89.813,
+        578.438,
+        394.342,
+        587.438
+      ],
+      "multiLine": false,
+      "scaled": {
+        "x": 90.813,
+        "y": 585.478,
+        "fontSize": 8,
+        "maxWidth": 304.529,
+        "isCheckbox": false,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 0,
+      "pageNumber1": 1,
+      "fieldName": "UD-105[0].Page1[0].P1Caption[0].TitlePartyName[0].Party2[0]",
+      "kind": "text",
+      "fieldType": "Tx",
+      "readOnly": false,
+      "alternativeText": "DEFENDANT:",
+      "rect": [
+        89.481,
+        564.885,
+        394.342,
+        574.183
+      ],
+      "multiLine": false,
+      "scaled": {
+        "x": 90.481,
+        "y": 571.925,
+        "fontSize": 8,
+        "maxWidth": 304.861,
+        "isCheckbox": false,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 0,
+      "pageNumber1": 1,
+      "fieldName": "UD-105[0].Page1[0].List1[0].item1[0].FillField1[0]",
+      "kind": "text",
+      "fieldType": "Tx",
+      "readOnly": false,
+      "alternativeText": "Defendant (all defendants for whom this answer is filed must be named and must sign this answer unless their attorney signs): ",
+      "rect": [
+        50.216,
+        489.408,
+        575.997,
+        512.708
+      ],
+      "multiLine": true,
+      "scaled": {
+        "x": 51.216,
+        "y": 502.35799999999995,
+        "fontSize": 9,
+        "maxWidth": 525.781,
+        "isCheckbox": false,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 0,
+      "pageNumber1": 1,
+      "fieldName": "UD-105[0].Page1[0].List2[0].Lia[0].Check1[0]",
+      "kind": "checkbox",
+      "fieldType": "Btn",
+      "readOnly": false,
+      "alternativeText": "General Denial (Do not check this box if the complaint demands more than $1,000.)\nDefendant generally denies each statement of the complaint. ",
+      "rect": [
+        70.316,
+        451.806,
+        79.316,
+        460.806
+      ],
+      "multiLine": false,
+      "scaled": {
+        "x": 71.316,
+        "y": 453.806,
+        "fontSize": 7.2,
+        "isCheckbox": true,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 0,
+      "pageNumber1": 1,
+      "fieldName": "UD-105[0].Page1[0].List2[0].Lib[0].Check1[0]",
+      "kind": "checkbox",
+      "fieldType": "Btn",
+      "readOnly": false,
+      "alternativeText": "Specific Denials (Check this box and complete (1) and (2) below if complaint demands more than $1,000.)\nDefendant admits that all the statements of the complaint are true EXCEPT:",
+      "rect": [
+        70.228,
+        422.756,
+        79.228,
+        431.756
+      ],
+      "multiLine": false,
+      "scaled": {
+        "x": 71.228,
+        "y": 424.756,
+        "fontSize": 7.2,
+        "isCheckbox": true,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 0,
+      "pageNumber1": 1,
+      "fieldName": "UD-105[0].Page1[0].List2[0].Lib[0].SubListb[0].Li1[0].Subitem1[0].Lia[0].FillField2[0]",
+      "kind": "text",
+      "fieldType": "Tx",
+      "readOnly": false,
+      "alternativeText": "Defendant claims the following statements of the complaint are false (state paragraph numbers from the complaint or explain below or, if more room needed, on form MC-025):  ",
+      "rect": [
+        78.638,
+        310.002,
+        557.931,
+        346.148
+      ],
+      "multiLine": true,
+      "scaled": {
+        "x": 79.638,
+        "y": 335.798,
+        "fontSize": 9,
+        "maxWidth": 479.293,
+        "isCheckbox": false,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 0,
+      "pageNumber1": 1,
+      "fieldName": "UD-105[0].Page1[0].List2[0].Lib[0].SubListb[0].Li1[0].Subitem1[0].Lia[0].Check3[0]",
+      "kind": "checkbox",
+      "fieldType": "Btn",
+      "readOnly": false,
+      "alternativeText": " Explanation is on form MC-025, titled as Attachment 2b(1).",
+      "rect": [
+        82.38,
+        348.141,
+        91.38,
+        357.141
+      ],
+      "multiLine": false,
+      "scaled": {
+        "x": 83.38,
+        "y": 350.141,
+        "fontSize": 7.2,
+        "isCheckbox": true,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 0,
+      "pageNumber1": 1,
+      "fieldName": "UD-105[0].Page1[0].List2[0].Lib[0].SubListb[0].Li1[0].Subitem1[0].Lib[0].FillField3[0]",
+      "kind": "text",
+      "fieldType": "Tx",
+      "readOnly": false,
+      "alternativeText": "Defendant has no information or belief that the following statements of the complaint are true, so defendant denies them (state paragraph numbers from the complaint or explain below or, if more room needed, on form MC-025):",
+      "rect": [
+        79.027,
+        231.242,
+        558.025,
+        267.098
+      ],
+      "multiLine": true,
+      "scaled": {
+        "x": 80.027,
+        "y": 256.748,
+        "fontSize": 9,
+        "maxWidth": 478.998,
+        "isCheckbox": false,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 0,
+      "pageNumber1": 1,
+      "fieldName": "UD-105[0].Page1[0].List2[0].Lib[0].SubListb[0].Li1[0].Subitem1[0].Lib[0].Check4[0]",
+      "kind": "checkbox",
+      "fieldType": "Btn",
+      "readOnly": false,
+      "alternativeText": " Explanation is on form MC-025, titled as Attachment 2b(2).",
+      "rect": [
+        83.335,
+        267.819,
+        93.335,
+        277.819
+      ],
+      "multiLine": false,
+      "scaled": {
+        "x": 84.335,
+        "y": 269.819,
+        "fontSize": 8,
+        "isCheckbox": true,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 0,
+      "pageNumber1": 1,
+      "fieldName": "UD-105[0].Page1[0].List3[0].Lia[0].Check8[0]",
+      "kind": "checkbox",
+      "fieldType": "Btn",
+      "readOnly": false,
+      "alternativeText": "(Nonpayment of rent only) Plaintiff has breached the warranty to provide habitable premises.",
+      "rect": [
+        70.608,
+        180.181,
+        80.608,
+        190.181
+      ],
+      "multiLine": false,
+      "scaled": {
+        "x": 71.608,
+        "y": 182.181,
+        "fontSize": 8,
+        "isCheckbox": true,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 0,
+      "pageNumber1": 1,
+      "fieldName": "UD-105[0].Page1[0].List3[0].Lib[0].Check9[0]",
+      "kind": "checkbox",
+      "fieldType": "Btn",
+      "readOnly": false,
+      "alternativeText": "(Nonpayment of rent only) Defendant made needed repairs and properly deducted the cost from the rent, and plaintiff did  not give proper credit.",
+      "rect": [
+        70.606,
+        166.284,
+        80.606,
+        176.284
+      ],
+      "multiLine": false,
+      "scaled": {
+        "x": 71.606,
+        "y": 168.284,
+        "fontSize": 8,
+        "isCheckbox": true,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 0,
+      "pageNumber1": 1,
+      "fieldName": "UD-105[0].Page1[0].List3[0].Lic[0].Check10[0]",
+      "kind": "checkbox",
+      "fieldType": "Btn",
+      "readOnly": false,
+      "alternativeText": "(Nonpayment of rent only) ",
+      "rect": [
+        70.5,
+        140.137,
+        80.5,
+        150.137
+      ],
+      "multiLine": false,
+      "scaled": {
+        "x": 71.5,
+        "y": 142.137,
+        "fontSize": 8,
+        "isCheckbox": true,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 0,
+      "pageNumber1": 1,
+      "fieldName": "UD-105[0].Page1[0].List3[0].Lic[0].Date1[0]",
+      "kind": "text",
+      "fieldType": "Tx",
+      "readOnly": false,
+      "alternativeText": "On (date):",
+      "rect": [
+        240.641,
+        139.646,
+        340.795,
+        150.038
+      ],
+      "multiLine": false,
+      "scaled": {
+        "x": 241.641,
+        "y": 147.56599999999997,
+        "fontSize": 9,
+        "maxWidth": 100.15400000000002,
+        "isCheckbox": false,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 0,
+      "pageNumber1": 1,
+      "fieldName": "UD-105[0].Page1[0].List3[0].li3d[0].Check8[0]",
+      "kind": "checkbox",
+      "fieldType": "Btn",
+      "readOnly": false,
+      "alternativeText": "(Nonpayment of rent only) Plaintiff's demand for possession is based on nonpayment of rent due more than one year ago.",
+      "rect": [
+        70.546,
+        114.467,
+        80.546,
+        124.467
+      ],
+      "multiLine": false,
+      "scaled": {
+        "x": 71.546,
+        "y": 116.467,
+        "fontSize": 8,
+        "isCheckbox": true,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 0,
+      "pageNumber1": 1,
+      "fieldName": "UD-105[0].Page1[0].List3[0].Lie[0].Check11[0]",
+      "kind": "checkbox",
+      "fieldType": "Btn",
+      "readOnly": false,
+      "alternativeText": "Plaintiff waived, changed, or canceled the notice to quit.",
+      "rect": [
+        70.608,
+        99.989,
+        80.608,
+        109.989
+      ],
+      "multiLine": false,
+      "scaled": {
+        "x": 71.608,
+        "y": 101.989,
+        "fontSize": 8,
+        "isCheckbox": true,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 0,
+      "pageNumber1": 1,
+      "fieldName": "UD-105[0].Page1[0].List3[0].Lif[0].Check12[0]",
+      "kind": "checkbox",
+      "fieldType": "Btn",
+      "readOnly": false,
+      "alternativeText": "Plaintiff served defendant with the notice to quit or filed the complaint to retaliate against defendant.",
+      "rect": [
+        70.608,
+        85.849,
+        80.608,
+        95.849
+      ],
+      "multiLine": false,
+      "scaled": {
+        "x": 71.608,
+        "y": 87.849,
+        "fontSize": 8,
+        "isCheckbox": true,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 1,
+      "pageNumber1": 2,
+      "fieldName": "UD-105[0].Page2[0].PxCaption[0].CaseNumber[0].CaseNumber[0]",
+      "kind": "text",
+      "fieldType": "Tx",
+      "readOnly": true,
+      "alternativeText": "CASE NUMBER:",
+      "rect": [
+        400.005,
+        718.738,
+        572.805,
+        733.127
+      ],
+      "multiLine": false,
+      "scaled": {
+        "x": 401.005,
+        "y": 726.658,
+        "fontSize": 9,
+        "maxWidth": 172.79999999999995,
+        "isCheckbox": false,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 1,
+      "pageNumber1": 2,
+      "fieldName": "UD-105[0].Page2[0].PxCaption[0].TitlePartyName[0].Party1[0]",
+      "kind": "text",
+      "fieldType": "Tx",
+      "readOnly": true,
+      "alternativeText": "PLAINTIFF:",
+      "rect": [
+        90.425,
+        732.56,
+        394.954,
+        741.56
+      ],
+      "multiLine": false,
+      "scaled": {
+        "x": 91.425,
+        "y": 739.5999999999999,
+        "fontSize": 8,
+        "maxWidth": 304.529,
+        "isCheckbox": false,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 1,
+      "pageNumber1": 2,
+      "fieldName": "UD-105[0].Page2[0].PxCaption[0].TitlePartyName[0].Party2[0]",
+      "kind": "text",
+      "fieldType": "Tx",
+      "readOnly": true,
+      "alternativeText": "DEFENDANT:",
+      "rect": [
+        90.093,
+        718.27,
+        394.954,
+        727.568
+      ],
+      "multiLine": false,
+      "scaled": {
+        "x": 91.093,
+        "y": 725.31,
+        "fontSize": 8,
+        "maxWidth": 304.861,
+        "isCheckbox": false,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 1,
+      "pageNumber1": 2,
+      "fieldName": "UD-105[0].Page2[0].List3[0].Lig[0].Check13[0]",
+      "kind": "checkbox",
+      "fieldType": "Btn",
+      "readOnly": false,
+      "alternativeText": "By serving defendant with the notice to quit or filing the complaint, plaintiff is arbitrarily discriminating against the defendant in violation of the Constitution or the laws of the United States or California.",
+      "rect": [
+        70.033,
+        696.111,
+        80.033,
+        706.111
+      ],
+      "multiLine": false,
+      "scaled": {
+        "x": 71.033,
+        "y": 698.111,
+        "fontSize": 8,
+        "isCheckbox": true,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 1,
+      "pageNumber1": 2,
+      "fieldName": "UD-105[0].Page2[0].List3[0].Lih[0].Check14[0]",
+      "kind": "checkbox",
+      "fieldType": "Btn",
+      "readOnly": false,
+      "alternativeText": "Plaintiff's demand for possession violates the local rent control or eviction control ordinance of (city or county, title of  ordinance, and date of passage):",
+      "rect": [
+        70.605,
+        670.406,
+        80.605,
+        680.406
+      ],
+      "multiLine": false,
+      "scaled": {
+        "x": 71.605,
+        "y": 672.406,
+        "fontSize": 8,
+        "isCheckbox": true,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 1,
+      "pageNumber1": 2,
+      "fieldName": "UD-105[0].Page2[0].List3[0].Lih[0].FillField6[0]",
+      "kind": "text",
+      "fieldType": "Tx",
+      "readOnly": false,
+      "alternativeText": "city or county, title of  ordinance, and date of passage",
+      "rect": [
+        227.727,
+        659.835,
+        576,
+        670.592
+      ],
+      "multiLine": false,
+      "scaled": {
+        "x": 228.727,
+        "y": 667.755,
+        "fontSize": 9,
+        "maxWidth": 348.273,
+        "isCheckbox": false,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 1,
+      "pageNumber1": 2,
+      "fieldName": "UD-105[0].Page2[0].List3[0].li2i[0].Check15[0]",
+      "kind": "checkbox",
+      "fieldType": "Btn",
+      "readOnly": false,
+      "alternativeText": "Plaintiff's demand for possession is subject to the Tenant Protection Act of 2019, Civil Code section 1946.2 or 1947.12, and is not in compliance with the act. (Check all that apply and briefly state in item 3t the facts that support each.)",
+      "rect": [
+        70.455,
+        633.695,
+        80.455,
+        643.695
+      ],
+      "multiLine": false,
+      "scaled": {
+        "x": 71.455,
+        "y": 635.695,
+        "fontSize": 8,
+        "isCheckbox": true,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 1,
+      "pageNumber1": 2,
+      "fieldName": "UD-105[0].Page2[0].List3[0].li2i[0].LI2I[0].L2i1[0].Check16[0]",
+      "kind": "checkbox",
+      "fieldType": "Btn",
+      "readOnly": false,
+      "alternativeText": "Plaintiff failed to state a just cause for termination of tenancy in the written notice to terminate.",
+      "rect": [
+        88.296,
+        609.767,
+        98.296,
+        619.767
+      ],
+      "multiLine": false,
+      "scaled": {
+        "x": 89.296,
+        "y": 611.767,
+        "fontSize": 8,
+        "isCheckbox": true,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 1,
+      "pageNumber1": 2,
+      "fieldName": "UD-105[0].Page2[0].List3[0].li2i[0].LI2I[0].Li2[0].Check17[0]",
+      "kind": "checkbox",
+      "fieldType": "Btn",
+      "readOnly": false,
+      "alternativeText": "Plaintiff failed to provide an opportunity to cure any alleged violations of terms and conditions of the lease (other than payment of rent) as required under Civil Code section 1946.2(c).",
+      "rect": [
+        87.931,
+        595.229,
+        97.931,
+        605.229
+      ],
+      "multiLine": false,
+      "scaled": {
+        "x": 88.931,
+        "y": 597.229,
+        "fontSize": 8,
+        "isCheckbox": true,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 1,
+      "pageNumber1": 2,
+      "fieldName": "UD-105[0].Page2[0].List3[0].li2i[0].LI2I[0].Li3[0].Check18[0]",
+      "kind": "checkbox",
+      "fieldType": "Btn",
+      "readOnly": false,
+      "alternativeText": "Plaintiff failed to comply with the relocation assistance requirements of Civil Code section 1946.2(d).",
+      "rect": [
+        88.296,
+        568.821,
+        98.296,
+        578.821
+      ],
+      "multiLine": false,
+      "scaled": {
+        "x": 89.296,
+        "y": 570.821,
+        "fontSize": 8,
+        "isCheckbox": true,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 1,
+      "pageNumber1": 2,
+      "fieldName": "UD-105[0].Page2[0].List3[0].li2i[0].LI2I[0].Li4[0].Check19[0]",
+      "kind": "checkbox",
+      "fieldType": "Btn",
+      "readOnly": false,
+      "alternativeText": "Plaintiff has raised the rent more than the amount allowed under Civil Code section 1947.12, and the only unpaid rent is the unauthorized amount.   ",
+      "rect": [
+        90.142,
+        553.75,
+        100.142,
+        563.75
+      ],
+      "multiLine": false,
+      "scaled": {
+        "x": 91.142,
+        "y": 555.75,
+        "fontSize": 8,
+        "isCheckbox": true,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 1,
+      "pageNumber1": 2,
+      "fieldName": "UD-105[0].Page2[0].List3[0].li2i[0].LI2I[0].Li5[0].Check20[0]",
+      "kind": "checkbox",
+      "fieldType": "Btn",
+      "readOnly": false,
+      "alternativeText": "Plaintiff violated the Tenant Protection Act in another manner that defeats the complaint.",
+      "rect": [
+        88.296,
+        530.329,
+        98.296,
+        540.329
+      ],
+      "multiLine": false,
+      "scaled": {
+        "x": 89.296,
+        "y": 532.329,
+        "fontSize": 8,
+        "isCheckbox": true,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 1,
+      "pageNumber1": 2,
+      "fieldName": "UD-105[0].Page2[0].List3[0].Lij[0].Check21[0]",
+      "kind": "checkbox",
+      "fieldType": "Btn",
+      "readOnly": false,
+      "alternativeText": "Plaintiff accepted rent from defendant to cover a period of time after the date the notice to quit expired.",
+      "rect": [
+        70.603,
+        511.042,
+        80.603,
+        521.042
+      ],
+      "multiLine": false,
+      "scaled": {
+        "x": 71.603,
+        "y": 513.0419999999999,
+        "fontSize": 8,
+        "isCheckbox": true,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 1,
+      "pageNumber1": 2,
+      "fieldName": "UD-105[0].Page2[0].List3[0].Lik[0].Check22[0]",
+      "kind": "checkbox",
+      "fieldType": "Btn",
+      "readOnly": false,
+      "alternativeText": "Plaintiff seeks to evict defendant based on an act—against defendant, defendant's immediate family member, or a member of defendant's household—that constitutes domestic violence, sexual assault, stalking, human trafficking, abuse of an elder or a dependent adult, or a crime that caused bodily injury, involved a deadly weapon, or used force or threat of force. (This defense requires one of the following, which may be included with this form: (1) a temporary restraining order, protective order, or police report that is not more than 180 days old; (2) a signed statement from a qualified third party (e.g., a doctor, domestic violence or sexual assault counselor, human trafficking caseworker, psychologist, or a victim of violent crime advocate concerning the injuries or abuse resulting from these acts); or (3) another form of documentation or evidence that verifies that the abuse or violence occurred.)",
+      "rect": [
+        70.603,
+        495.775,
+        80.603,
+        505.775
+      ],
+      "multiLine": false,
+      "scaled": {
+        "x": 71.603,
+        "y": 497.775,
+        "fontSize": 8,
+        "isCheckbox": true,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 1,
+      "pageNumber1": 2,
+      "fieldName": "UD-105[0].Page2[0].List3[0].Lik[0].L3K[0].l3k11[0].Check16[0]",
+      "kind": "checkbox",
+      "fieldType": "Btn",
+      "readOnly": false,
+      "alternativeText": "The abuse or violence was committed by a person who does not live in the dwelling unit.",
+      "rect": [
+        89.167,
+        406.038,
+        99.167,
+        416.038
+      ],
+      "multiLine": false,
+      "scaled": {
+        "x": 90.167,
+        "y": 408.038,
+        "fontSize": 8,
+        "isCheckbox": true,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 1,
+      "pageNumber1": 2,
+      "fieldName": "UD-105[0].Page2[0].List3[0].Lik[0].L3K[0].l3k2[0].Check17[0]",
+      "kind": "checkbox",
+      "fieldType": "Btn",
+      "readOnly": false,
+      "alternativeText": "The abuse or violence was committed by a person who lives in the dwelling unit and defendant claims protection from eviction under Code of Civil Procedure section 1161.3(d)(2).",
+      "rect": [
+        89.164,
+        391.5,
+        99.164,
+        401.5
+      ],
+      "multiLine": false,
+      "scaled": {
+        "x": 90.164,
+        "y": 393.5,
+        "fontSize": 8,
+        "isCheckbox": true,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 1,
+      "pageNumber1": 2,
+      "fieldName": "UD-105[0].Page2[0].List3[0].l3il[0].Check23[0]",
+      "kind": "checkbox",
+      "fieldType": "Btn",
+      "readOnly": false,
+      "alternativeText": "Plaintiff seeks to evict defendant based on defendant or another person calling the police or emergency assistance (e.g., ambulance) by or on behalf of a victim of abuse, a victim of crime, or an individual in an emergency when defendant or the other person believed that assistance was necessary.",
+      "rect": [
+        70.603,
+        364.911,
+        80.603,
+        374.911
+      ],
+      "multiLine": false,
+      "scaled": {
+        "x": 71.603,
+        "y": 366.911,
+        "fontSize": 8,
+        "isCheckbox": true,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 1,
+      "pageNumber1": 2,
+      "fieldName": "UD-105[0].Page2[0].List3[0].l3m[0].Check38[0]",
+      "kind": "checkbox",
+      "fieldType": "Btn",
+      "readOnly": false,
+      "alternativeText": "Plaintiff's demand for possession of a residential property is based on nonpayment of rent or other financial obligations and (check all that apply)",
+      "rect": [
+        70.382,
+        327.21,
+        80.382,
+        337.21
+      ],
+      "multiLine": false,
+      "scaled": {
+        "x": 71.382,
+        "y": 329.21,
+        "fontSize": 8,
+        "isCheckbox": true,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 1,
+      "pageNumber1": 2,
+      "fieldName": "UD-105[0].Page2[0].List3[0].l3m[0].L3M1[0].l3m1[0].Check35[0]",
+      "kind": "checkbox",
+      "fieldType": "Btn",
+      "readOnly": false,
+      "alternativeText": "plaintiff received or has a pending application for rental assistance from a governmental rental assistance program or some other source relating to the amount claimed in the notice to pay rent or quit. (Health & Saf. Code,  §§ 50897.1(d)(2)(B) and 50897.3(e)(2).)",
+      "rect": [
+        89.164,
+        302.203,
+        99.164,
+        312.203
+      ],
+      "multiLine": false,
+      "scaled": {
+        "x": 90.164,
+        "y": 304.203,
+        "fontSize": 8,
+        "isCheckbox": true,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 1,
+      "pageNumber1": 2,
+      "fieldName": "UD-105[0].Page2[0].List3[0].l3m[0].L3M1[0].li3m2[0].Check35[0]",
+      "kind": "checkbox",
+      "fieldType": "Btn",
+      "readOnly": false,
+      "alternativeText": "plaintiff received or has a pending application for rental assistance from a governmental rental assistance program or some other source for rent accruing since the notice to pay rent or quit. (Health & Saf. Code, §§ 50897.1(d)(2)(B) and 50897.3(e)(2).)",
+      "rect": [
+        89.167,
+        266.718,
+        98.167,
+        275.718
+      ],
+      "multiLine": false,
+      "scaled": {
+        "x": 90.167,
+        "y": 268.718,
+        "fontSize": 7.2,
+        "isCheckbox": true,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 1,
+      "pageNumber1": 2,
+      "fieldName": "UD-105[0].Page2[0].List3[0].l3m[0].L3M1[0].li3m3[0].Check35[0]",
+      "kind": "checkbox",
+      "fieldType": "Btn",
+      "readOnly": false,
+      "alternativeText": "plaintiff's demand for possession is based only on late fees for defendant's failure to provide landlord payment within 15 days of receiving governmental rental assistance. (Health & Saf. Code, § 50897.1(e)(2)(B).)",
+      "rect": [
+        89.167,
+        231.645,
+        98.167,
+        240.645
+      ],
+      "multiLine": false,
+      "scaled": {
+        "x": 90.167,
+        "y": 233.645,
+        "fontSize": 7.2,
+        "isCheckbox": true,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 1,
+      "pageNumber1": 2,
+      "fieldName": "UD-105[0].Page2[0].List3[0].li3n[0].Check39[0]",
+      "kind": "checkbox",
+      "fieldType": "Btn",
+      "readOnly": false,
+      "alternativeText": "Plaintiff violated a local COVID-19–related ordinance regarding evictions (briefly state facts describing this in item 3t).",
+      "rect": [
+        70.863,
+        204.061,
+        79.863,
+        213.061
+      ],
+      "multiLine": false,
+      "scaled": {
+        "x": 71.863,
+        "y": 206.061,
+        "fontSize": 7.2,
+        "isCheckbox": true,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 1,
+      "pageNumber1": 2,
+      "fieldName": "UD-105[0].Page2[0].List3[0].li3o[0].Check39[0]",
+      "kind": "checkbox",
+      "fieldType": "Btn",
+      "readOnly": false,
+      "alternativeText": "The property is covered by the federal CARES Act and the plaintiff did not provide 30 days' notice to vacate.",
+      "rect": [
+        70.903,
+        189.496,
+        79.903,
+        198.496
+      ],
+      "multiLine": false,
+      "scaled": {
+        "x": 71.903,
+        "y": 191.496,
+        "fontSize": 7.2,
+        "isCheckbox": true,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 1,
+      "pageNumber1": 2,
+      "fieldName": "UD-105[0].Page2[0].List3[0].li3p[0].Check42[0]",
+      "kind": "checkbox",
+      "fieldType": "Btn",
+      "readOnly": false,
+      "alternativeText": "Before October 1, 2025, plaintiff improperly applied payments made by defendant in a tenancy that was in existence between March 1, 2020, and September 30, 2021 (Code Civ. Proc., § 1179.04.5), as follows (check all that apply):",
+      "rect": [
+        70.761,
+        116.658,
+        80.761,
+        126.658
+      ],
+      "multiLine": false,
+      "scaled": {
+        "x": 71.761,
+        "y": 118.658,
+        "fontSize": 8,
+        "isCheckbox": true,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 1,
+      "pageNumber1": 2,
+      "fieldName": "UD-105[0].Page2[0].List3[0].li3p[0].LI3P[0].li3p1[0].Check43[0]",
+      "kind": "checkbox",
+      "fieldType": "Btn",
+      "readOnly": false,
+      "alternativeText": "Plaintiff applied a security deposit to rent, or other financial obligations due, without tenant’s written agreement.",
+      "rect": [
+        89.628,
+        91.038,
+        99.628,
+        101.038
+      ],
+      "multiLine": false,
+      "scaled": {
+        "x": 90.628,
+        "y": 93.038,
+        "fontSize": 8,
+        "isCheckbox": true,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 1,
+      "pageNumber1": 2,
+      "fieldName": "UD-105[0].Page2[0].List3[0].li3p[0].LI3P[0].li3p2[0].Check44[0]",
+      "kind": "checkbox",
+      "fieldType": "Btn",
+      "readOnly": false,
+      "alternativeText": "Plaintiff applied a monthly rental payment to rent or other financial obligations that were due between March 1, 2020, and September 30, 2021, other than to the prospective month’s rent, without tenant’s written agreement.",
+      "rect": [
+        89.628,
+        78.5,
+        99.628,
+        88.5
+      ],
+      "multiLine": false,
+      "scaled": {
+        "x": 90.628,
+        "y": 80.5,
+        "fontSize": 8,
+        "isCheckbox": true,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 2,
+      "pageNumber1": 3,
+      "fieldName": "UD-105[0].Page3[0].PxCaption[0].CaseNumber[0].CaseNumber[0]",
+      "kind": "text",
+      "fieldType": "Tx",
+      "readOnly": true,
+      "alternativeText": "CASE NUMBER:",
+      "rect": [
+        400.005,
+        718.738,
+        572.805,
+        733.821
+      ],
+      "multiLine": false,
+      "scaled": {
+        "x": 401.005,
+        "y": 726.658,
+        "fontSize": 9,
+        "maxWidth": 172.79999999999995,
+        "isCheckbox": false,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 2,
+      "pageNumber1": 3,
+      "fieldName": "UD-105[0].Page3[0].PxCaption[0].TitlePartyName[0].Party1[0]",
+      "kind": "text",
+      "fieldType": "Tx",
+      "readOnly": true,
+      "alternativeText": "PLAINTIFF:",
+      "rect": [
+        89.921,
+        732.56,
+        394.45,
+        741.56
+      ],
+      "multiLine": false,
+      "scaled": {
+        "x": 90.921,
+        "y": 739.5999999999999,
+        "fontSize": 8,
+        "maxWidth": 304.529,
+        "isCheckbox": false,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 2,
+      "pageNumber1": 3,
+      "fieldName": "UD-105[0].Page3[0].PxCaption[0].TitlePartyName[0].Party2[0]",
+      "kind": "text",
+      "fieldType": "Tx",
+      "readOnly": true,
+      "alternativeText": "DEFENDANT:",
+      "rect": [
+        89.589,
+        718.27,
+        394.45,
+        727.568
+      ],
+      "multiLine": false,
+      "scaled": {
+        "x": 90.589,
+        "y": 725.31,
+        "fontSize": 8,
+        "maxWidth": 304.861,
+        "isCheckbox": false,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 2,
+      "pageNumber1": 3,
+      "fieldName": "UD-105[0].Page3[0].List3[0].li3q[0].Check45[0]",
+      "kind": "checkbox",
+      "fieldType": "Btn",
+      "readOnly": false,
+      "alternativeText": "Plaintiff refused to accept payment from a third party for rent due. (Civ. Code, § 1947.3; Gov. Code, § 12955.)",
+      "rect": [
+        70.441,
+        688.691,
+        80.441,
+        698.691
+      ],
+      "multiLine": false,
+      "scaled": {
+        "x": 71.441,
+        "y": 690.691,
+        "fontSize": 8,
+        "isCheckbox": true,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 2,
+      "pageNumber1": 3,
+      "fieldName": "UD-105[0].Page3[0].List3[0].li3r[0].CheckBox19[0]",
+      "kind": "checkbox",
+      "fieldType": "Btn",
+      "readOnly": false,
+      "alternativeText": "Defendant has a disability and plaintiff refused to provide a reasonable accommodation that was requested.  (Cal. Code Regs., tit. 2, § 12176(c).)",
+      "rect": [
+        70.319,
+        673.906,
+        79.319,
+        682.906
+      ],
+      "multiLine": false,
+      "scaled": {
+        "x": 71.319,
+        "y": 675.906,
+        "fontSize": 7.2,
+        "isCheckbox": true,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 2,
+      "pageNumber1": 3,
+      "fieldName": "UD-105[0].Page3[0].List3[0].li3s[0].Check45[0]",
+      "kind": "checkbox",
+      "fieldType": "Btn",
+      "readOnly": false,
+      "alternativeText": "Other defenses and objections are stated in item 3t.",
+      "rect": [
+        69.707,
+        646.535,
+        79.707,
+        656.535
+      ],
+      "multiLine": false,
+      "scaled": {
+        "x": 70.707,
+        "y": 648.535,
+        "fontSize": 8,
+        "isCheckbox": true,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 2,
+      "pageNumber1": 3,
+      "fieldName": "UD-105[0].Page3[0].List3[0].li3t[0].FillField9[0]",
+      "kind": "text",
+      "fieldType": "Tx",
+      "readOnly": false,
+      "alternativeText": "(Provide facts for each item checked above, either below or, if more room needed, on form MC-025):",
+      "rect": [
+        65.88,
+        510.236,
+        575.776,
+        617.629
+      ],
+      "multiLine": true,
+      "scaled": {
+        "x": 66.88,
+        "y": 607.279,
+        "fontSize": 9,
+        "maxWidth": 509.89599999999996,
+        "isCheckbox": false,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 2,
+      "pageNumber1": 3,
+      "fieldName": "UD-105[0].Page3[0].List3[0].li3t[0].Check46[0]",
+      "kind": "checkbox",
+      "fieldType": "Btn",
+      "readOnly": false,
+      "alternativeText": "Description of facts or defenses are on form MC-025, titled as Attachment 3t.",
+      "rect": [
+        69.916,
+        620.101,
+        79.916,
+        630.101
+      ],
+      "multiLine": false,
+      "scaled": {
+        "x": 70.916,
+        "y": 622.101,
+        "fontSize": 8,
+        "isCheckbox": true,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 2,
+      "pageNumber1": 3,
+      "fieldName": "UD-105[0].Page3[0].List4[0].Lia[0].Check47[0]",
+      "kind": "checkbox",
+      "fieldType": "Btn",
+      "readOnly": false,
+      "alternativeText": "Defendant vacated the premises on ",
+      "rect": [
+        69.961,
+        478.783,
+        79.961,
+        488.783
+      ],
+      "multiLine": false,
+      "scaled": {
+        "x": 70.961,
+        "y": 480.783,
+        "fontSize": 8,
+        "isCheckbox": true,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 2,
+      "pageNumber1": 3,
+      "fieldName": "UD-105[0].Page3[0].List4[0].Lia[0].Date2[0]",
+      "kind": "text",
+      "fieldType": "Tx",
+      "readOnly": false,
+      "alternativeText": "(date):",
+      "rect": [
+        266.313,
+        479.268,
+        371.474,
+        488.294
+      ],
+      "multiLine": false,
+      "scaled": {
+        "x": 267.313,
+        "y": 487.188,
+        "fontSize": 9,
+        "maxWidth": 105.161,
+        "isCheckbox": false,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 2,
+      "pageNumber1": 3,
+      "fieldName": "UD-105[0].Page3[0].List4[0].Lib[0].Check48[0]",
+      "kind": "checkbox",
+      "fieldType": "Btn",
+      "readOnly": false,
+      "alternativeText": "The fair rental value of the premises alleged in the complaint is excessive (explain below or, if more room needed, on form MC-025).",
+      "rect": [
+        69.222,
+        461.813,
+        79.222,
+        471.813
+      ],
+      "multiLine": false,
+      "scaled": {
+        "x": 70.222,
+        "y": 463.813,
+        "fontSize": 8,
+        "isCheckbox": true,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 2,
+      "pageNumber1": 3,
+      "fieldName": "UD-105[0].Page3[0].List4[0].Lib[0].Check49[0]",
+      "kind": "checkbox",
+      "fieldType": "Btn",
+      "readOnly": false,
+      "alternativeText": " Explanation is on form MC-025, titled as Attachment 4b.",
+      "rect": [
+        96.264,
+        439.381,
+        106.264,
+        449.381
+      ],
+      "multiLine": false,
+      "scaled": {
+        "x": 97.264,
+        "y": 441.381,
+        "fontSize": 8,
+        "isCheckbox": true,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 2,
+      "pageNumber1": 3,
+      "fieldName": "UD-105[0].Page3[0].List4[0].Lib[0].FillField10[0]",
+      "kind": "text",
+      "fieldType": "Tx",
+      "readOnly": false,
+      "alternativeText": "explain",
+      "rect": [
+        65.718,
+        393.908,
+        575.166,
+        438.058
+      ],
+      "multiLine": true,
+      "scaled": {
+        "x": 66.718,
+        "y": 427.70799999999997,
+        "fontSize": 9,
+        "maxWidth": 509.44800000000004,
+        "isCheckbox": false,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 2,
+      "pageNumber1": 3,
+      "fieldName": "UD-105[0].Page3[0].List4[0].Lic[0].Check50[0]",
+      "kind": "checkbox",
+      "fieldType": "Btn",
+      "readOnly": false,
+      "alternativeText": "Other (specify below or, if more room needed, on form MC-025):",
+      "rect": [
+        68.97,
+        374.677,
+        78.97,
+        384.677
+      ],
+      "multiLine": false,
+      "scaled": {
+        "x": 69.97,
+        "y": 376.677,
+        "fontSize": 8,
+        "isCheckbox": true,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 2,
+      "pageNumber1": 3,
+      "fieldName": "UD-105[0].Page3[0].List4[0].Lic[0].Check51[0]",
+      "kind": "checkbox",
+      "fieldType": "Btn",
+      "readOnly": false,
+      "alternativeText": "Other statements are on form MC-025, titled as Attachment 4c.",
+      "rect": [
+        95.505,
+        363.109,
+        105.505,
+        373.109
+      ],
+      "multiLine": false,
+      "scaled": {
+        "x": 96.505,
+        "y": 365.109,
+        "fontSize": 8,
+        "isCheckbox": true,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 2,
+      "pageNumber1": 3,
+      "fieldName": "UD-105[0].Page3[0].List4[0].Lic[0].FillField11[0]",
+      "kind": "text",
+      "fieldType": "Tx",
+      "readOnly": false,
+      "alternativeText": "specify other",
+      "rect": [
+        65.279,
+        316.313,
+        575.745,
+        361.262
+      ],
+      "multiLine": true,
+      "scaled": {
+        "x": 66.279,
+        "y": 350.912,
+        "fontSize": 9,
+        "maxWidth": 510.466,
+        "isCheckbox": false,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 2,
+      "pageNumber1": 3,
+      "fieldName": "UD-105[0].Page3[0].List5[0].li5c[0].Check52[0]",
+      "kind": "checkbox",
+      "fieldType": "Btn",
+      "readOnly": false,
+      "alternativeText": "reasonable attorney fees.",
+      "rect": [
+        70.385,
+        253.311,
+        80.385,
+        263.311
+      ],
+      "multiLine": false,
+      "scaled": {
+        "x": 71.385,
+        "y": 255.311,
+        "fontSize": 8,
+        "isCheckbox": true,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 2,
+      "pageNumber1": 3,
+      "fieldName": "UD-105[0].Page3[0].List5[0].Lie[0].Check54[0]",
+      "kind": "checkbox",
+      "fieldType": "Btn",
+      "readOnly": false,
+      "alternativeText": "Other (specify below or on form MC-025):",
+      "rect": [
+        69.625,
+        210.61,
+        79.625,
+        220.61
+      ],
+      "multiLine": false,
+      "scaled": {
+        "x": 70.625,
+        "y": 212.61,
+        "fontSize": 8,
+        "isCheckbox": true,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 2,
+      "pageNumber1": 3,
+      "fieldName": "UD-105[0].Page3[0].List5[0].Lie[0].Check55[0]",
+      "kind": "checkbox",
+      "fieldType": "Btn",
+      "readOnly": false,
+      "alternativeText": "All other requests are stated on form MC-025, titled as Attachment 5e.",
+      "rect": [
+        97.28,
+        199.163,
+        107.28,
+        209.163
+      ],
+      "multiLine": false,
+      "scaled": {
+        "x": 98.28,
+        "y": 201.163,
+        "fontSize": 8,
+        "isCheckbox": true,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 2,
+      "pageNumber1": 3,
+      "fieldName": "UD-105[0].Page3[0].List5[0].Lie[0].FillField12[0]",
+      "kind": "text",
+      "fieldType": "Tx",
+      "readOnly": false,
+      "alternativeText": "specify other ",
+      "rect": [
+        65.016,
+        107.918,
+        575.213,
+        195.089
+      ],
+      "multiLine": true,
+      "scaled": {
+        "x": 66.016,
+        "y": 184.739,
+        "fontSize": 9,
+        "maxWidth": 510.19699999999995,
+        "isCheckbox": false,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 2,
+      "pageNumber1": 3,
+      "fieldName": "UD-105[0].Page3[0].List5[0].Lid[0].Check53[0]",
+      "kind": "checkbox",
+      "fieldType": "Btn",
+      "readOnly": false,
+      "alternativeText": "that plaintiff be ordered to (1) make repairs and correct the conditions that constitute a breach of the warranty to provide  habitable premises and (2) reduce the monthly rent to a reasonable rental value until the conditions are corrected.",
+      "rect": [
+        69.888,
+        238.181,
+        79.888,
+        248.181
+      ],
+      "multiLine": false,
+      "scaled": {
+        "x": 70.888,
+        "y": 240.181,
+        "fontSize": 8,
+        "isCheckbox": true,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 2,
+      "pageNumber1": 3,
+      "fieldName": "UD-105[0].Page3[0].List6[0].item20[0].Eighteen[0]",
+      "kind": "checkbox",
+      "fieldType": "Btn",
+      "readOnly": false,
+      "alternativeText": "Pages attached",
+      "rect": [
+        55.182,
+        88.254,
+        64.182,
+        97.254
+      ],
+      "multiLine": false,
+      "scaled": {
+        "x": 56.182,
+        "y": 90.254,
+        "fontSize": 7.2,
+        "isCheckbox": true,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 2,
+      "pageNumber1": 3,
+      "fieldName": "UD-105[0].Page3[0].List6[0].item20[0].FillText215[0]",
+      "kind": "text",
+      "fieldType": "Tx",
+      "readOnly": false,
+      "alternativeText": "(specify number of pages):",
+      "rect": [
+        250.043,
+        87.917,
+        286.001,
+        97.988
+      ],
+      "multiLine": false,
+      "scaled": {
+        "x": 251.043,
+        "y": 95.837,
+        "fontSize": 9,
+        "maxWidth": 35.95799999999997,
+        "isCheckbox": false,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 3,
+      "pageNumber1": 4,
+      "fieldName": "UD-105[0].Page4[0].PxCaption[0].CaseNumber[0].CaseNumber[0]",
+      "kind": "text",
+      "fieldType": "Tx",
+      "readOnly": true,
+      "alternativeText": "CASE NUMBER:",
+      "rect": [
+        400.005,
+        718.738,
+        572.805,
+        733.127
+      ],
+      "multiLine": false,
+      "scaled": {
+        "x": 401.005,
+        "y": 726.658,
+        "fontSize": 9,
+        "maxWidth": 172.79999999999995,
+        "isCheckbox": false,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 3,
+      "pageNumber1": 4,
+      "fieldName": "UD-105[0].Page4[0].PxCaption[0].TitlePartyName[0].Party1[0]",
+      "kind": "text",
+      "fieldType": "Tx",
+      "readOnly": true,
+      "alternativeText": "PLAINTIFF:",
+      "rect": [
+        89.921,
+        732.56,
+        394.45,
+        741.56
+      ],
+      "multiLine": false,
+      "scaled": {
+        "x": 90.921,
+        "y": 739.5999999999999,
+        "fontSize": 8,
+        "maxWidth": 304.529,
+        "isCheckbox": false,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 3,
+      "pageNumber1": 4,
+      "fieldName": "UD-105[0].Page4[0].PxCaption[0].TitlePartyName[0].Party2[0]",
+      "kind": "text",
+      "fieldType": "Tx",
+      "readOnly": true,
+      "alternativeText": "DEFENDANT:",
+      "rect": [
+        89.589,
+        718.27,
+        394.45,
+        727.568
+      ],
+      "multiLine": false,
+      "scaled": {
+        "x": 90.589,
+        "y": 725.31,
+        "fontSize": 8,
+        "maxWidth": 304.861,
+        "isCheckbox": false,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 3,
+      "pageNumber1": 4,
+      "fieldName": "UD-105[0].Page4[0].List7[0].Check561[0]",
+      "kind": "checkbox",
+      "fieldType": "Btn",
+      "readOnly": false,
+      "alternativeText": "did not",
+      "rect": [
+        324.952,
+        676.527,
+        334.952,
+        686.527
+      ],
+      "multiLine": false,
+      "scaled": {
+        "x": 325.952,
+        "y": 678.527,
+        "fontSize": 8,
+        "isCheckbox": true,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 3,
+      "pageNumber1": 4,
+      "fieldName": "UD-105[0].Page4[0].List7[0].Check561[1]",
+      "kind": "checkbox",
+      "fieldType": "Btn",
+      "readOnly": false,
+      "alternativeText": "did",
+      "rect": [
+        390.368,
+        676.527,
+        400.368,
+        686.527
+      ],
+      "multiLine": false,
+      "scaled": {
+        "x": 391.368,
+        "y": 678.527,
+        "fontSize": 8,
+        "isCheckbox": true,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 3,
+      "pageNumber1": 4,
+      "fieldName": "UD-105[0].Page4[0].List7[0].Lia[0].AsstName[0]",
+      "kind": "text",
+      "fieldType": "Tx",
+      "readOnly": false,
+      "alternativeText": "assistant's name:",
+      "rect": [
+        141.549,
+        650.563,
+        305.388,
+        659.563
+      ],
+      "multiLine": false,
+      "scaled": {
+        "x": 142.549,
+        "y": 658.483,
+        "fontSize": 9,
+        "maxWidth": 163.83899999999997,
+        "isCheckbox": false,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 3,
+      "pageNumber1": 4,
+      "fieldName": "UD-105[0].Page4[0].List7[0].Lib[0].PhoneNum[0]",
+      "kind": "text",
+      "fieldType": "Tx",
+      "readOnly": false,
+      "alternativeText": "telephone number:",
+      "rect": [
+        428.037,
+        650.563,
+        574.971,
+        659.563
+      ],
+      "multiLine": false,
+      "scaled": {
+        "x": 429.037,
+        "y": 658.483,
+        "fontSize": 9,
+        "maxWidth": 146.93400000000003,
+        "isCheckbox": false,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 3,
+      "pageNumber1": 4,
+      "fieldName": "UD-105[0].Page4[0].List7[0].Lic[0].Address[0]",
+      "kind": "text",
+      "fieldType": "Tx",
+      "readOnly": false,
+      "alternativeText": "street address, city, and zip code:",
+      "rect": [
+        205.555,
+        633.731,
+        574.971,
+        642.731
+      ],
+      "multiLine": false,
+      "scaled": {
+        "x": 206.555,
+        "y": 641.651,
+        "fontSize": 9,
+        "maxWidth": 369.416,
+        "isCheckbox": false,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 3,
+      "pageNumber1": 4,
+      "fieldName": "UD-105[0].Page4[0].List7[0].Lid[0].RegCounty[0]",
+      "kind": "text",
+      "fieldType": "Tx",
+      "readOnly": false,
+      "alternativeText": "county of registration:",
+      "rect": [
+        158.557,
+        615.566,
+        257.111,
+        624.566
+      ],
+      "multiLine": false,
+      "scaled": {
+        "x": 159.557,
+        "y": 623.486,
+        "fontSize": 9,
+        "maxWidth": 98.554,
+        "isCheckbox": false,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 3,
+      "pageNumber1": 4,
+      "fieldName": "UD-105[0].Page4[0].List7[0].Lie[0].RegNo[0]",
+      "kind": "text",
+      "fieldType": "Tx",
+      "readOnly": false,
+      "alternativeText": "registration number:",
+      "rect": [
+        363.199,
+        615.566,
+        433.247,
+        624.566
+      ],
+      "multiLine": false,
+      "scaled": {
+        "x": 364.199,
+        "y": 623.486,
+        "fontSize": 9,
+        "maxWidth": 70.048,
+        "isCheckbox": false,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 3,
+      "pageNumber1": 4,
+      "fieldName": "UD-105[0].Page4[0].List7[0].Lif[0].RegExp[0]",
+      "kind": "text",
+      "fieldType": "Tx",
+      "readOnly": false,
+      "alternativeText": "expiration date:",
+      "rect": [
+        513.886,
+        615.554,
+        574.526,
+        624.58
+      ],
+      "multiLine": false,
+      "scaled": {
+        "x": 514.886,
+        "y": 623.4739999999999,
+        "fontSize": 9,
+        "maxWidth": 60.639999999999986,
+        "isCheckbox": false,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 3,
+      "pageNumber1": 4,
+      "fieldName": "UD-105[0].Page4[0].Sign[0].PrintName1[0]",
+      "kind": "text",
+      "fieldType": "Tx",
+      "readOnly": false,
+      "alternativeText": "(TYPE OR PRINT NAME)",
+      "rect": [
+        36,
+        517.061,
+        274.226,
+        531.635
+      ],
+      "multiLine": false,
+      "scaled": {
+        "x": 37,
+        "y": 524.981,
+        "fontSize": 9,
+        "maxWidth": 238.226,
+        "isCheckbox": false,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 3,
+      "pageNumber1": 4,
+      "fieldName": "UD-105[0].Page4[0].Sign[0].PrintName2[0]",
+      "kind": "text",
+      "fieldType": "Tx",
+      "readOnly": false,
+      "alternativeText": "(TYPE OR PRINT NAME)",
+      "rect": [
+        36,
+        482.311,
+        274.226,
+        496.885
+      ],
+      "multiLine": false,
+      "scaled": {
+        "x": 37,
+        "y": 490.231,
+        "fontSize": 9,
+        "maxWidth": 238.226,
+        "isCheckbox": false,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 3,
+      "pageNumber1": 4,
+      "fieldName": "UD-105[0].Page4[0].Sign[0].PrintName11[0]",
+      "kind": "text",
+      "fieldType": "Tx",
+      "readOnly": false,
+      "alternativeText": "(TYPE OR PRINT NAME)",
+      "rect": [
+        36,
+        444.679,
+        274.226,
+        459.253
+      ],
+      "multiLine": false,
+      "scaled": {
+        "x": 37,
+        "y": 452.599,
+        "fontSize": 9,
+        "maxWidth": 238.226,
+        "isCheckbox": false,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 3,
+      "pageNumber1": 4,
+      "fieldName": "UD-105[0].Page4[0].Verification[0].Date3[0]",
+      "kind": "text",
+      "fieldType": "Tx",
+      "readOnly": false,
+      "alternativeText": "Date:",
+      "rect": [
+        60.178,
+        330.588,
+        174.376,
+        341.45
+      ],
+      "multiLine": false,
+      "scaled": {
+        "x": 61.178,
+        "y": 338.50800000000004,
+        "fontSize": 9,
+        "maxWidth": 114.19800000000001,
+        "isCheckbox": false,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 3,
+      "pageNumber1": 4,
+      "fieldName": "UD-105[0].Page4[0].Verification[0].PrintName3[0]",
+      "kind": "text",
+      "fieldType": "Tx",
+      "readOnly": false,
+      "alternativeText": "(TYPE OR PRINT NAME)",
+      "rect": [
+        36,
+        306.218,
+        274.226,
+        320.068
+      ],
+      "multiLine": false,
+      "scaled": {
+        "x": 37,
+        "y": 314.13800000000003,
+        "fontSize": 9,
+        "maxWidth": 238.226,
+        "isCheckbox": false,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 3,
+      "pageNumber1": 4,
+      "fieldName": "UD-105[0].Page4[0].Verification[0].Date4[0]",
+      "kind": "text",
+      "fieldType": "Tx",
+      "readOnly": false,
+      "alternativeText": "Date:",
+      "rect": [
+        60.178,
+        275.749,
+        174.376,
+        286.611
+      ],
+      "multiLine": false,
+      "scaled": {
+        "x": 61.178,
+        "y": 283.66900000000004,
+        "fontSize": 9,
+        "maxWidth": 114.19800000000001,
+        "isCheckbox": false,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 3,
+      "pageNumber1": 4,
+      "fieldName": "UD-105[0].Page4[0].Verification[0].PrintName4[0]",
+      "kind": "text",
+      "fieldType": "Tx",
+      "readOnly": false,
+      "alternativeText": "(TYPE OR PRINT NAME)",
+      "rect": [
+        36,
+        251.379,
+        274.226,
+        265.229
+      ],
+      "multiLine": false,
+      "scaled": {
+        "x": 37,
+        "y": 259.299,
+        "fontSize": 9,
+        "maxWidth": 238.226,
+        "isCheckbox": false,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 3,
+      "pageNumber1": 4,
+      "fieldName": "UD-105[0].Page4[0].Verification[0].Date5[0]",
+      "kind": "text",
+      "fieldType": "Tx",
+      "readOnly": false,
+      "alternativeText": "Date:",
+      "rect": [
+        60.178,
+        219.904,
+        174.376,
+        230.766
+      ],
+      "multiLine": false,
+      "scaled": {
+        "x": 61.178,
+        "y": 227.82399999999998,
+        "fontSize": 9,
+        "maxWidth": 114.19800000000001,
+        "isCheckbox": false,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    {
+      "pageIndex0": 3,
+      "pageNumber1": 4,
+      "fieldName": "UD-105[0].Page4[0].Verification[0].PrintName5[0]",
+      "kind": "text",
+      "fieldType": "Tx",
+      "readOnly": false,
+      "alternativeText": "(TYPE OR PRINT NAME)",
+      "rect": [
+        36,
+        195.534,
+        274.226,
+        209.384
+      ],
+      "multiLine": false,
+      "scaled": {
+        "x": 37,
+        "y": 203.45399999999998,
+        "fontSize": 9,
+        "maxWidth": 238.226,
+        "isCheckbox": false,
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    }
+  ]
+}
