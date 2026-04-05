@@ -49,12 +49,24 @@ const FIELD_CONFIG: Record<
 interface HitlGateProps {
   instruction: string;
   missingFacts: string[];
-  onSubmit: (updates: Partial<CaseFacts>) => void;
+  onSubmit: (updates: Partial<CaseFacts>) => void | Promise<void>;
+  /** Omit outer card chrome when embedded in a dialog. */
+  embedInModal?: boolean;
 }
 
-export function HitlGate({ instruction, missingFacts, onSubmit }: HitlGateProps) {
+export function HitlGate({
+  instruction,
+  missingFacts,
+  onSubmit,
+  embedInModal = false,
+}: HitlGateProps) {
   const [values, setValues] = useState<Record<string, string>>({});
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+
+  const shellClass = embedInModal
+    ? "rounded-lg border-0 bg-transparent p-0"
+    : "rounded-xl border border-amber-500/40 bg-amber-500/10 p-4";
 
   // Deduplicate facts that map to the same caseFact key
   const seen = new Set<string>();
@@ -70,7 +82,7 @@ export function HitlGate({ instruction, missingFacts, onSubmit }: HitlGateProps)
     setValues((prev) => ({ ...prev, [fact]: value }));
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const updates: Partial<CaseFacts> = {};
 
@@ -88,13 +100,18 @@ export function HitlGate({ instruction, missingFacts, onSubmit }: HitlGateProps)
       }
     }
 
-    setSubmitted(true);
-    onSubmit(updates);
+    setSubmitting(true);
+    try {
+      await Promise.resolve(onSubmit(updates));
+      setSubmitted(true);
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   if (submitted) {
     return (
-      <section className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-4">
+      <section className={shellClass}>
         <h2 className="text-sm font-semibold text-amber-200">Recalculating deadline…</h2>
         <p className="mt-2 text-sm text-amber-100">
           Your answers have been submitted. The Deadline Tracker is re-running now.
@@ -104,9 +121,11 @@ export function HitlGate({ instruction, missingFacts, onSubmit }: HitlGateProps)
   }
 
   return (
-    <section className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-4">
-      <h2 className="text-sm font-semibold text-amber-200">Action Required</h2>
-      <p className="mt-2 text-sm text-amber-100">{instruction}</p>
+    <section className={shellClass}>
+      {!embedInModal ? (
+        <h2 className="text-sm font-semibold text-amber-200">Action Required</h2>
+      ) : null}
+      <p className={`text-sm text-amber-100 ${embedInModal ? "" : "mt-2"}`}>{instruction}</p>
 
       {uniqueFacts.length > 0 && (
         <form onSubmit={handleSubmit} className="mt-4 space-y-3">
@@ -157,9 +176,10 @@ export function HitlGate({ instruction, missingFacts, onSubmit }: HitlGateProps)
 
           <button
             type="submit"
-            className="mt-2 rounded-md bg-amber-500 px-4 py-1.5 text-sm font-semibold text-black hover:bg-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-400"
+            disabled={submitting}
+            className="mt-2 rounded-md bg-amber-500 px-4 py-1.5 text-sm font-semibold text-black hover:bg-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-400 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            Submit &amp; Recalculate
+            {submitting ? "Submitting\u2026" : "Submit &amp; Recalculate"}
           </button>
         </form>
       )}

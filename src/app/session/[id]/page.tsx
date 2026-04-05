@@ -10,7 +10,6 @@ import { Wave1DispatchPanel } from "@/components/dashboard/wave1-dispatch-panel"
 import { StatusPanel } from "@/components/dashboard/status-panel";
 import { ActionItemsPanel } from "@/components/dashboard/action-items-panel";
 import { ResourcesPanel } from "@/components/dashboard/resources-panel";
-import { HitlGate } from "@/components/hitl-gate";
 import { useSession } from "@/context/session-context";
 import { useCaseContext } from "@/context/case-context";
 import { intakeStorageKey, parseIntakeSessionPayload } from "@/lib/intake-storage";
@@ -400,27 +399,30 @@ export default function SessionPage() {
                 explanation: deadlineResult?.explanation ?? null,
                 milestones: deadlineResult?.milestones ?? [],
               }}
+              hitlAction={
+                hitlGate.isBlockedOnUser
+                  ? {
+                      instruction:
+                        hitlGate.instruction ??
+                        "Complete the required task to continue.",
+                      missingFacts: hitlGate.missingFacts,
+                      onSubmit: handleHitlSubmit,
+                    }
+                  : null
+              }
             />
 
-            {hitlGate.isBlockedOnUser ? (
-              <HitlGate
-                instruction={hitlGate.instruction ?? "Complete the required task to continue."}
-                missingFacts={hitlGate.missingFacts}
-                onSubmit={handleHitlSubmit}
-              />
-            ) : (
-              <ActionItemsPanel
-                model={{
-                  checklist: actionItems,
-                  formArtifacts,
-                }}
-                pdfFillStatus={pdfFillState.status}
-                pdfFillErrorCode={pdfFillState.errorCode}
-                pdfFillErrorMessage={pdfFillState.errorMessage}
-                onFillUd105={handleFillUd105}
-                fillUd105Disabled={fillUd105Disabled}
-              />
-            )}
+            <ActionItemsPanel
+              model={{
+                checklist: actionItems,
+                formArtifacts,
+              }}
+              pdfFillStatus={pdfFillState.status}
+              pdfFillErrorCode={pdfFillState.errorCode}
+              pdfFillErrorMessage={pdfFillState.errorMessage}
+              onFillUd105={handleFillUd105}
+              fillUd105Disabled={fillUd105Disabled}
+            />
           </div>
 
           <div className="space-y-4">

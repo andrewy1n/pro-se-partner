@@ -1,11 +1,18 @@
 "use client";
-import { useState } from "react";
-import { ChevronDown, ChevronRight, AlertCircle, Clock } from "lucide-react";
+import { Fragment, useEffect, useState } from "react";
+import { ChevronDown, ChevronRight, AlertCircle, AlertTriangle, Clock, X } from "lucide-react";
 import { CollapsibleSection } from "@/components/collapsible-section";
-import type { StatusPanelModel, TimelineMilestone } from "@/lib/types";
+import { HitlGate } from "@/components/hitl-gate";
+import type { CaseFacts, StatusPanelModel, TimelineMilestone } from "@/lib/types";
 
 interface StatusPanelProps {
   model: StatusPanelModel | null;
+  /** Deadline HITL: opens from a button in this panel; form lives in a modal. */
+  hitlAction?: {
+    instruction: string;
+    missingFacts: string[];
+    onSubmit: (updates: Partial<CaseFacts>) => void | Promise<void>;
+  } | null;
 }
 
 function computeDaysRemaining(isoDate: string | null): number | null {
@@ -140,12 +147,27 @@ function TimelineNode({ milestone, isLast, responseDeadline }: TimelineNodeProps
   );
 }
 
-export function StatusPanel({ model }: StatusPanelProps) {
+export function StatusPanel({ model, hitlAction = null }: StatusPanelProps) {
   const [panelOpen, setPanelOpen] = useState(true);
+  const [hitlModalOpen, setHitlModalOpen] = useState(false);
+
+  useEffect(() => {
+    if (!hitlAction) setHitlModalOpen(false);
+  }, [hitlAction]);
+
+  useEffect(() => {
+    if (!hitlModalOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [hitlModalOpen]);
 
   const hasMilestones = (model?.milestones.length ?? 0) > 0;
 
   return (
+    <Fragment>
     <section className="rounded-xl border border-zinc-800 bg-zinc-950 p-4">
       <button
         type="button"
@@ -159,6 +181,24 @@ export function StatusPanel({ model }: StatusPanelProps) {
         )}
         <h2 className="text-sm font-medium text-zinc-200">Status &amp; Timeline</h2>
       </button>
+
+      {hitlAction ? (
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-amber-500/35 bg-amber-950/25 px-3 py-2">
+          <div className="flex min-w-0 items-center gap-2">
+            <AlertTriangle className="h-4 w-4 shrink-0 text-amber-400" aria-hidden />
+            <p className="text-xs text-amber-100/90">
+              Action required — we need a bit more information to calculate your deadline.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setHitlModalOpen(true)}
+            className="shrink-0 rounded-md border border-amber-500/50 bg-amber-500/15 px-3 py-1.5 text-xs font-medium text-amber-200 hover:bg-amber-500/25"
+          >
+            Provide details
+          </button>
+        </div>
+      ) : null}
 
       {panelOpen && (
         <div className="mt-3 space-y-4">
@@ -237,5 +277,44 @@ export function StatusPanel({ model }: StatusPanelProps) {
         </div>
       )}
     </section>
+
+    {hitlModalOpen && hitlAction ? (
+      <div
+        className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 p-4"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="hitl-modal-title"
+        onClick={() => setHitlModalOpen(false)}
+      >
+        <div
+          className="flex max-h-[min(90vh,760px)] w-full max-w-lg flex-col overflow-hidden rounded-xl border border-zinc-700 bg-zinc-950 shadow-xl"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="flex shrink-0 items-center justify-between gap-2 border-b border-zinc-800 px-4 py-3">
+            <h2 id="hitl-modal-title" className="text-sm font-medium text-zinc-100">
+              Action required
+            </h2>
+            <button
+              type="button"
+              className="rounded-lg p-1.5 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100"
+              aria-label="Close"
+              onClick={() => setHitlModalOpen(false)}
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+          <div className="min-h-0 flex-1 overflow-y-auto p-4">
+            <HitlGate
+              key={hitlAction.missingFacts.join("|")}
+              instruction={hitlAction.instruction}
+              missingFacts={hitlAction.missingFacts}
+              onSubmit={hitlAction.onSubmit}
+              embedInModal
+            />
+          </div>
+        </div>
+      </div>
+    ) : null}
+    </Fragment>
   );
 }
