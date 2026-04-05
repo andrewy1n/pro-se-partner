@@ -248,7 +248,7 @@ export function StatusPanel({ model, hitlAction = null, efilingConfirmation = nu
           ) : model ? (
             <div className="flex items-center gap-2 text-xs text-zinc-500">
               <Clock className="h-3.5 w-3.5 shrink-0" />
-              <span>Timeline will populate when the Deadline Tracker finishes.</span>
+              <span>Timeline will populate when Response Deadline finishes.</span>
             </div>
           ) : null}
 

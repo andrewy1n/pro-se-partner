@@ -1,6 +1,6 @@
 "use client";
 
-import { Clock, Loader2 } from "lucide-react";
+import { Clock, Loader2, MonitorPlay } from "lucide-react";
 
 interface AgentStatusEntry {
   label: string;
@@ -11,6 +11,8 @@ interface StatusBarProps {
   countdownLabel: string;
   agentStatuses: AgentStatusEntry[];
   isPolling: boolean;
+  onWatchLive?: () => void;
+  showWatchLive?: boolean;
 }
 
 function statusDotClass(status: string | null): string {
@@ -20,7 +22,7 @@ function statusDotClass(status: string | null): string {
   return "bg-zinc-600";
 }
 
-export function StatusBar({ countdownLabel, agentStatuses, isPolling }: StatusBarProps) {
+export function StatusBar({ countdownLabel, agentStatuses, isPolling, onWatchLive, showWatchLive }: StatusBarProps) {
   return (
     <div className="flex shrink-0 items-center justify-between rounded-lg border border-zinc-800 bg-zinc-900/60 px-4 py-2">
       <div className="flex items-center gap-2 text-sm">
@@ -38,6 +40,15 @@ export function StatusBar({ countdownLabel, agentStatuses, isPolling }: StatusBa
         ))}
         {isPolling && (
           <Loader2 className="h-3.5 w-3.5 animate-spin text-zinc-500" />
+        )}
+        {showWatchLive && onWatchLive && (
+          <button
+            onClick={onWatchLive}
+            className="flex items-center gap-1.5 rounded border border-zinc-700 bg-zinc-800 px-2.5 py-1 text-xs font-medium text-zinc-300 transition-colors hover:border-zinc-600 hover:bg-zinc-700 hover:text-zinc-100"
+          >
+            <MonitorPlay className="h-3.5 w-3.5" />
+            Watch Live
+          </button>
         )}
       </div>
     </div>
