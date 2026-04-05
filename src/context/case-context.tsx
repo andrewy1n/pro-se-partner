@@ -12,6 +12,7 @@ import type {
   CanonicalCaseContext,
   DeadlineResult,
   DefenseItem,
+  EfilingResult,
   LegalAidItem,
   ActionChecklistItem,
   FormArtifact,
@@ -35,6 +36,8 @@ interface CaseContextValue {
   setHitlGate: (state: HitlGateState) => void;
   pdfFillState: PdfFillState;
   setPdfFillState: (state: PdfFillState) => void;
+  efilingResult: EfilingResult | null;
+  setEfilingResult: (result: EfilingResult | null) => void;
 }
 
 const CaseContext = createContext<CaseContextValue | null>(null);
@@ -55,6 +58,7 @@ export function CaseProvider({ children }: { children: ReactNode }) {
     errorCode: null,
     errorMessage: null,
   });
+  const [efilingResult, setEfilingResult] = useState<EfilingResult | null>(null);
 
   const addFormArtifact = useCallback((artifact: FormArtifact) => {
     setFormArtifacts((prev) => {
@@ -82,6 +86,8 @@ export function CaseProvider({ children }: { children: ReactNode }) {
       setHitlGate,
       pdfFillState,
       setPdfFillState,
+      efilingResult,
+      setEfilingResult,
     }),
     [
       caseContext,
@@ -92,6 +98,7 @@ export function CaseProvider({ children }: { children: ReactNode }) {
       addFormArtifact,
       hitlGate,
       pdfFillState,
+      efilingResult,
     ],
   );
 

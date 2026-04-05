@@ -1,5 +1,6 @@
 import type {
   CanonicalCaseContext,
+  EfilingSession,
   FormsNavigatorSession,
   DeadlineTrackerSession,
   DefenseResearchSession,
@@ -25,6 +26,10 @@ import {
   buildLegalAidTask,
   LEGAL_AID_RESULT_OUTPUT_SCHEMA,
 } from "@/lib/legal-aid";
+import {
+  buildEfilingTask,
+  EFILING_OUTPUT_SCHEMA,
+} from "@/lib/efiling";
 import { logServerError, logServerEvent } from "@/lib/server-log";
 
 export interface DispatchWave1Input {
@@ -37,6 +42,12 @@ export interface DispatchWave1Input {
 export interface DispatchWave2Input {
   sessionId: string;
   efilingUsername: string;
+  filledPdfUrl: string | null;
+  caseContext: CanonicalCaseContext;
+}
+
+export interface DispatchWave2Result {
+  efilingSession: EfilingSession;
 }
 
 export interface DispatchWave1Result {
@@ -249,9 +260,40 @@ export async function dispatchWave1Agents(
   return result;
 }
 
-export async function dispatchWave2Agent(_input: DispatchWave2Input): Promise<void> {
-  // TODO: Resume from HITL gate and launch Agent 9 e-filing flow.
-  throw new Error("Not implemented: dispatchWave2Agent");
+export async function dispatchWave2Agent(
+  input: DispatchWave2Input,
+): Promise<DispatchWave2Result> {
+  logServerEvent("dispatch_wave2_start", {
+    appSessionId: input.sessionId,
+    hasFilledPdf: Boolean(input.filledPdfUrl),
+  });
+
+  const session = await createBrowserTaskSession({
+    agentId: "agent-9-efiling",
+    keepAlive: true,
+    outputSchema: EFILING_OUTPUT_SCHEMA,
+    task: buildEfilingTask({
+      appSessionId: input.sessionId,
+      efilingUsername: input.efilingUsername,
+      filledPdfUrl: input.filledPdfUrl,
+      caseContext: input.caseContext,
+    }),
+  });
+
+  logServerEvent("dispatch_wave2_efiling_ok", {
+    appSessionId: input.sessionId,
+    browserSessionId: session.id,
+    status: session.status,
+  });
+
+  return {
+    efilingSession: {
+      sessionId: session.id,
+      liveUrl: session.liveUrl ?? null,
+      status: session.status,
+      activeAgentId: "agent-9-efiling",
+    },
+  };
 }
 
 export function deriveHitlGateState(): HitlGateState {

@@ -83,6 +83,7 @@ export default function HomePage() {
         deadlineTrackerSession: null,
         defenseResearchSession: null,
         legalAidSession: null,
+        efilingSession: null,
       };
       sessionStorage.setItem(
         intakeStorageKey(data.sessionId),
