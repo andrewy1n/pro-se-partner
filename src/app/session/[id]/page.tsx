@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import { StatusBar } from "@/components/status-bar";
 import { LiveBrowserOverlay } from "@/components/live-browser-overlay";
@@ -66,6 +66,7 @@ export default function SessionPage() {
   /** True while a Wave 1 launch request is in flight. */
   const [wave1DispatchInFlight, setWave1DispatchInFlight] = useState(false);
   const [queuedWave1Agents, setQueuedWave1Agents] = useState<Wave1AgentKey[]>([]);
+  const queuedWave1DispatchingAgentRef = useRef<Wave1AgentKey | null>(null);
 
   const {
     activeSession,
@@ -551,29 +552,30 @@ export default function SessionPage() {
     if (!caseContext) return;
     if (queuedWave1Agents.length === 0) return;
     if (wave1DispatchInFlight) return;
+    if (queuedWave1DispatchingAgentRef.current) return;
     if (!hasWave1Snapshot) return;
     if (activeWave1Count >= MAX_WAVE1_BROWSER_SESSIONS) return;
 
     const nextAgent = queuedWave1Agents[0];
-    let cancelled = false;
+    queuedWave1DispatchingAgentRef.current = nextAgent;
+    setQueuedWave1Agents((current) => removeFirstWave1Agent(current, nextAgent));
 
     void (async () => {
       try {
         const launched = await handleDispatchWave1([nextAgent], caseContext);
-        if (!cancelled && launched) {
-          setQueuedWave1Agents((current) => removeFirstWave1Agent(current, nextAgent));
+        if (!launched) {
+          setQueuedWave1Agents((current) => uniqueWave1AgentKeys([nextAgent, ...current]));
         }
       } catch (error) {
+        setQueuedWave1Agents((current) => uniqueWave1AgentKeys([nextAgent, ...current]));
         console.error("[wave1-queue] failed to dispatch queued agent", {
           agent: nextAgent,
           error,
         });
+      } finally {
+        queuedWave1DispatchingAgentRef.current = null;
       }
     })();
-
-    return () => {
-      cancelled = true;
-    };
   }, [
     activeWave1Count,
     caseContext,
