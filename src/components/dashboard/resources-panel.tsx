@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ChevronDown, ChevronRight, ChevronUp } from "lucide-react";
+import { ChevronDown, ChevronRight, ChevronUp, MapPin } from "lucide-react";
 import type { DefenseItem, LegalAidItem, ResourcesPanelModel } from "@/lib/types";
 
 interface ResourcesPanelProps {
@@ -147,8 +147,20 @@ function LegalAidRow({ org }: { org: LegalAidItem }) {
         onClick={() => setExpanded((o) => !o)}
         className="flex w-full flex-col gap-2 text-left sm:flex-row sm:items-start sm:justify-between"
       >
-        <span className="text-sm font-medium leading-snug text-zinc-100">
+        <span className="flex min-w-0 flex-wrap items-center gap-2 text-sm font-medium leading-snug text-zinc-100">
           {org.organizationName}
+          {org.mapsUrl && (
+            <a
+              href={org.mapsUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              className="inline-flex shrink-0 items-center gap-0.5 text-xs font-normal text-sky-400/90 underline-offset-2 hover:text-sky-300 hover:underline"
+            >
+              <MapPin className="h-3 w-3" aria-hidden />
+              Maps
+            </a>
+          )}
         </span>
         <div className="flex shrink-0 flex-wrap items-center gap-1">
           {org.distanceMiles != null && (

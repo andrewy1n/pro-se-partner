@@ -280,6 +280,8 @@ export interface LegalAidItem {
   contact?: string;
   walkInAvailable?: boolean;
   eligibilityNotes?: string;
+  /** Google Maps URL for the office location (search or place link). */
+  mapsUrl?: string;
 }
 
 export interface FeeWaiverResult {
