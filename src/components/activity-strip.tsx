@@ -17,7 +17,7 @@ export function ActivityStrip({ items }: ActivityStripProps) {
   const [panelOpen, setPanelOpen] = useState(true);
 
   return (
-    <section className="rounded-xl border border-zinc-800 bg-zinc-950 p-4">
+    <section className="shrink-0 rounded-xl border border-zinc-800 bg-zinc-950 p-4">
       <button
         type="button"
         onClick={() => setPanelOpen((o) => !o)}

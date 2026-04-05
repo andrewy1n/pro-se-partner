@@ -22,7 +22,7 @@ function statusDotClass(status: string | null): string {
 
 export function StatusBar({ countdownLabel, agentStatuses, isPolling }: StatusBarProps) {
   return (
-    <div className="flex items-center justify-between rounded-lg border border-zinc-800 bg-zinc-900/60 px-4 py-2">
+    <div className="flex shrink-0 items-center justify-between rounded-lg border border-zinc-800 bg-zinc-900/60 px-4 py-2">
       <div className="flex items-center gap-2 text-sm">
         <Clock className="h-3.5 w-3.5 text-zinc-500" />
         <span className="text-zinc-400">Deadline:</span>

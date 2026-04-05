@@ -46,14 +46,13 @@ export async function createBrowserSession(
 ): Promise<SessionResponse> {
   assertBrowserUseConfigured();
 
-  const body: CreateSessionBody = {
+  const body = {
     model: input.model ?? getBrowserUseModel(),
     keepAlive: input.keepAlive ?? true,
-  };
-
-  if (input.outputSchema) {
-    body.outputSchema = input.outputSchema;
-  }
+    ...(input.outputSchema ? { outputSchema: input.outputSchema } : {}),
+    browserScreenWidth: 1280,
+    browserScreenHeight: 720,
+  } as CreateSessionBody;
 
   logServerEvent("browser_use_create_session_start", {
     model: body.model,

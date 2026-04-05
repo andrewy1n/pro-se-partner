@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import { BrowserPanel } from "@/components/browser-panel";
 import { ActivityStrip } from "@/components/activity-strip";
-import { StatusBar } from "@/components/status-bar";
 import { SessionViewToggle, type SessionView } from "@/components/session-view-toggle";
 import { CaseFactsPanel } from "@/components/dashboard/case-facts-panel";
 import { Wave1DispatchPanel } from "@/components/dashboard/wave1-dispatch-panel";
@@ -188,20 +187,11 @@ export default function SessionPage() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col gap-4 p-4">
-      <StatusBar
-        countdownLabel={deadlineResult?.responseDeadline ?? "TBD"}
-        agentStatuses={[
-          { label: "Deadline Tracker", status: deadlineSession?.status ?? null },
-          { label: "Defense Research", status: defenseSession?.status ?? null },
-          { label: "Legal Aid", status: legalAidSession?.status ?? null },
-        ]}
-        isPolling={isPolling}
-      />
+    <main className="flex min-h-dvh flex-col gap-4 p-4">
       <SessionViewToggle activeView={activeView} onViewChange={setActiveView} />
 
       {activeView === "browser" ? (
-        <section className="flex flex-1 flex-col gap-4">
+        <section className="flex min-h-0 flex-1 flex-col gap-4">
           <BrowserPanel
             tabs={[
               {

@@ -16,7 +16,7 @@ const tabs: { view: SessionView; label: string; Icon: typeof Monitor }[] = [
 
 export function SessionViewToggle({ activeView, onViewChange }: SessionViewToggleProps) {
   return (
-    <div className="flex gap-1 rounded-lg border border-zinc-800 bg-zinc-950 p-1">
+    <div className="flex shrink-0 gap-1 rounded-lg border border-zinc-800 bg-zinc-950 p-1">
       {tabs.map(({ view, label, Icon }) => {
         const isActive = view === activeView;
         return (
