@@ -2,6 +2,7 @@ import { useState, type ReactNode } from "react";
 import type { CanonicalCaseContext, ParsedDocumentFields } from "@/lib/types";
 import { formatCaseFactDisplay } from "@/lib/format-case-fact-display";
 import { filterDisplayAllegations } from "@/lib/document-summary-display";
+import { CollapsibleSection } from "@/components/collapsible-section";
 import {
   Home,
   Scale,
@@ -20,6 +21,8 @@ import {
   Gavel,
   Loader2,
   PlayCircle,
+  ChevronDown,
+  ChevronRight,
 } from "lucide-react";
 
 function hasAnyAllegationLists(n: ParsedDocumentFields["normalizedExtraction"]): boolean {
@@ -63,6 +66,7 @@ interface CaseFactsPanelProps {
 
 export function CaseFactsPanel({ caseContext, dispatched, onRunAnalysis }: CaseFactsPanelProps) {
   const [isDispatching, setIsDispatching] = useState(false);
+  const [panelOpen, setPanelOpen] = useState(true);
 
   async function handleRunAnalysis() {
     if (!onRunAnalysis || isDispatching) return;
@@ -102,19 +106,27 @@ export function CaseFactsPanel({ caseContext, dispatched, onRunAnalysis }: CaseF
 
   return (
     <section className="rounded-xl border border-zinc-800 bg-zinc-950 p-4">
-      <div className="mb-4 flex items-start justify-between">
-        <div>
+      <div className="mb-4 flex items-center justify-between">
+        <button
+          type="button"
+          onClick={() => setPanelOpen((o) => !o)}
+          className="flex flex-1 items-center gap-1.5 text-left"
+        >
+          {panelOpen ? (
+            <ChevronDown className="h-3.5 w-3.5 text-zinc-500" />
+          ) : (
+            <ChevronRight className="h-3.5 w-3.5 text-zinc-500" />
+          )}
           <h2 className="text-sm font-medium text-zinc-200">Your Situation</h2>
-          <p className="mt-1 text-xs text-zinc-500">
-            Please verify we understood your situation correctly.
-          </p>
-        </div>
+        </button>
         <button className="flex items-center gap-1.5 rounded-md bg-zinc-900 px-3 py-1.5 text-xs font-medium text-zinc-300 transition-colors hover:bg-zinc-800 hover:text-zinc-100">
           <Edit2 className="h-3.5 w-3.5" />
           Edit
         </button>
       </div>
 
+      {panelOpen && (
+      <div>
       {caseContext?.needsHumanReview && (
         <div className="mb-4 rounded-md border border-amber-500/20 bg-amber-500/10 p-3 text-xs text-amber-500">
           Review suggested: Some facts may be incomplete or unclear.
@@ -135,9 +147,9 @@ export function CaseFactsPanel({ caseContext, dispatched, onRunAnalysis }: CaseF
         </div>
       ) : null}
 
-      <div className="grid grid-cols-2 gap-4 text-sm">
+      <div className="grid grid-cols-2 gap-x-3 gap-y-2.5 text-sm">
         <div>
-          <div className="mb-1 flex items-center gap-1.5 text-zinc-500">
+          <div className="mb-0.5 flex items-center gap-1.5 text-zinc-500">
             <Home className="h-3.5 w-3.5" />
             <span className="text-xs">Eviction Type</span>
           </div>
@@ -147,7 +159,7 @@ export function CaseFactsPanel({ caseContext, dispatched, onRunAnalysis }: CaseF
         </div>
 
         <div>
-          <div className="mb-1 flex items-center gap-1.5 text-zinc-500">
+          <div className="mb-0.5 flex items-center gap-1.5 text-zinc-500">
             <Scale className="h-3.5 w-3.5" />
             <span className="text-xs">Current Stage</span>
           </div>
@@ -157,7 +169,7 @@ export function CaseFactsPanel({ caseContext, dispatched, onRunAnalysis }: CaseF
         </div>
 
         <div>
-          <div className="mb-1 flex items-center gap-1.5 text-zinc-500">
+          <div className="mb-0.5 flex items-center gap-1.5 text-zinc-500">
             <FileText className="h-3.5 w-3.5" />
             <span className="text-xs">Notice Type</span>
           </div>
@@ -167,7 +179,7 @@ export function CaseFactsPanel({ caseContext, dispatched, onRunAnalysis }: CaseF
         </div>
 
         <div>
-          <div className="mb-1 flex items-center gap-1.5 text-zinc-500">
+          <div className="mb-0.5 flex items-center gap-1.5 text-zinc-500">
             <Calendar className="h-3.5 w-3.5" />
             <span className="text-xs">Service Date</span>
           </div>
@@ -177,7 +189,7 @@ export function CaseFactsPanel({ caseContext, dispatched, onRunAnalysis }: CaseF
         </div>
 
         <div>
-          <div className="mb-1 flex items-center gap-1.5 text-zinc-500">
+          <div className="mb-0.5 flex items-center gap-1.5 text-zinc-500">
             <Mail className="h-3.5 w-3.5" />
             <span className="text-xs">Service Method</span>
           </div>
@@ -187,7 +199,7 @@ export function CaseFactsPanel({ caseContext, dispatched, onRunAnalysis }: CaseF
         </div>
 
         <div>
-          <div className="mb-1 flex items-center gap-1.5 text-zinc-500">
+          <div className="mb-0.5 flex items-center gap-1.5 text-zinc-500">
             <DollarSign className="h-3.5 w-3.5" />
             <span className="text-xs">Amount Claimed</span>
           </div>
@@ -199,7 +211,7 @@ export function CaseFactsPanel({ caseContext, dispatched, onRunAnalysis }: CaseF
         </div>
 
         <div>
-          <div className="mb-1 flex items-center gap-1.5 text-zinc-500">
+          <div className="mb-0.5 flex items-center gap-1.5 text-zinc-500">
             <MapPin className="h-3.5 w-3.5" />
             <span className="text-xs">Jurisdiction</span>
           </div>
@@ -234,10 +246,11 @@ export function CaseFactsPanel({ caseContext, dispatched, onRunAnalysis }: CaseF
       {(caseContext?.uploadedFileName ||
         caseContext?.documentParseError ||
         parsed) && (
-        <div className="mt-4 border-t border-zinc-800 pt-4">
-          <h3 className="text-xs font-medium uppercase tracking-wide text-zinc-500">
-            From your uploaded document
-          </h3>
+        <CollapsibleSection
+          label={`Parsed document fields${parsed && parsedDocumentHasContent(parsed) ? ` (${caseContext?.uploadedFileName ?? "uploaded file"})` : ""}`}
+          defaultOpen={false}
+          className="mt-4 border-t border-zinc-800 pt-4"
+        >
           {caseContext?.uploadedFileName && (
             <p className="mt-1 text-xs text-zinc-500">
               File:{" "}
@@ -271,7 +284,7 @@ export function CaseFactsPanel({ caseContext, dispatched, onRunAnalysis }: CaseF
           )}
           {parsed && n && !caseContext?.documentParseError && parsedDocumentHasContent(parsed) && (
             <div className="mt-3 space-y-3 text-sm">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-x-3 gap-y-2.5">
                 <ParsedDocField
                   icon={<Gavel className="h-3.5 w-3.5" />}
                   label="Document type"
@@ -333,7 +346,7 @@ export function CaseFactsPanel({ caseContext, dispatched, onRunAnalysis }: CaseF
                   value={formatCaseFactDisplay(n.serviceDate)}
                 />
                 <div>
-                  <div className="mb-1 flex items-center gap-1.5 text-zinc-500">
+                  <div className="mb-0.5 flex items-center gap-1.5 text-zinc-500">
                     <DollarSign className="h-3.5 w-3.5" />
                     <span className="text-xs">Amount claimed (document)</span>
                   </div>
@@ -346,7 +359,7 @@ export function CaseFactsPanel({ caseContext, dispatched, onRunAnalysis }: CaseF
               </div>
               {hasAnyAllegationLists(n) && hasDisplayableAllegations && (
                 <div className="space-y-4">
-                  <div className="mb-1 flex items-center gap-1.5 text-zinc-500">
+                  <div className="mb-0.5 flex items-center gap-1.5 text-zinc-500">
                     <ListChecks className="h-3.5 w-3.5" />
                     <span className="text-xs font-medium uppercase tracking-wide">
                       Allegations from complaint
@@ -380,10 +393,11 @@ export function CaseFactsPanel({ caseContext, dispatched, onRunAnalysis }: CaseF
                     </>
                   )}
                   {structuredAllegationCount > 0 && factualFlatDisplay.length > 0 && (
-                    <details className="rounded-md border border-zinc-800 bg-zinc-900/40 p-2 text-xs text-zinc-500">
-                      <summary className="cursor-pointer text-zinc-400">
-                        Factual allegations — full order ({factualFlatDisplay.length} items)
-                      </summary>
+                    <CollapsibleSection
+                      label={`Factual allegations — full order (${factualFlatDisplay.length} items)`}
+                      defaultOpen={false}
+                      className="rounded-md border border-zinc-800 bg-zinc-900/40 p-2"
+                    >
                       <p className="mt-1 text-[11px] text-zinc-600">
                         Tenancy through rental assistance only; relief is listed above.
                       </p>
@@ -394,20 +408,25 @@ export function CaseFactsPanel({ caseContext, dispatched, onRunAnalysis }: CaseF
                           </li>
                         ))}
                       </ol>
-                    </details>
+                    </CollapsibleSection>
                   )}
                 </div>
               )}
 
-              <details className="rounded-md border border-zinc-800 bg-zinc-900/40 p-2 text-xs text-zinc-500">
-                <summary className="cursor-pointer text-zinc-400">Raw extraction (JSON)</summary>
+              <CollapsibleSection
+                label="Raw extraction (JSON)"
+                defaultOpen={false}
+                className="rounded-md border border-zinc-800 bg-zinc-900/40 p-2"
+              >
                 <pre className="mt-2 max-h-48 overflow-auto whitespace-pre-wrap break-words text-zinc-500">
                   {JSON.stringify(parsed.rawExtraction, null, 2)}
                 </pre>
-              </details>
+              </CollapsibleSection>
             </div>
           )}
-        </div>
+        </CollapsibleSection>
+      )}
+      </div>
       )}
     </section>
   );
