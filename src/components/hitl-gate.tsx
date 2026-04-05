@@ -68,6 +68,9 @@ interface HitlGateProps {
   embedInModal?: boolean;
 }
 
+const fieldClass =
+  "w-full rounded-lg border border-[#E5E7EB] bg-white px-3 py-2 text-sm text-stone-900 shadow-sm placeholder:text-stone-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20";
+
 export function HitlGate({
   instruction,
   missingFacts,
@@ -82,7 +85,7 @@ export function HitlGate({
 
   const shellClass = embedInModal
     ? "rounded-lg border-0 bg-transparent p-0"
-    : "rounded-xl border border-amber-500/40 bg-amber-500/10 p-4";
+    : "app-card border-indigo-200";
 
   // Deduplicate facts that map to the same caseFact key
   const seen = new Set<string>();
@@ -146,8 +149,8 @@ export function HitlGate({
   if (submitted) {
     return (
       <section className={shellClass}>
-        <h2 className="text-sm font-semibold text-amber-200">Recalculating deadline…</h2>
-        <p className="mt-2 text-sm text-amber-100">
+        <h2 className="text-sm font-semibold text-indigo-900">Recalculating deadline…</h2>
+        <p className="mt-2 text-sm text-stone-600">
           Your answers have been submitted. Response Deadline is re-running now.
         </p>
       </section>
@@ -157,14 +160,16 @@ export function HitlGate({
   return (
     <section className={shellClass}>
       {!embedInModal ? (
-        <h2 className="text-sm font-semibold text-amber-200">Action Required</h2>
+        <h2 className="font-display text-lg font-semibold text-indigo-900">Action Required</h2>
       ) : null}
-      <p className={`text-sm text-amber-100 ${embedInModal ? "" : "mt-2"}`}>{instruction}</p>
+      <p className={`text-sm leading-relaxed text-stone-700 ${embedInModal ? "" : "mt-2"}`}>
+        {instruction}
+      </p>
 
       {uniqueFacts.length > 0 && (
-        <form onSubmit={handleSubmit} className="mt-4 space-y-3">
+        <form onSubmit={handleSubmit} className="mt-5 space-y-4">
           {validationError ? (
-            <p className="rounded-md border border-red-500/50 bg-red-950/40 px-3 py-2 text-sm text-red-100">
+            <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
               {validationError}
             </p>
           ) : null}
@@ -176,12 +181,12 @@ export function HitlGate({
             const inputId = `hitl-${fact}`;
 
             return (
-              <div key={fact} className="flex flex-col gap-1">
-                <label htmlFor={inputId} className="text-xs font-medium text-amber-200">
+              <div key={fact} className="flex flex-col gap-1.5">
+                <label htmlFor={inputId} className="text-sm font-medium text-stone-800">
                   {label}
                 </label>
                 {config?.hint ? (
-                  <p className="text-[11px] leading-snug text-amber-200/70">{config.hint}</p>
+                  <p className="text-xs leading-snug text-stone-500">{config.hint}</p>
                 ) : null}
 
                 {config?.type === "select" ? (
@@ -189,7 +194,7 @@ export function HitlGate({
                     id={inputId}
                     value={values[fact] ?? ""}
                     onChange={(e) => handleChange(fact, e.target.value)}
-                    className="rounded-md border border-amber-500/40 bg-neutral-900 px-3 py-1.5 text-sm text-white focus:outline-none focus:ring-1 focus:ring-amber-400"
+                    className={fieldClass}
                     required
                   >
                     <option value="" disabled>
@@ -208,7 +213,7 @@ export function HitlGate({
                     value={values[fact] ?? ""}
                     onChange={(e) => handleChange(fact, e.target.value)}
                     placeholder={config?.type === "date" ? undefined : `Enter ${label.toLowerCase()}`}
-                    className="rounded-md border border-amber-500/40 bg-neutral-900 px-3 py-1.5 text-sm text-white placeholder-neutral-500 focus:outline-none focus:ring-1 focus:ring-amber-400"
+                    className={fieldClass}
                     required
                   />
                 )}
@@ -219,9 +224,9 @@ export function HitlGate({
           <button
             type="submit"
             disabled={submitting}
-            className="mt-2 rounded-md bg-amber-500 px-4 py-1.5 text-sm font-semibold text-black hover:bg-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-400 disabled:cursor-not-allowed disabled:opacity-60"
+            className="mt-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {submitting ? "Submitting\u2026" : "Submit &amp; Recalculate"}
+            {submitting ? "Submitting\u2026" : "Submit & Recalculate"}
           </button>
         </form>
       )}

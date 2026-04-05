@@ -562,17 +562,23 @@ export default function SessionPage() {
   }
 
   return (
-    <main className="flex min-h-dvh flex-col gap-4 p-4">
+    <main className="flex min-h-dvh flex-col bg-[#FAFAF9]">
       <StatusBar
         countdownLabel={deadlineResult?.responseDeadline ?? "TBD"}
+        responseDeadlineIso={deadlineResult?.responseDeadline ?? null}
         agentStatuses={browserTabs.map((t) => ({ label: t.label, status: t.status }))}
         isPolling={isPolling}
         showWatchLive={dispatched || hasTrackedBrowserSession || wave1DispatchInFlight}
         onWatchLive={() => setLiveOverlayOpen(true)}
       />
 
-      <section className="grid gap-4 xl:grid-cols-[minmax(0,1.4fr)_minmax(320px,1fr)]">
-        <div className="space-y-4">
+      <section className="grid gap-6 p-4 xl:grid-cols-[2fr_3fr] xl:items-start">
+        <aside className="space-y-6 xl:sticky xl:top-0 xl:self-start">
+          <Wave1DispatchPanel caseContext={caseContext} onDispatchWave1={handleDispatchWithPreCheck} />
+          <CaseFactsPanel caseContext={caseContext} variant="sidebar" />
+        </aside>
+
+        <div className="flex min-w-0 flex-col gap-6">
           <StatusPanel
             model={{
               countdownLabel: deadlineResult?.responseDeadline ?? "TBD",
@@ -623,11 +629,7 @@ export default function SessionPage() {
               console.log("[upload] user uploaded form:", file.name, file.size);
             }}
           />
-        </div>
 
-        <div className="space-y-4">
-          <Wave1DispatchPanel caseContext={caseContext} onDispatchWave1={handleDispatchWithPreCheck} />
-          <CaseFactsPanel caseContext={caseContext} />
           <ResourcesPanel
             model={{ defenses, legalAid }}
             isDefensesLoading={isPolling && defenses.length === 0}

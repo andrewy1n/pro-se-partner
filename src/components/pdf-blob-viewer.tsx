@@ -58,16 +58,16 @@ export const PdfBlobViewer = memo(function PdfBlobViewer({ fileUrl }: PdfBlobVie
   }, []);
 
   return (
-    <div className="h-full min-h-0 flex-1 overflow-y-auto bg-zinc-900/80 px-2 py-3">
+    <div className="h-full min-h-0 flex-1 overflow-y-auto bg-stone-100 px-2 py-3">
       {loadError ? (
-        <p className="px-2 text-sm text-amber-400">
+        <p className="px-2 text-sm text-amber-700">
           Could not render this PDF in the viewer ({loadError}). Try Download instead.
         </p>
       ) : null}
       <Document
         file={fileUrl}
         loading={
-          <div className="flex items-center justify-center gap-2 py-16 text-sm text-zinc-400">
+          <div className="flex items-center justify-center gap-2 py-16 text-sm text-stone-500">
             <Loader2 className="h-5 w-5 animate-spin" aria-hidden />
             Loading PDF…
           </div>

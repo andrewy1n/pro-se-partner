@@ -21,12 +21,12 @@ export function CollapsibleSection({
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="flex w-full items-center gap-1.5 text-xs text-zinc-400 transition-colors hover:text-zinc-200"
+        className="flex w-full items-center gap-1.5 text-xs text-stone-500 transition-colors hover:text-stone-800"
       >
         {open ? (
-          <ChevronDown className="h-3.5 w-3.5 shrink-0" />
+          <ChevronDown className="h-3.5 w-3.5 shrink-0 text-stone-400" />
         ) : (
-          <ChevronRight className="h-3.5 w-3.5 shrink-0" />
+          <ChevronRight className="h-3.5 w-3.5 shrink-0 text-stone-400" />
         )}
         {label}
       </button>

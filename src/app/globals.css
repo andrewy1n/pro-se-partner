@@ -3,5 +3,11 @@
 @tailwind utilities;
 
 body {
-  @apply bg-zinc-950 text-zinc-100;
+  @apply min-h-screen bg-[#FAFAF9] text-stone-800 antialiased;
+}
+
+@layer components {
+  .app-card {
+    @apply rounded-xl border border-[#E5E7EB] bg-white p-6 shadow-card;
+  }
 }

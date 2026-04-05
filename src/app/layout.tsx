@@ -2,9 +2,22 @@
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState } from "react";
+import { Inter, Playfair_Display } from "next/font/google";
 import { SessionProvider } from "@/context/session-context";
 import { CaseProvider } from "@/context/case-context";
 import "./globals.css";
+
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
+});
+
+const playfair = Playfair_Display({
+  subsets: ["latin"],
+  variable: "--font-playfair",
+  display: "swap",
+});
 
 export default function RootLayout({
   children,
@@ -21,8 +34,8 @@ export default function RootLayout({
   );
 
   return (
-    <html lang="en">
-      <body className="min-h-screen bg-zinc-950 text-zinc-100">
+    <html lang="en" className={`${inter.variable} ${playfair.variable}`}>
+      <body className="min-h-screen font-sans">
         <QueryClientProvider client={queryClient}>
           {/* TODO: Keep cross-app polling defaults centralized in this provider stack. */}
           <SessionProvider>

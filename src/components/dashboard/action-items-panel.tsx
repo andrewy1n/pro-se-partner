@@ -10,6 +10,8 @@ import {
   X,
   FileEdit,
   Upload,
+  Check,
+  ClipboardList,
 } from "lucide-react";
 import { PdfBlobViewer } from "@/components/pdf-blob-viewer";
 import { EfilingGate } from "@/components/efiling-gate";
@@ -42,10 +44,10 @@ const FILL_STATUS_LABELS: Record<PdfFillStatus, string> = {
 };
 
 function fillStatusColor(s: PdfFillStatus): string {
-  if (s === "done") return "text-green-400";
-  if (s === "failed") return "text-amber-400";
-  if (s === "preparing" || s === "filling") return "text-blue-400";
-  return "text-zinc-500";
+  if (s === "done") return "text-emerald-600";
+  if (s === "failed") return "text-amber-600";
+  if (s === "preparing" || s === "filling") return "text-indigo-600";
+  return "text-stone-500";
 }
 
 type AutoFillConfig = {
@@ -78,16 +80,16 @@ function OriginalArtifactRow({
   }
 
   return (
-    <li className="rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2">
+    <li className="rounded-xl border border-[#E5E7EB] bg-white px-3 py-2 shadow-card">
       <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium text-zinc-200 truncate">
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-medium text-stone-900">
             {label}
             {artifact.revisionLabel ? (
-              <span className="ml-1.5 text-xs text-zinc-500">({artifact.revisionLabel})</span>
+              <span className="ml-1.5 text-xs text-stone-500">({artifact.revisionLabel})</span>
             ) : null}
           </p>
-          <p className="text-xs text-zinc-500 truncate">{artifact.fileName}</p>
+          <p className="truncate text-xs text-stone-500">{artifact.fileName}</p>
         </div>
         <div className="flex shrink-0 flex-wrap items-center gap-2">
           {autoFill ? (
@@ -100,7 +102,7 @@ function OriginalArtifactRow({
                   ? "Case context or PDF data not ready"
                   : "Fill known fields from your case facts"
               }
-              className="inline-flex items-center gap-1 rounded border border-zinc-600 bg-zinc-800/90 px-2 py-1 text-[11px] font-medium text-zinc-200 hover:bg-zinc-700 disabled:cursor-not-allowed disabled:opacity-50"
+              className="inline-flex items-center gap-1 rounded-lg border border-[#E5E7EB] bg-stone-50 px-2 py-1 text-[11px] font-medium text-stone-800 hover:bg-stone-100 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {autoFill.busy ? (
                 <Loader2 className="h-3 w-3 animate-spin" aria-hidden />
@@ -114,7 +116,7 @@ function OriginalArtifactRow({
           ) : null}
           <button
             type="button"
-            className="inline-flex items-center gap-1 text-xs text-blue-300 hover:text-blue-200 transition"
+            className="inline-flex items-center gap-1 text-xs text-indigo-600 transition hover:text-indigo-800"
             onClick={handlePreview}
           >
             <Eye className="h-3.5 w-3.5" aria-hidden />
@@ -123,7 +125,7 @@ function OriginalArtifactRow({
           <a
             href={artifact.downloadUrl}
             download={artifact.fileName}
-            className="inline-flex items-center gap-1 text-xs text-blue-300 hover:text-blue-200 transition"
+            className="inline-flex items-center gap-1 text-xs text-indigo-600 transition hover:text-indigo-800"
             onClick={() =>
               logPdfArtifact("info", "download_link_clicked", {
                 variant: artifact.variant,
@@ -138,7 +140,7 @@ function OriginalArtifactRow({
         </div>
       </div>
       {autoFill?.showNoSourceHint && !autoFill.busy ? (
-        <p className="mt-1.5 text-[11px] text-zinc-500">
+        <p className="mt-1.5 text-[11px] text-stone-500">
           Run Find &amp; Fill Forms to download UD-105, or ensure case facts are loaded.
         </p>
       ) : null}
@@ -166,24 +168,24 @@ function FilledArtifactRow({
   }
 
   return (
-    <li className="rounded-lg border border-green-800/50 bg-green-950/20 px-3 py-2">
+    <li className="rounded-xl border border-emerald-200 bg-emerald-50/60 px-3 py-2 shadow-card">
       <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-        <div className="flex-1 min-w-0">
+        <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1.5">
-            <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-green-500" aria-hidden />
-            <p className="text-sm font-medium text-green-200 truncate">
+            <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-emerald-600" aria-hidden />
+            <p className="truncate text-sm font-medium text-emerald-950">
               {label}
               {artifact.revisionLabel ? (
-                <span className="ml-1.5 text-xs text-green-600">({artifact.revisionLabel})</span>
+                <span className="ml-1.5 text-xs text-emerald-700">({artifact.revisionLabel})</span>
               ) : null}
             </p>
           </div>
-          <p className="mt-0.5 text-xs text-zinc-500 truncate">{artifact.fileName}</p>
+          <p className="mt-0.5 truncate text-xs text-stone-600">{artifact.fileName}</p>
         </div>
         <div className="flex shrink-0 flex-wrap items-center gap-2">
           <button
             type="button"
-            className="inline-flex items-center gap-1 text-xs text-green-400 hover:text-green-300 transition"
+            className="inline-flex items-center gap-1 text-xs text-emerald-800 transition hover:text-emerald-950"
             onClick={handlePreview}
           >
             <Eye className="h-3.5 w-3.5" aria-hidden />
@@ -192,7 +194,7 @@ function FilledArtifactRow({
           <a
             href={artifact.downloadUrl}
             download={artifact.fileName}
-            className="inline-flex items-center gap-1 text-xs text-green-400 hover:text-green-300 transition"
+            className="inline-flex items-center gap-1 text-xs text-emerald-800 transition hover:text-emerald-950"
             onClick={() =>
               logPdfArtifact("info", "download_link_clicked", {
                 variant: artifact.variant,
@@ -228,9 +230,9 @@ function UploadFormSection({ onUploadForm }: { onUploadForm: (file: File) => voi
   }
 
   return (
-    <div className="rounded-lg border border-zinc-700 border-dashed bg-zinc-900/40 px-3 py-3">
-      <p className="text-xs font-medium text-zinc-300">Upload your completed form</p>
-      <p className="mt-0.5 text-xs text-zinc-500">
+    <div className="rounded-xl border border-dashed border-[#E5E7EB] bg-stone-50/80 px-3 py-3">
+      <p className="text-xs font-medium text-stone-800">Upload your completed form</p>
+      <p className="mt-0.5 text-xs text-stone-500">
         Filled it out yourself? Upload your signed PDF here for filing.
       </p>
       <div className="mt-2.5 flex flex-wrap items-center gap-2">
@@ -238,7 +240,7 @@ function UploadFormSection({ onUploadForm }: { onUploadForm: (file: File) => voi
           type="button"
           disabled={uploading}
           onClick={() => inputRef.current?.click()}
-          className="inline-flex items-center gap-1.5 rounded border border-zinc-600 bg-zinc-800 px-3 py-1.5 text-xs font-medium text-zinc-200 hover:bg-zinc-700 disabled:cursor-not-allowed disabled:opacity-50"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-[#E5E7EB] bg-white px-3 py-1.5 text-xs font-medium text-stone-800 shadow-card hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {uploading ? (
             <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
@@ -248,7 +250,7 @@ function UploadFormSection({ onUploadForm }: { onUploadForm: (file: File) => voi
           {uploading ? "Uploading\u2026" : "Choose file\u2026"}
         </button>
         {uploadedName && !uploading && (
-          <span className="flex items-center gap-1 text-xs text-green-400">
+          <span className="flex items-center gap-1 text-xs text-emerald-600">
             <CheckCircle2 className="h-3.5 w-3.5" aria-hidden />
             {uploadedName}
           </span>
@@ -296,8 +298,8 @@ export function ActionItemsPanel({
     : undefined;
 
   return (
-    <section className="rounded-xl border border-zinc-800 bg-zinc-950 p-4">
-      <h2 className="text-sm font-medium text-zinc-200">Your Next Steps</h2>
+    <section className="app-card">
+      <h2 className="font-display text-lg font-semibold tracking-tight text-stone-900">Your Next Steps</h2>
 
       {/* Fill-step status indicator */}
       {showFillStatus && (
@@ -313,18 +315,18 @@ export function ActionItemsPanel({
 
       {/* Fill failure warning */}
       {pdfFillStatus === "failed" && (
-        <div className="mt-2 rounded-md border border-amber-800/50 bg-amber-950/30 px-3 py-2">
-          <p className="text-xs text-amber-300">
+        <div className="mt-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2">
+          <p className="text-xs text-amber-950">
             Downloaded official form successfully, but auto-fill failed.
           </p>
           {pdfFillErrorMessage && (
-            <p className="mt-1 text-xs text-amber-400/80 truncate" title={pdfFillErrorMessage}>
-              {pdfFillErrorCode && <span className="font-mono mr-1">[{pdfFillErrorCode}]</span>}
+            <p className="mt-1 truncate text-xs text-amber-900/90" title={pdfFillErrorMessage}>
+              {pdfFillErrorCode && <span className="mr-1 font-mono">[{pdfFillErrorCode}]</span>}
               {pdfFillErrorMessage}
             </p>
           )}
           {originals.length > 0 && (
-            <p className="mt-1 text-xs text-zinc-400">
+            <p className="mt-1 text-xs text-stone-600">
               You can still download and manually fill the original form below.
             </p>
           )}
@@ -332,16 +334,44 @@ export function ActionItemsPanel({
       )}
 
       <div className="mt-3 space-y-4">
+        {model && model.checklist.length > 0 && (
+          <ul className="space-y-2">
+            {model.checklist.map((item) => (
+              <li key={item.id} className="flex gap-3 rounded-lg border border-[#E5E7EB] bg-white px-3 py-2 shadow-card">
+                <span
+                  className={`mt-0.5 flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded border-2 ${
+                    item.status === "done"
+                      ? "border-indigo-600 bg-indigo-600"
+                      : "border-stone-300 bg-white"
+                  }`}
+                  aria-hidden
+                >
+                  {item.status === "done" ? (
+                    <Check className="h-3 w-3 text-white" strokeWidth={3} />
+                  ) : null}
+                </span>
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-stone-900">{item.title}</p>
+                  {item.details ? <p className="mt-0.5 text-xs text-stone-600">{item.details}</p> : null}
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+
         {!hasAnyArtifact && (
-          <p className="text-xs text-zinc-500">
-            No forms yet &mdash; run Find &amp; Fill Forms to get started.
-          </p>
+          <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-[#E5E7EB] bg-stone-50/60 px-6 py-10 text-center">
+            <ClipboardList className="h-10 w-10 text-stone-300" strokeWidth={1.25} aria-hidden />
+            <p className="mt-3 max-w-sm text-xs leading-relaxed text-stone-500">
+              No forms yet &mdash; run Find &amp; Fill Forms to get started.
+            </p>
+          </div>
         )}
 
         {/* Original court form */}
         {originals.length > 0 && (
           <div>
-            <p className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-zinc-500">
+            <p className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-stone-500">
               Official court form
             </p>
             <ul className="space-y-2">
@@ -363,12 +393,12 @@ export function ActionItemsPanel({
         {filled.length > 0 && (
           <div>
             <div className="mb-1.5 flex items-center gap-1.5">
-              <CheckCircle2 className="h-3 w-3 text-green-500" aria-hidden />
-              <p className="text-xs font-semibold uppercase tracking-wider text-green-600">
+              <CheckCircle2 className="h-3 w-3 text-emerald-600" aria-hidden />
+              <p className="text-xs font-semibold uppercase tracking-wider text-emerald-800">
                 Pre-filled for you
               </p>
             </div>
-            <p className="mb-2 text-xs text-zinc-500">
+            <p className="mb-2 text-xs text-stone-500">
               Fields filled from your case information. Review before filing.
             </p>
             <ul className="space-y-2">
@@ -388,36 +418,31 @@ export function ActionItemsPanel({
           <UploadFormSection onUploadForm={onUploadForm} />
         )}
 
-        {(model?.checklist.length ?? 0) > 0 && (
-          <p className="text-xs text-zinc-400">
-            Checklist items: {model!.checklist.length}
-          </p>
-        )}
       </div>
 
       {showEfilingGate && onDispatchEfiling ? (
-        <div className="mt-4 border-t border-zinc-800 pt-4">
+        <div className="mt-4 border-t border-[#E5E7EB] pt-4">
           <EfilingGate onSubmit={onDispatchEfiling} isDispatching={isEfilingDispatching} />
         </div>
       ) : null}
 
       {pdfPreview ? (
         <div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 p-4"
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 p-4"
           role="dialog"
           aria-modal="true"
           aria-label="PDF preview"
           onClick={() => setPdfPreview(null)}
         >
           <div
-            className="flex h-[min(90vh,920px)] max-h-[92vh] min-h-0 w-full max-w-5xl flex-col overflow-hidden rounded-xl border border-zinc-700 bg-zinc-950 shadow-xl"
+            className="flex h-[min(90vh,920px)] max-h-[92vh] min-h-0 w-full max-w-5xl flex-col overflow-hidden rounded-xl border border-[#E5E7EB] bg-white shadow-xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex shrink-0 items-center justify-between gap-2 border-b border-zinc-800 px-3 py-2">
-              <p className="min-w-0 truncate text-sm font-medium text-zinc-200">{pdfPreview.title}</p>
+            <div className="flex shrink-0 items-center justify-between gap-2 border-b border-[#E5E7EB] bg-white px-3 py-2">
+              <p className="min-w-0 truncate text-sm font-medium text-stone-900">{pdfPreview.title}</p>
               <button
                 type="button"
-                className="rounded-lg p-1.5 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100"
+                className="rounded-lg p-1.5 text-stone-400 hover:bg-stone-100 hover:text-stone-800"
                 aria-label="Close preview"
                 onClick={() => setPdfPreview(null)}
               >
@@ -427,7 +452,7 @@ export function ActionItemsPanel({
             <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
               <PdfBlobViewer key={pdfPreview.url} fileUrl={pdfPreview.url} />
             </div>
-            <p className="shrink-0 border-t border-zinc-800 px-3 py-2 text-xs text-zinc-500">
+            <p className="shrink-0 border-t border-[#E5E7EB] bg-stone-50 px-3 py-2 text-xs text-stone-500">
               Rendered with Mozilla pdf.js (not Chrome&apos;s built-in PDF viewer). If preview fails, use
               Download. The court &ldquo;Original&rdquo; can be strict; &ldquo;Filled&rdquo; uses the bundled form.
             </p>
