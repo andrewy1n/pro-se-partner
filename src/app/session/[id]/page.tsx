@@ -22,6 +22,7 @@ import type {
   AgentId,
   CaseFacts,
   DispatchWave1Response,
+  DispatchWave2Response,
   IntakeSessionPayload,
   Wave1AgentKey,
 } from "@/lib/types";
@@ -32,6 +33,7 @@ export default function SessionPage() {
   const [activeView, setActiveView] = useState<SessionView>("browser");
   const autoSwitchedRef = useRef(false);
   const [selectedBrowserAgentId, setSelectedBrowserAgentId] = useState<AgentId | null>(null);
+  const [isEfilingDispatching, setIsEfilingDispatching] = useState(false);
 
   const {
     activeSession,
@@ -39,16 +41,19 @@ export default function SessionPage() {
     deadlineSession,
     defenseSession,
     legalAidSession,
+    efilingSession,
     activityFeed,
     formsNavigatorResult,
     deadlineResult: polledDeadlineResult,
     defenseResult: polledDefenseResult,
     legalAidResult: polledLegalAidResult,
+    efilingResult: polledEfilingResult,
     isPolling,
     setTrackedFormsSession,
     setTrackedSession,
     setTrackedDefenseSession,
     setTrackedLegalAidSession,
+    setTrackedEfilingSession,
   } = useSession();
   const {
     caseContext,
@@ -66,6 +71,8 @@ export default function SessionPage() {
     deadlineResult,
     pdfFillState,
     setPdfFillState,
+    efilingResult,
+    setEfilingResult,
   } = useCaseContext();
 
   const browserTabs = useMemo(
@@ -94,8 +101,14 @@ export default function SessionPage() {
         liveUrl: legalAidSession?.liveUrl,
         status: legalAidSession?.status ?? null,
       },
+      {
+        agentId: "agent-9-efiling" as const,
+        label: "E-Filing",
+        liveUrl: efilingSession?.liveUrl,
+        status: efilingSession?.status ?? null,
+      },
     ],
-    [formsSession, deadlineSession, defenseSession, legalAidSession],
+    [formsSession, deadlineSession, defenseSession, legalAidSession, efilingSession],
   );
 
   const effectiveBrowserTab = useMemo(
@@ -191,11 +204,19 @@ export default function SessionPage() {
       browserSessionId: payload.legalAidSession?.sessionId ?? null,
     });
 
+    if (payload.efilingSession?.sessionId) {
+      setTrackedEfilingSession({
+        appSessionId: id,
+        browserSessionId: payload.efilingSession.sessionId,
+      });
+    }
+
     return () => {
       setTrackedFormsSession(null);
       setTrackedSession(null);
       setTrackedDefenseSession(null);
       setTrackedLegalAidSession(null);
+      setTrackedEfilingSession(null);
     };
   }, [
     params.id,
@@ -204,6 +225,7 @@ export default function SessionPage() {
     setTrackedSession,
     setTrackedDefenseSession,
     setTrackedLegalAidSession,
+    setTrackedEfilingSession,
   ]);
 
   // Wire forms navigator output into downloadable artifacts.
@@ -267,6 +289,27 @@ export default function SessionPage() {
   useEffect(() => {
     if (polledLegalAidResult) setLegalAid(polledLegalAidResult);
   }, [polledLegalAidResult, setLegalAid]);
+
+  // Wire e-filing result into case context
+  useEffect(() => {
+    if (polledEfilingResult) setEfilingResult(polledEfilingResult);
+  }, [polledEfilingResult, setEfilingResult]);
+
+  // After PDF fill completes, push the filled bytes to the server cache so the e-filing agent can fetch them
+  useEffect(() => {
+    if (pdfFillState.status !== "done") return;
+    const filled = formArtifacts.find(
+      (a) => a.formCode === "UD-105" && a.variant === "filled",
+    );
+    if (!filled || !params.id) return;
+    const b64 = extractBase64FromPdfDataUrl(filled.downloadUrl);
+    if (!b64) return;
+    void fetch(`/api/sessions/${params.id}/filled-ud105`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ pdfBase64: b64 }),
+    });
+  }, [pdfFillState.status, formArtifacts, params.id]);
 
   // Auto-switch to dashboard once polling settles after Wave 1 activity (once)
   useEffect(() => {
@@ -365,6 +408,48 @@ export default function SessionPage() {
     await handleDispatchWave1(["deadline"]);
   }
 
+  async function handleDispatchWave2(username: string) {
+    const id = params.id;
+    if (!id || !caseContext) return;
+
+    const filledArtifact = formArtifacts.find(
+      (a) => a.formCode === "UD-105" && a.variant === "filled",
+    );
+    const pdfBase64 = filledArtifact
+      ? extractBase64FromPdfDataUrl(filledArtifact.downloadUrl)
+      : null;
+
+    setIsEfilingDispatching(true);
+    try {
+      const res = await fetch("/api/agents/dispatch-wave2", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionId: id, efilingUsername: username, caseContext, pdfBase64 }),
+      });
+
+      if (!res.ok) return;
+
+      const data = (await res.json()) as DispatchWave2Response;
+
+      const raw = sessionStorage.getItem(intakeStorageKey(id));
+      const payload = parseIntakeSessionPayload(raw ?? "");
+      if (payload) {
+        sessionStorage.setItem(
+          intakeStorageKey(id),
+          JSON.stringify({ ...payload, efilingSession: data.efilingSession }),
+        );
+      }
+
+      setTrackedEfilingSession({
+        appSessionId: id,
+        browserSessionId: data.efilingSession.sessionId,
+      });
+      setActiveView("browser");
+    } finally {
+      setIsEfilingDispatching(false);
+    }
+  }
+
   return (
     <main className="flex min-h-dvh flex-col gap-4 p-4">
       <SessionViewToggle activeView={activeView} onViewChange={setActiveView} />
@@ -410,6 +495,7 @@ export default function SessionPage() {
                     }
                   : null
               }
+              efilingConfirmation={efilingResult ?? null}
             />
 
             <ActionItemsPanel
@@ -422,6 +508,14 @@ export default function SessionPage() {
               pdfFillErrorMessage={pdfFillState.errorMessage}
               onFillUd105={handleFillUd105}
               fillUd105Disabled={fillUd105Disabled}
+              showEfilingGate={
+                !isPolling &&
+                dispatched &&
+                !efilingResult &&
+                (!efilingSession || efilingSession.status === "stopped" || efilingSession.status === "error")
+              }
+              isEfilingDispatching={isEfilingDispatching}
+              onDispatchEfiling={handleDispatchWave2}
             />
           </div>
 

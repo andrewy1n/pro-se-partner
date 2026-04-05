@@ -68,5 +68,6 @@ export function buildMockIntakeSessionPayload(): IntakeSessionPayload {
     deadlineTrackerSession: null,
     defenseResearchSession: null,
     legalAidSession: null,
+    efilingSession: null,
   };
 }

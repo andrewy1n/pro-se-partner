@@ -4,12 +4,13 @@ import { parseFormsNavigatorResult } from "@/lib/forms-navigator";
 import { parseDeadlineResult } from "@/lib/deadline-tracker";
 import { parseDefenseResult } from "@/lib/defense-research";
 import { parseLegalAidResult } from "@/lib/legal-aid";
+import { parseEfilingResult } from "@/lib/efiling";
 import {
   isVerboseSessionPoll,
   logServerError,
   logServerEvent,
 } from "@/lib/server-log";
-import type { AgentId, SessionPollResponse } from "@/lib/types";
+import type { AgentId, EfilingResult, SessionPollResponse } from "@/lib/types";
 
 export const runtime = "nodejs";
 
@@ -39,6 +40,7 @@ export async function GET(
     let deadlineResult = null;
     let defenseResult = null;
     let legalAidResult = null;
+    let efilingResult: EfilingResult | null = null;
 
     if (agentId === "agent-3-forms-navigator") {
       formsNavigatorResult = parseFormsNavigatorResult(session.output);
@@ -76,6 +78,18 @@ export async function GET(
               : JSON.stringify(session.output).slice(0, 400),
         });
       }
+    } else if (agentId === "agent-9-efiling") {
+      efilingResult = parseEfilingResult(session.output);
+      if (session.output != null && efilingResult == null) {
+        logServerEvent("session_poll_efiling_parse_mismatch", {
+          appSessionId: id,
+          browserSessionId,
+          outputPreview:
+            typeof session.output === "string"
+              ? session.output.slice(0, 400)
+              : JSON.stringify(session.output).slice(0, 400),
+        });
+      }
     } else {
       deadlineResult = parseDeadlineResult(session.output);
       if (session.output != null && deadlineResult == null) {
@@ -100,6 +114,7 @@ export async function GET(
         hasDeadlineResult: Boolean(deadlineResult),
         hasDefenseResult: Boolean(defenseResult),
         hasLegalAidResult: Boolean(legalAidResult),
+        hasEfilingResult: Boolean(efilingResult),
       });
     }
 
@@ -108,14 +123,15 @@ export async function GET(
         sessionId: session.id,
         liveUrl: session.liveUrl ?? null,
         activeAgentId: agentId,
-        activeWave: "wave-1",
-        stage: "stage-1-intake",
+        activeWave: agentId === "agent-9-efiling" ? "wave-2" : "wave-1",
+        stage: agentId === "agent-9-efiling" ? "stage-2-filing" : "stage-1-intake",
         status: session.status,
       },
       formsNavigatorResult,
       deadlineResult,
       defenseResult,
       legalAidResult,
+      efilingResult,
       messages: [],
     };
 

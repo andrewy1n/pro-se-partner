@@ -169,6 +169,10 @@ export function parseIntakeSessionPayload(raw: string): IntakeSessionPayload | n
           "legalAidSession" in parsed && parsed.legalAidSession !== undefined
             ? (parsed.legalAidSession as IntakeSessionPayload["legalAidSession"])
             : null,
+        efilingSession:
+          "efilingSession" in parsed && parsed.efilingSession !== undefined
+            ? (parsed.efilingSession as IntakeSessionPayload["efilingSession"])
+            : null,
       };
     }
 
@@ -184,6 +188,7 @@ export function parseIntakeSessionPayload(raw: string): IntakeSessionPayload | n
           : null,
       defenseResearchSession: null,
       legalAidSession: null,
+      efilingSession: null,
     };
   } catch {
     return null;

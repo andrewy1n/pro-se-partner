@@ -1,9 +1,9 @@
 "use client";
 import { Fragment, useEffect, useState } from "react";
-import { ChevronDown, ChevronRight, AlertCircle, AlertTriangle, Clock, X } from "lucide-react";
+import { ChevronDown, ChevronRight, AlertCircle, AlertTriangle, CheckCircle2, Clock, X } from "lucide-react";
 import { CollapsibleSection } from "@/components/collapsible-section";
 import { HitlGate } from "@/components/hitl-gate";
-import type { CaseFacts, StatusPanelModel, TimelineMilestone } from "@/lib/types";
+import type { CaseFacts, EfilingResult, StatusPanelModel, TimelineMilestone } from "@/lib/types";
 
 interface StatusPanelProps {
   model: StatusPanelModel | null;
@@ -13,6 +13,8 @@ interface StatusPanelProps {
     missingFacts: string[];
     onSubmit: (updates: Partial<CaseFacts>) => void | Promise<void>;
   } | null;
+  /** Show after Wave 2 e-filing agent returns a confirmation. */
+  efilingConfirmation?: Pick<EfilingResult, "confirmationNumber" | "submittedAt"> | null;
 }
 
 function computeDaysRemaining(isoDate: string | null): number | null {
@@ -147,7 +149,7 @@ function TimelineNode({ milestone, isLast, responseDeadline }: TimelineNodeProps
   );
 }
 
-export function StatusPanel({ model, hitlAction = null }: StatusPanelProps) {
+export function StatusPanel({ model, hitlAction = null, efilingConfirmation = null }: StatusPanelProps) {
   const [panelOpen, setPanelOpen] = useState(true);
   const [hitlModalOpen, setHitlModalOpen] = useState(false);
 
@@ -181,6 +183,28 @@ export function StatusPanel({ model, hitlAction = null }: StatusPanelProps) {
         )}
         <h2 className="text-sm font-medium text-zinc-200">Status &amp; Timeline</h2>
       </button>
+
+      {efilingConfirmation ? (
+        <div className="mt-3 flex items-start gap-2 rounded-lg border border-green-700 bg-green-950/40 px-3 py-2.5">
+          <CheckCircle2 className="h-4 w-4 shrink-0 text-green-400 mt-0.5" aria-hidden />
+          <div className="min-w-0">
+            <p className="text-sm font-semibold text-green-300">Response Filed Successfully</p>
+            {efilingConfirmation.confirmationNumber ? (
+              <p className="mt-0.5 text-xs text-green-400/80">
+                Confirmation: {efilingConfirmation.confirmationNumber}
+              </p>
+            ) : null}
+            {efilingConfirmation.submittedAt ? (
+              <p className="text-xs text-green-400/60">
+                Submitted: {new Date(efilingConfirmation.submittedAt).toLocaleString()}
+              </p>
+            ) : null}
+            <p className="mt-0.5 text-xs text-green-400/60">
+              Trial date will be set within 20 days.
+            </p>
+          </div>
+        </div>
+      ) : null}
 
       {hitlAction ? (
         <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-amber-500/35 bg-amber-950/25 px-3 py-2">

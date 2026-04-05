@@ -11,6 +11,7 @@ import {
   FileEdit,
 } from "lucide-react";
 import { PdfBlobViewer } from "@/components/pdf-blob-viewer";
+import { EfilingGate } from "@/components/efiling-gate";
 import { logPdfArtifact } from "@/lib/client-pdf-artifact";
 import type { ActionItemsPanelModel, FormArtifact, PdfFillStatus, PdfFillErrorCode } from "@/lib/types";
 
@@ -23,6 +24,10 @@ interface ActionItemsPanelProps {
   onFillUd105?: () => void | Promise<void>;
   /** True when no UD-105 bytes available or case context missing. */
   fillUd105Disabled?: boolean;
+  /** Show e-filing gate when Wave 1 is done and filing not yet started. */
+  showEfilingGate?: boolean;
+  isEfilingDispatching?: boolean;
+  onDispatchEfiling?: (username: string) => void | Promise<void>;
 }
 
 const FILL_STATUS_LABELS: Record<PdfFillStatus, string> = {
@@ -158,6 +163,9 @@ export function ActionItemsPanel({
   pdfFillErrorMessage = null,
   onFillUd105,
   fillUd105Disabled = false,
+  showEfilingGate = false,
+  isEfilingDispatching = false,
+  onDispatchEfiling,
 }: ActionItemsPanelProps) {
   const [pdfPreview, setPdfPreview] = useState<{ url: string; title: string } | null>(null);
 
@@ -261,6 +269,12 @@ export function ActionItemsPanel({
           </p>
         )}
       </div>
+
+      {showEfilingGate && onDispatchEfiling ? (
+        <div className="mt-4 border-t border-zinc-800 pt-4">
+          <EfilingGate onSubmit={onDispatchEfiling} isDispatching={isEfilingDispatching} />
+        </div>
+      ) : null}
 
       {pdfPreview ? (
         <div

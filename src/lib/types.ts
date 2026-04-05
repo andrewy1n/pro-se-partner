@@ -102,6 +102,7 @@ export interface IntakeSessionPayload {
   deadlineTrackerSession: DeadlineTrackerSession | null;
   defenseResearchSession: DefenseResearchSession | null;
   legalAidSession: LegalAidSession | null;
+  efilingSession: EfilingSession | null;
 }
 
 export interface IntakeSubmitResponse {
@@ -114,6 +115,10 @@ export interface DispatchWave1Response {
   deadlineTrackerSession: DeadlineTrackerSession | null;
   defenseResearchSession: DefenseResearchSession | null;
   legalAidSession: LegalAidSession | null;
+}
+
+export interface DispatchWave2Response {
+  efilingSession: EfilingSession;
 }
 
 /**
@@ -285,6 +290,13 @@ export interface EfilingResult {
   submittedAt: string | null;
 }
 
+export interface EfilingSession {
+  sessionId: string;
+  liveUrl: string | null;
+  status: BrowserUseSessionStatus;
+  activeAgentId: Extract<AgentId, "agent-9-efiling">;
+}
+
 export interface Citation {
   title: string;
   url?: string;
@@ -399,6 +411,7 @@ export interface SessionPollResponse {
   deadlineResult: DeadlineResult | null;
   defenseResult: DefenseItem[] | null;
   legalAidResult: LegalAidItem[] | null;
+  efilingResult: EfilingResult | null;
   messages: MessageResponse[];
 }
 
