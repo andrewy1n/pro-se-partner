@@ -37,6 +37,25 @@ import {
 } from "@/lib/hitl-summons-service";
 
 const DEADLINE_CRITICAL_FACTS = ["service_date", "service_method"];
+const MAX_WAVE1_BROWSER_SESSIONS = 3;
+
+function uniqueWave1AgentKeys(agents: readonly Wave1AgentKey[]): Wave1AgentKey[] {
+  const seen = new Set<Wave1AgentKey>();
+  return agents.filter((agent) => {
+    if (seen.has(agent)) return false;
+    seen.add(agent);
+    return true;
+  });
+}
+
+function removeFirstWave1Agent(
+  agents: readonly Wave1AgentKey[],
+  target: Wave1AgentKey,
+): Wave1AgentKey[] {
+  const index = agents.indexOf(target);
+  if (index === -1) return [...agents];
+  return [...agents.slice(0, index), ...agents.slice(index + 1)];
+}
 
 export default function SessionPage() {
   const params = useParams<{ id: string }>();
@@ -44,8 +63,9 @@ export default function SessionPage() {
   const [liveOverlayOpen, setLiveOverlayOpen] = useState(false);
   const [selectedBrowserAgentId, setSelectedBrowserAgentId] = useState<AgentId | null>(null);
   const [isEfilingDispatching, setIsEfilingDispatching] = useState(false);
-  /** True while Wave 1 POST /api/agents/dispatch is in flight — show Watch Live before the response (needed when the 4th agent waits on the slot queue). */
+  /** True while a Wave 1 launch request is in flight. */
   const [wave1DispatchInFlight, setWave1DispatchInFlight] = useState(false);
+  const [queuedWave1Agents, setQueuedWave1Agents] = useState<Wave1AgentKey[]>([]);
 
   const {
     activeSession,
@@ -133,6 +153,19 @@ export default function SessionPage() {
     if (!effectiveBrowserTab) return [];
     return activityFeed.filter((item) => item.agentId === effectiveBrowserTab.agentId);
   }, [activityFeed, effectiveBrowserTab]);
+
+  const activeWave1Count = useMemo(
+    () =>
+      [formsSession, deadlineSession, defenseSession, legalAidSession].filter(
+        (session) => session?.status === "created" || session?.status === "running",
+      ).length,
+    [formsSession, deadlineSession, defenseSession, legalAidSession],
+  );
+
+  const hasWave1Snapshot = useMemo(
+    () => Boolean(formsSession || deadlineSession || defenseSession || legalAidSession),
+    [formsSession, deadlineSession, defenseSession, legalAidSession],
+  );
 
   const ud105FillSource = useMemo(() => {
     const poll = formsNavigatorResult?.ud105;
@@ -222,6 +255,7 @@ export default function SessionPage() {
 
     setCaseContext(payload.caseContext);
     setDispatched(payload.dispatched ?? false);
+    setQueuedWave1Agents(payload.queuedWave1Agents ?? []);
 
     setTrackedFormsSession({
       appSessionId: id,
@@ -263,6 +297,21 @@ export default function SessionPage() {
     setTrackedLegalAidSession,
     setTrackedEfilingSession,
   ]);
+
+  useEffect(() => {
+    const id = params.id;
+    if (!id || !caseContext) return;
+    const raw = sessionStorage.getItem(intakeStorageKey(id));
+    const payload = parseIntakeSessionPayloadOrNew(raw, caseContext);
+    sessionStorage.setItem(
+      intakeStorageKey(id),
+      JSON.stringify({
+        ...payload,
+        caseContext,
+        queuedWave1Agents,
+      }),
+    );
+  }, [caseContext, params.id, queuedWave1Agents]);
 
   // Wire forms navigator output into downloadable artifacts.
   useEffect(() => {
@@ -378,13 +427,13 @@ export default function SessionPage() {
     });
   }, [pdfFillState.status, formArtifacts, params.id]);
 
-  async function handleDispatchWave1(
+  const handleDispatchWave1 = useCallback(async (
     agents: Wave1AgentKey[],
     contextOverride?: CanonicalCaseContext,
-  ) {
+  ): Promise<boolean> => {
     const id = params.id;
     const ctx = contextOverride ?? caseContext;
-    if (!id || !ctx || agents.length === 0) return;
+    if (!id || !ctx || agents.length === 0) return false;
 
     setWave1DispatchInFlight(true);
     try {
@@ -394,7 +443,7 @@ export default function SessionPage() {
         body: JSON.stringify({ sessionId: id, caseContext: ctx, agents }),
       });
 
-      if (!res.ok) return;
+      if (!res.ok) return false;
 
       const data = (await res.json()) as DispatchWave1Response;
 
@@ -404,6 +453,7 @@ export default function SessionPage() {
       const next: IntakeSessionPayload = {
         ...payload,
         caseContext: ctx,
+        queuedWave1Agents: payload.queuedWave1Agents ?? [],
         formsNavigatorSession:
           data.formsNavigatorSession ?? payload.formsNavigatorSession,
         deadlineTrackerSession:
@@ -440,10 +490,37 @@ export default function SessionPage() {
       });
 
       setDispatched(next.dispatched);
+      return agents.some((agent) => {
+        if (agent === "forms") return Boolean(data.formsNavigatorSession?.sessionId);
+        if (agent === "deadline") return Boolean(data.deadlineTrackerSession?.sessionId);
+        if (agent === "defense") return Boolean(data.defenseResearchSession?.sessionId);
+        return Boolean(data.legalAidSession?.sessionId);
+      });
     } finally {
       setWave1DispatchInFlight(false);
     }
-  }
+  }, [
+    caseContext,
+    params.id,
+    setTrackedFormsSession,
+    setTrackedSession,
+    setTrackedDefenseSession,
+    setTrackedLegalAidSession,
+  ]);
+
+  const handleDispatchWave1Staged = useCallback(async (
+    agents: Wave1AgentKey[],
+    contextOverride?: CanonicalCaseContext,
+  ): Promise<boolean> => {
+    const uniqueAgents = uniqueWave1AgentKeys(agents);
+    const initialBatch = uniqueAgents.slice(0, MAX_WAVE1_BROWSER_SESSIONS);
+    const queuedBatch = uniqueAgents.slice(MAX_WAVE1_BROWSER_SESSIONS);
+    const launchedAny = await handleDispatchWave1(initialBatch, contextOverride);
+    if (launchedAny && queuedBatch.length > 0) {
+      setQueuedWave1Agents((current) => uniqueWave1AgentKeys([...current, ...queuedBatch]));
+    }
+    return launchedAny;
+  }, [handleDispatchWave1]);
 
   async function handleDispatchWithPreCheck(agents: Wave1AgentKey[]) {
     if (!caseContext) return;
@@ -456,7 +533,7 @@ export default function SessionPage() {
     if (missingDeadlineFacts.length > 0) {
       const withoutDeadline = agents.filter((a) => a !== "deadline");
       if (withoutDeadline.length > 0) {
-        await handleDispatchWave1(withoutDeadline);
+        await handleDispatchWave1Staged(withoutDeadline);
       }
 
       setHitlGate({
@@ -466,9 +543,45 @@ export default function SessionPage() {
         complaintReferenceDateIso: getComplaintReferenceDateIso(caseContext),
       });
     } else {
-      await handleDispatchWave1(agents);
+      await handleDispatchWave1Staged(agents);
     }
   }
+
+  useEffect(() => {
+    if (!caseContext) return;
+    if (queuedWave1Agents.length === 0) return;
+    if (wave1DispatchInFlight) return;
+    if (!hasWave1Snapshot) return;
+    if (activeWave1Count >= MAX_WAVE1_BROWSER_SESSIONS) return;
+
+    const nextAgent = queuedWave1Agents[0];
+    let cancelled = false;
+
+    void (async () => {
+      try {
+        const launched = await handleDispatchWave1([nextAgent], caseContext);
+        if (!cancelled && launched) {
+          setQueuedWave1Agents((current) => removeFirstWave1Agent(current, nextAgent));
+        }
+      } catch (error) {
+        console.error("[wave1-queue] failed to dispatch queued agent", {
+          agent: nextAgent,
+          error,
+        });
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    activeWave1Count,
+    caseContext,
+    handleDispatchWave1,
+    hasWave1Snapshot,
+    queuedWave1Agents,
+    wave1DispatchInFlight,
+  ]);
 
   async function handleHitlSubmit(updates: Partial<CaseFacts>) {
     if (!caseContext) return;
@@ -567,7 +680,7 @@ export default function SessionPage() {
         countdownLabel={deadlineResult?.responseDeadline ?? "TBD"}
         agentStatuses={browserTabs.map((t) => ({ label: t.label, status: t.status }))}
         isPolling={isPolling}
-        showWatchLive={dispatched || hasTrackedBrowserSession || wave1DispatchInFlight}
+        showWatchLive={hasTrackedBrowserSession}
         onWatchLive={() => setLiveOverlayOpen(true)}
       />
 

@@ -8,6 +8,14 @@ import { flattenAllegationGroups } from "@/lib/document-parse-normalize";
 
 export const INTAKE_STORAGE_KEY_PREFIX = "pro-se-partner:intake:";
 
+function parseQueuedWave1Agents(raw: unknown): IntakeSessionPayload["queuedWave1Agents"] {
+  if (!Array.isArray(raw)) return [];
+  return raw.filter(
+    (x): x is IntakeSessionPayload["queuedWave1Agents"][number] =>
+      x === "forms" || x === "deadline" || x === "defense" || x === "legalAid",
+  );
+}
+
 export function intakeStorageKey(sessionId: string): string {
   return `${INTAKE_STORAGE_KEY_PREFIX}${sessionId}`;
 }
@@ -158,10 +166,12 @@ export function parseIntakeSessionPayloadOrNew(
   return {
     caseContext: fallbackContext,
     dispatched: false,
+    queuedWave1Agents: [],
     formsNavigatorSession: null,
     deadlineTrackerSession: null,
     defenseResearchSession: null,
     legalAidSession: null,
+    efilingSession: null,
   };
 }
 
@@ -175,6 +185,7 @@ export function parseIntakeSessionPayload(raw: string): IntakeSessionPayload | n
       return {
         caseContext,
         dispatched: Boolean(parsed.dispatched),
+        queuedWave1Agents: parseQueuedWave1Agents(parsed.queuedWave1Agents),
         formsNavigatorSession:
           "formsNavigatorSession" in parsed && parsed.formsNavigatorSession !== undefined
             ? (parsed.formsNavigatorSession as IntakeSessionPayload["formsNavigatorSession"])
@@ -203,6 +214,7 @@ export function parseIntakeSessionPayload(raw: string): IntakeSessionPayload | n
     return {
       caseContext: legacyCaseContext,
       dispatched: Boolean(parsed.dispatched),
+      queuedWave1Agents: [],
       formsNavigatorSession: null,
       deadlineTrackerSession:
         "deadlineTrackerSession" in parsed && parsed.deadlineTrackerSession !== undefined

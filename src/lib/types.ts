@@ -98,6 +98,8 @@ export interface IntakeSessionPayload {
   caseContext: CanonicalCaseContext;
   /** True once at least one Wave 1 browser session id is stored (successful launch). */
   dispatched: boolean;
+  /** Wave 1 agents selected by the user that still need to be launched. */
+  queuedWave1Agents: Wave1AgentKey[];
   formsNavigatorSession: FormsNavigatorSession | null;
   deadlineTrackerSession: DeadlineTrackerSession | null;
   defenseResearchSession: DefenseResearchSession | null;
