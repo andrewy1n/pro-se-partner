@@ -100,36 +100,41 @@ export default function HomePage() {
   }
 
   return (
-    <main className="min-h-screen px-4 py-10 sm:px-6">
-      {mockIntakeEnabled ? (
-        <div className="mx-auto mb-6 max-w-3xl rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
-          <p className="font-medium text-amber-50">Dev: skip Gemini / intake</p>
-          <p className="mt-1 text-amber-100/90">
-            Open the session page with mock case data (no API calls). You can also visit{" "}
-            <code className="rounded bg-black/30 px-1.5 py-0.5 text-xs">/?mock=1</code>.
+    <main className="min-h-screen bg-white px-4 py-10 sm:px-6">
+      <div className="mx-auto w-full max-w-2xl">
+        {mockIntakeEnabled ? (
+          <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
+            <p className="font-medium text-amber-900">Dev: skip Gemini / intake</p>
+            <p className="mt-1 text-amber-900/90">
+              Open the session page with mock case data (no API calls). You can also visit{" "}
+              <code className="rounded-md bg-white px-1.5 py-0.5 text-xs text-amber-950 ring-1 ring-amber-200">
+                /?mock=1
+              </code>
+              .
+            </p>
+            <button
+              type="button"
+              onClick={goToMockSession}
+              className="mt-3 rounded-lg border border-amber-600 bg-white px-3 py-1.5 text-sm font-medium text-amber-900 shadow-sm hover:bg-amber-100"
+            >
+              Open session with mock data
+            </button>
+          </div>
+        ) : null}
+        <IntakeForm onSubmit={handleIntakeSubmit} />
+        {isSubmitting && (
+          <p className="mt-4 text-sm text-stone-500">
+            {submitShowsDocParse
+              ? "Taking a careful look at what you shared and your document..."
+              : "Taking a careful look at what you shared..."}
           </p>
-          <button
-            type="button"
-            onClick={goToMockSession}
-            className="mt-3 rounded-md bg-amber-600 px-3 py-1.5 text-sm font-medium text-zinc-950 hover:bg-amber-500"
-          >
-            Open session with mock data
-          </button>
-        </div>
-      ) : null}
-      <IntakeForm onSubmit={handleIntakeSubmit} />
-      {isSubmitting && (
-        <p className="mx-auto mt-3 max-w-3xl text-sm text-zinc-400">
-          {submitShowsDocParse
-            ? "Taking a careful look at what you shared and your document..."
-            : "Taking a careful look at what you shared..."}
-        </p>
-      )}
-      {submitError && (
-        <p className="mx-auto mt-3 max-w-3xl text-sm text-red-400" role="alert">
-          {submitError}
-        </p>
-      )}
+        )}
+        {submitError && (
+          <p className="mt-4 text-sm text-red-600" role="alert">
+            {submitError}
+          </p>
+        )}
+      </div>
     </main>
   );
 }

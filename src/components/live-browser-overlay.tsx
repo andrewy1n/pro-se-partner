@@ -39,12 +39,13 @@ export function LiveBrowserOverlay({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-zinc-950">
-      <div className="flex h-12 shrink-0 items-center justify-between border-b border-zinc-800 px-4">
-        <span className="text-sm font-medium text-zinc-300">Live Browser</span>
+    <div className="fixed inset-0 z-50 flex flex-col bg-[#FAFAF9]">
+      <div className="flex h-12 shrink-0 items-center justify-between border-b border-[#E5E7EB] bg-white px-4">
+        <span className="text-sm font-medium text-stone-900">Live Browser</span>
         <button
+          type="button"
           onClick={onClose}
-          className="flex items-center gap-1.5 rounded border border-zinc-700 bg-zinc-800 px-2.5 py-1 text-xs font-medium text-zinc-400 transition-colors hover:border-zinc-600 hover:bg-zinc-700 hover:text-zinc-100"
+          className="flex items-center gap-1.5 rounded-lg border border-[#E5E7EB] bg-white px-2.5 py-1.5 text-xs font-medium text-stone-600 shadow-card transition-colors hover:bg-stone-50"
         >
           <X className="h-3.5 w-3.5" />
           Close
@@ -53,6 +54,7 @@ export function LiveBrowserOverlay({
 
       <div className="flex min-h-0 flex-1 flex-col xl:flex-row">
         <BrowserPanel
+          variant="overlay"
           tabs={tabs}
           effectiveTab={effectiveTab}
           onSelectAgentId={onSelectAgentId}
