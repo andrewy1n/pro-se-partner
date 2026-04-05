@@ -89,8 +89,9 @@ export function buildDefenseResearchTask(input: {
 Your job is to identify legally supported defenses available to a tenant facing an unlawful detainer (eviction) action in Los Angeles County.
 
 Requirements:
-- Navigate official California legal sources to verify each defense you consider before reporting it.
-- Preferred sources: California Courts self-help (courts.ca.gov/selfhelp-eviction.htm), California Legislative Information (leginfo.legislature.ca.gov), LA Superior Court self-help materials.
+- **Do not** rely on a search-results page or a quick keyword search as your only step. You must **open and read** primary materials: at minimum, navigate into **California Courts self-help eviction** (start at https://www.courts.ca.gov/selfhelp-eviction.htm and follow links to notices, defenses, and answers as needed) **and** open the **relevant code sections on leginfo.legislature.ca.gov** (e.g. CCP § 1161, Civil Code §§ 1941–1942.5) so you are quoting rules from the actual statute pages, not from summaries alone.
+- For **each defense you list**, ensure at least one citation URL is a **.gov** or **leginfo** page you actually visited where the legal standard appears.
+- Preferred sources: California Courts self-help eviction hub, California Legislative Information (leginfo), LA Superior Court self-help materials. Use site navigation, menus, and on-site search — not only a single Google query.
 - Only surface a defense if the case facts actually support it. Conservative is better — two sourced defenses beats six unsupported ones.
 - Rate each defense as "strong" (facts clearly support it) or "possible" (facts may support it but more information would confirm).
 - Write a 2–3 sentence plain-language explanation that a non-lawyer can understand.

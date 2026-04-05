@@ -10,6 +10,7 @@ import type {
   Wave1AgentKey,
 } from "@/lib/types";
 import { createBrowserTaskSession } from "@/lib/api";
+import { withBrowserNavigationDirectives } from "@/lib/browser-task-directives";
 import {
   buildFormsNavigatorTask,
   FORMS_NAVIGATOR_OUTPUT_SCHEMA,
@@ -64,7 +65,9 @@ async function launchFormsNavigatorSession(
   const session = await createBrowserTaskSession({
     agentId: "agent-3-forms-navigator",
     outputSchema: FORMS_NAVIGATOR_OUTPUT_SCHEMA,
-    task: buildFormsNavigatorTask({ appSessionId, caseContext }),
+    task: withBrowserNavigationDirectives(
+      buildFormsNavigatorTask({ appSessionId, caseContext }),
+    ),
   });
 
   return {
@@ -82,7 +85,9 @@ async function launchDeadlineTrackerSession(
   const session = await createBrowserTaskSession({
     agentId: "agent-4-deadline-procedure",
     outputSchema: DEADLINE_RESULT_OUTPUT_SCHEMA,
-    task: `${buildDeadlineTrackerTask({ caseContext })}\n\nInternal tracking id: ${appSessionId}`,
+    task: withBrowserNavigationDirectives(
+      `${buildDeadlineTrackerTask({ caseContext })}\n\nInternal tracking id: ${appSessionId}`,
+    ),
   });
 
   return {
@@ -100,7 +105,9 @@ async function launchDefenseResearchSession(
   const session = await createBrowserTaskSession({
     agentId: "agent-5-defense-research",
     outputSchema: DEFENSE_RESULT_OUTPUT_SCHEMA,
-    task: `${buildDefenseResearchTask({ caseContext })}\n\nInternal tracking id: ${appSessionId}`,
+    task: withBrowserNavigationDirectives(
+      `${buildDefenseResearchTask({ caseContext })}\n\nInternal tracking id: ${appSessionId}`,
+    ),
   });
 
   return {
@@ -118,7 +125,9 @@ async function launchLegalAidSession(
   const session = await createBrowserTaskSession({
     agentId: "agent-6-legal-aid",
     outputSchema: LEGAL_AID_RESULT_OUTPUT_SCHEMA,
-    task: `${buildLegalAidTask({ caseContext })}\n\nInternal tracking id: ${appSessionId}`,
+    task: withBrowserNavigationDirectives(
+      `${buildLegalAidTask({ caseContext })}\n\nInternal tracking id: ${appSessionId}`,
+    ),
   });
 
   return {
@@ -267,12 +276,14 @@ export async function dispatchWave2Agent(
   const session = await createBrowserTaskSession({
     agentId: "agent-9-efiling",
     outputSchema: EFILING_OUTPUT_SCHEMA,
-    task: buildEfilingTask({
-      appSessionId: input.sessionId,
-      efilingUsername: input.efilingUsername,
-      filledPdfUrl: input.filledPdfUrl,
-      caseContext: input.caseContext,
-    }),
+    task: withBrowserNavigationDirectives(
+      buildEfilingTask({
+        appSessionId: input.sessionId,
+        efilingUsername: input.efilingUsername,
+        filledPdfUrl: input.filledPdfUrl,
+        caseContext: input.caseContext,
+      }),
+    ),
   });
 
   logServerEvent("dispatch_wave2_efiling_ok", {
