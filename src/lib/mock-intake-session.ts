@@ -65,6 +65,7 @@ export function buildMockIntakeSessionPayload(): IntakeSessionPayload {
   return {
     caseContext: buildMockCaseContext(),
     dispatched: false,
+    queuedWave1Agents: [],
     formsNavigatorSession: null,
     deadlineTrackerSession: null,
     defenseResearchSession: null,
