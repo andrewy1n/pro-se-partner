@@ -260,7 +260,6 @@ export async function dispatchWave1Agents(
   return result;
 }
 
-<<<<<<< Updated upstream
 export async function dispatchWave2Agent(
   input: DispatchWave2Input,
 ): Promise<DispatchWave2Result> {
@@ -295,7 +294,8 @@ export async function dispatchWave2Agent(
       activeAgentId: "agent-9-efiling",
     },
   };
-=======
+}
+
 /** Single-agent helpers for `/api/sessions/[id]/run-*` routes. */
 export async function dispatchFormsNavigator(input: {
   appSessionId: string;
@@ -317,12 +317,6 @@ export async function dispatchDeadlineTracker(input: {
     caseContext: input.caseContext,
     agents: ["deadline"],
   });
-}
-
-export async function dispatchWave2Agent(_input: DispatchWave2Input): Promise<void> {
-  // TODO: Resume from HITL gate and launch Agent 9 e-filing flow.
-  throw new Error("Not implemented: dispatchWave2Agent");
->>>>>>> Stashed changes
 }
 
 export function deriveHitlGateState(): HitlGateState {
