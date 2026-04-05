@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { memo, useCallback, useEffect, useState } from "react";
 import { Document, Page, pdfjs } from "react-pdf";
 import { Loader2 } from "lucide-react";
 import { logPdfArtifact } from "@/lib/client-pdf-artifact";
@@ -24,10 +24,14 @@ interface PdfBlobViewerProps {
   fileUrl: string;
 }
 
+const PDF_VIEWER_OPTIONS = {
+  isEvalSupported: false,
+} as const;
+
 /**
  * Renders a PDF with Mozilla pdf.js (via react-pdf). Does not use the browser's built-in PDF plugin.
  */
-export function PdfBlobViewer({ fileUrl }: PdfBlobViewerProps) {
+export const PdfBlobViewer = memo(function PdfBlobViewer({ fileUrl }: PdfBlobViewerProps) {
   const [numPages, setNumPages] = useState<number | null>(null);
   const [pageWidth, setPageWidth] = useState(720);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -70,9 +74,7 @@ export function PdfBlobViewer({ fileUrl }: PdfBlobViewerProps) {
         }
         onLoadSuccess={onLoadSuccess}
         onLoadError={onLoadError}
-        options={{
-          isEvalSupported: false,
-        }}
+        options={PDF_VIEWER_OPTIONS}
       >
         {numPages != null &&
           numPages > 0 &&
@@ -90,4 +92,4 @@ export function PdfBlobViewer({ fileUrl }: PdfBlobViewerProps) {
       </Document>
     </div>
   );
-}
+});
