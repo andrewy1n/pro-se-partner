@@ -5,3 +5,4 @@ node_modules
 # Local PDF diagnostics (scripts/test-pdflib.mjs)
 ud105-test.pdf
 ud105-clean.pdf
+.vercel

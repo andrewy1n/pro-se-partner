@@ -6,17 +6,9 @@ import { Loader2 } from "lucide-react";
 import { logPdfArtifact } from "@/lib/client-pdf-artifact";
 
 if (typeof window !== "undefined") {
-  try {
-    // Must match the pdfjs-dist version react-pdf uses internally (its nested copy).
-    // Using "pdfjs-dist/..." would resolve the top-level package (different version) causing
-    // "API version does not match Worker version" errors.
-    pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-      "react-pdf/node_modules/pdfjs-dist/build/pdf.worker.min.mjs",
-      import.meta.url,
-    ).toString();
-  } catch {
-    pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
-  }
+  // Bundled worker paths break Next.js/webpack (react-pdf package "exports"). CDN matches
+  // pdfjs.version from react-pdf so API and worker stay in sync.
+  pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 }
 
 interface PdfBlobViewerProps {

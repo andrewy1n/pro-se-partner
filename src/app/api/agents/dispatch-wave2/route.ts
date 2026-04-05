@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { dispatchWave2Agent } from "@/lib/agent-dispatcher";
-import { hasCachedPdf, storePdfForSession } from "@/app/api/sessions/[id]/filled-ud105/route";
+import { hasCachedPdf, storePdfForSession } from "@/lib/filled-ud105-cache";
 import { logServerError, logServerEvent } from "@/lib/server-log";
 import type { CanonicalCaseContext, DispatchWave2Response } from "@/lib/types";
 

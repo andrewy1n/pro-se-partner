@@ -1,26 +1,14 @@
+import { getCachedPdf, storePdfForSession } from "@/lib/filled-ud105-cache";
 import { logServerEvent } from "@/lib/server-log";
 
 export const runtime = "nodejs";
-
-// Module-level in-memory PDF cache.
-// Shared within a single Node.js process. Suitable for hackathon/single-instance use.
-// For production, replace with a shared store (Redis, S3, etc.).
-const pdfCache = new Map<string, Buffer>();
-
-export function storePdfForSession(sessionId: string, buf: Buffer): void {
-  pdfCache.set(sessionId, buf);
-}
-
-export function hasCachedPdf(sessionId: string): boolean {
-  return pdfCache.has(sessionId);
-}
 
 export async function GET(
   _request: Request,
   context: { params: Promise<{ id: string }> },
 ) {
   const { id } = await context.params;
-  const buf = pdfCache.get(id);
+  const buf = getCachedPdf(id);
   if (!buf) {
     return new Response("PDF not found", { status: 404 });
   }
