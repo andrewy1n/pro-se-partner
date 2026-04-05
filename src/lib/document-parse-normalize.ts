@@ -9,6 +9,10 @@ import type {
   ParsedDocumentFields,
   ServiceMethod,
 } from "@/lib/types";
+import {
+  normalizeNoticeTypeToIntakeSlug,
+  noticeTypesEquivalent,
+} from "@/lib/notice-type-normalize";
 
 /** Intake / document proceeding stages (must align with intake classifier enums). */
 const STAGE_RANK: Record<string, number> = {
@@ -184,16 +188,20 @@ export function buildCanonicalCaseContext(input: {
         setSource(factSources, field, "uploaded_document", note);
         continue;
       }
-      if (intakeValue !== documentValue) {
-        pushConflict(
-          conflicts,
-          field,
-          intakeValue as string | number | null,
-          documentValue,
-          "kept_intake",
-          "Conflict preserved for review; intake value kept unless deterministic rules say otherwise.",
-        );
+      const sameMeaning =
+        field === "noticeType" &&
+        noticeTypesEquivalent(intakeValue, documentValue);
+      if (sameMeaning || intakeValue === documentValue) {
+        continue;
       }
+      pushConflict(
+        conflicts,
+        field,
+        intakeValue as string | number | null,
+        documentValue,
+        "kept_intake",
+        "Conflict preserved for review; intake value kept unless deterministic rules say otherwise.",
+      );
     }
 
     if (
@@ -357,7 +365,11 @@ export function normalizeAndValidateDocument(
     noticeServiceDate,
     noticeExpirationDate,
     complaintVerifiedDate,
-    noticeType: emptyToNull(raw.noticeTypeFromDocument),
+    noticeType: (() => {
+      const r = emptyToNull(raw.noticeTypeFromDocument);
+      if (!r) return null;
+      return normalizeNoticeTypeToIntakeSlug(r) ?? r;
+    })(),
     serviceMethod: emptyToNull(raw.serviceMethod),
     propertyAddress: emptyToNull(raw.propertyAddress),
     documentType,

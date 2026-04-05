@@ -10,9 +10,8 @@ import {
 } from "@/lib/mock-intake-session";
 import type { IntakeSessionPayload, IntakeSubmitResponse } from "@/lib/types";
 
-const mockIntakeEnabled =
-  process.env.NODE_ENV === "development" ||
-  process.env.NEXT_PUBLIC_DEV_MOCK_INTAKE === "true";
+/** Opt-in only — avoids cluttering the home page during normal `npm run dev`. */
+const mockIntakeEnabled = process.env.NEXT_PUBLIC_DEV_MOCK_INTAKE === "true";
 
 export default function HomePage() {
   const router = useRouter();
