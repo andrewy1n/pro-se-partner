@@ -191,6 +191,13 @@ export interface FormArtifact {
   revisionLabel?: string;
 }
 
+export interface TimelineMilestone {
+  label: string;
+  date: string | null;      // ISO date string e.g. "2026-04-09"
+  dateLabel: string | null; // Human-readable fallback e.g. "April 20–30 (projected)"
+  description: string | null;
+}
+
 export interface DeadlineResult {
   // Produced by Agent 4 Deadline & Procedure.
   status: DeadlineResultStatus;
@@ -200,6 +207,7 @@ export interface DeadlineResult {
   citations: Citation[];
   missingFacts: string[];
   explanation: string | null;
+  milestones: TimelineMilestone[];
 }
 
 export interface DefenseItem {
@@ -255,6 +263,7 @@ export interface StatusPanelModel {
   citations: Citation[];
   missingFacts: string[];
   explanation: string | null;
+  milestones: TimelineMilestone[];
 }
 
 export interface ActionChecklistItem {

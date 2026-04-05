@@ -6,6 +6,13 @@ const deadlineCitationSchema = z.object({
   url: z.string().url().nullable().optional(),
 });
 
+const timelineMilestoneSchema = z.object({
+  label: z.string().min(1),
+  date: z.string().nullable(),
+  dateLabel: z.string().nullable(),
+  description: z.string().nullable(),
+});
+
 export const deadlineResultSchema = z.object({
   status: z.enum(["ready", "needs_input", "error"]),
   responseDeadline: z.string().nullable(),
@@ -14,6 +21,7 @@ export const deadlineResultSchema = z.object({
   citations: z.array(deadlineCitationSchema).max(6),
   missingFacts: z.array(z.string()).default([]),
   explanation: z.string().nullable(),
+  milestones: z.array(timelineMilestoneSchema).default([]),
 });
 
 export const DEADLINE_RESULT_OUTPUT_SCHEMA = {
@@ -27,6 +35,7 @@ export const DEADLINE_RESULT_OUTPUT_SCHEMA = {
     "citations",
     "missingFacts",
     "explanation",
+    "milestones",
   ],
   properties: {
     status: {
@@ -62,6 +71,22 @@ export const DEADLINE_RESULT_OUTPUT_SCHEMA = {
     explanation: {
       type: ["string", "null"],
     },
+    milestones: {
+      type: "array",
+      description:
+        "Chronological timeline nodes for the case. Include 3-4 milestones: notice/summons served (anchor), answer deadline, projected trial window. Use ISO date strings where known.",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["label", "date", "dateLabel", "description"],
+        properties: {
+          label: { type: "string", description: "Short node label e.g. 'Summons Served', 'Answer Deadline', 'Trial Window'" },
+          date: { type: ["string", "null"], description: "ISO date string e.g. '2026-04-09', or null if unknown" },
+          dateLabel: { type: ["string", "null"], description: "Human-readable date label e.g. 'April 9, 2026' or 'April 20–30 (projected)'" },
+          description: { type: ["string", "null"], description: "One-sentence explanation of this milestone" },
+        },
+      },
+    },
   },
 } as const;
 
@@ -92,6 +117,12 @@ export function parseDeadlineResult(value: unknown): DeadlineResult | null {
     ),
     missingFacts: parsed.data.missingFacts,
     explanation: parsed.data.explanation,
+    milestones: parsed.data.milestones.map((m) => ({
+      label: m.label,
+      date: m.date,
+      dateLabel: m.dateLabel,
+      description: m.description,
+    })),
   };
 }
 
@@ -110,6 +141,11 @@ Requirements:
 - Do not guess. If the facts are insufficient, return status "needs_input", list the missing facts, and explain what is needed.
 - If you hit a conflict between sources, return status "error" and explain the conflict.
 - Keep citations concise and official.
+- Populate the milestones array with 3–4 chronological nodes. Typical nodes in order:
+  1. "Notice Served" or "Summons Served" — use serviceDate from case facts as the anchor date
+  2. "Answer Deadline" — the computed hard deadline (same value as responseDeadline)
+  3. "Trial Window" — projected hearing range; use a dateLabel like "April 20–30 (projected)" if the ISO date is uncertain
+  Include a one-sentence description for each node. Omit nodes you cannot support from the facts.
 - The final answer must match the provided structured output schema exactly.
 
 Case facts:

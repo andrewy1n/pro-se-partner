@@ -232,6 +232,7 @@ export default function SessionPage() {
                     ? deadlineResult.missingFacts
                     : caseContext?.missingFacts ?? [],
                 explanation: deadlineResult?.explanation ?? null,
+                milestones: deadlineResult?.milestones ?? [],
               }}
             />
 
