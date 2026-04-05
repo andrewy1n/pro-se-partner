@@ -5,6 +5,7 @@ import type {
   FeeWaiverResult,
   HitlGateState,
   LegalAidSession,
+  Wave1AgentKey,
 } from "@/lib/types";
 import { createBrowserSession, sendAgentTask } from "@/lib/api";
 import {
@@ -24,6 +25,8 @@ import { logServerError, logServerEvent } from "@/lib/server-log";
 export interface DispatchWave1Input {
   appSessionId: string;
   caseContext: CanonicalCaseContext;
+  /** Which Wave 1 agents to launch; callers pass a non-empty subset. */
+  agents: readonly Wave1AgentKey[];
 }
 
 export interface DispatchWave2Input {
@@ -109,64 +112,108 @@ async function launchLegalAidSession(
   };
 }
 
+const AGENT_ID_BY_WAVE1_KEY: Record<
+  Wave1AgentKey,
+  "agent-4-deadline-procedure" | "agent-5-defense-research" | "agent-6-legal-aid"
+> = {
+  deadline: "agent-4-deadline-procedure",
+  defense: "agent-5-defense-research",
+  legalAid: "agent-6-legal-aid",
+};
+
 export async function dispatchWave1Agents(
   input: DispatchWave1Input,
 ): Promise<DispatchWave1Result> {
+  const { agents } = input;
+  const agentIds = agents.map((k) => AGENT_ID_BY_WAVE1_KEY[k]);
+
   logServerEvent("dispatch_wave1_start", {
     appSessionId: input.appSessionId,
-    agents: ["agent-4-deadline-procedure", "agent-5-defense-research", "agent-6-legal-aid"],
+    agents: agentIds,
   });
 
-  const [deadlineSettled, defenseSettled, legalAidSettled] = await Promise.allSettled([
-    launchDeadlineTrackerSession(input.appSessionId, input.caseContext),
-    launchDefenseResearchSession(input.appSessionId, input.caseContext),
-    launchLegalAidSession(input.appSessionId, input.caseContext),
-  ]);
+  type Entry =
+    | { key: "deadline"; promise: Promise<DeadlineTrackerSession> }
+    | { key: "defense"; promise: Promise<DefenseResearchSession> }
+    | { key: "legalAid"; promise: Promise<LegalAidSession> };
 
-  if (deadlineSettled.status === "fulfilled") {
-    logServerEvent("dispatch_wave1_deadline_tracker_ok", {
-      appSessionId: input.appSessionId,
-      browserSessionId: deadlineSettled.value.sessionId,
-      status: deadlineSettled.value.status,
-    });
-  } else {
-    logServerError("dispatch_wave1_deadline_tracker_failed", deadlineSettled.reason, {
-      appSessionId: input.appSessionId,
-    });
+  const entries: Entry[] = [];
+
+  for (const key of agents) {
+    if (key === "deadline") {
+      entries.push({
+        key: "deadline",
+        promise: launchDeadlineTrackerSession(input.appSessionId, input.caseContext),
+      });
+    } else if (key === "defense") {
+      entries.push({
+        key: "defense",
+        promise: launchDefenseResearchSession(input.appSessionId, input.caseContext),
+      });
+    } else {
+      entries.push({
+        key: "legalAid",
+        promise: launchLegalAidSession(input.appSessionId, input.caseContext),
+      });
+    }
   }
 
-  if (defenseSettled.status === "fulfilled") {
-    logServerEvent("dispatch_wave1_defense_research_ok", {
-      appSessionId: input.appSessionId,
-      browserSessionId: defenseSettled.value.sessionId,
-      status: defenseSettled.value.status,
-    });
-  } else {
-    logServerError("dispatch_wave1_defense_research_failed", defenseSettled.reason, {
-      appSessionId: input.appSessionId,
-    });
-  }
+  const settled = await Promise.allSettled(entries.map((e) => e.promise));
 
-  if (legalAidSettled.status === "fulfilled") {
-    logServerEvent("dispatch_wave1_legal_aid_ok", {
-      appSessionId: input.appSessionId,
-      browserSessionId: legalAidSettled.value.sessionId,
-      status: legalAidSettled.value.status,
-    });
-  } else {
-    logServerError("dispatch_wave1_legal_aid_failed", legalAidSettled.reason, {
-      appSessionId: input.appSessionId,
-    });
-  }
-
-  return {
-    deadlineTrackerSession:
-      deadlineSettled.status === "fulfilled" ? deadlineSettled.value : null,
-    defenseResearchSession:
-      defenseSettled.status === "fulfilled" ? defenseSettled.value : null,
-    legalAidSession:
-      legalAidSettled.status === "fulfilled" ? legalAidSettled.value : null,
+  const result: DispatchWave1Result = {
+    deadlineTrackerSession: null,
+    defenseResearchSession: null,
+    legalAidSession: null,
   };
+
+  for (let i = 0; i < settled.length; i++) {
+    const key = entries[i].key;
+    const s = settled[i];
+
+    if (s.status === "fulfilled") {
+      if (key === "deadline") {
+        const value = s.value as DeadlineTrackerSession;
+        logServerEvent("dispatch_wave1_deadline_tracker_ok", {
+          appSessionId: input.appSessionId,
+          browserSessionId: value.sessionId,
+          status: value.status,
+        });
+        result.deadlineTrackerSession = value;
+      } else if (key === "defense") {
+        const value = s.value as DefenseResearchSession;
+        logServerEvent("dispatch_wave1_defense_research_ok", {
+          appSessionId: input.appSessionId,
+          browserSessionId: value.sessionId,
+          status: value.status,
+        });
+        result.defenseResearchSession = value;
+      } else {
+        const value = s.value as LegalAidSession;
+        logServerEvent("dispatch_wave1_legal_aid_ok", {
+          appSessionId: input.appSessionId,
+          browserSessionId: value.sessionId,
+          status: value.status,
+        });
+        result.legalAidSession = value;
+      }
+    } else {
+      if (key === "deadline") {
+        logServerError("dispatch_wave1_deadline_tracker_failed", s.reason, {
+          appSessionId: input.appSessionId,
+        });
+      } else if (key === "defense") {
+        logServerError("dispatch_wave1_defense_research_failed", s.reason, {
+          appSessionId: input.appSessionId,
+        });
+      } else {
+        logServerError("dispatch_wave1_legal_aid_failed", s.reason, {
+          appSessionId: input.appSessionId,
+        });
+      }
+    }
+  }
+
+  return result;
 }
 
 export async function dispatchWave2Agent(_input: DispatchWave2Input): Promise<void> {

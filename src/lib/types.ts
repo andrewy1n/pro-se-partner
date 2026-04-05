@@ -16,6 +16,16 @@ export type AgentId =
 export type AgentStatus = "idle" | "queued" | "running" | "done" | "error" | "paused";
 export type CaseStage = "stage-1-intake" | "stage-2-filing";
 export type WaveId = "wave-1" | "wave-2";
+
+/** Subset of Wave 1 browser agents the user can dispatch from the session dashboard. */
+export type Wave1AgentKey = "deadline" | "defense" | "legalAid";
+
+export const WAVE1_AGENT_KEYS_ALL: readonly Wave1AgentKey[] = [
+  "deadline",
+  "defense",
+  "legalAid",
+];
+
 export type ServiceMethod =
   | "personal"
   | "substituted"
@@ -75,10 +85,17 @@ export interface CanonicalCaseContext {
   conflicts: CaseFactConflict[];
 }
 
+/** POST /api/agents/dispatch — omit `agents` to run all Wave 1 agents. */
+export interface DispatchWave1RequestBody {
+  sessionId: string;
+  caseContext: CanonicalCaseContext;
+  agents?: Wave1AgentKey[];
+}
+
 /** Persisted client-side after intake API success; hydrates CaseContext on the session page. */
 export interface IntakeSessionPayload {
   caseContext: CanonicalCaseContext;
-  /** Whether Wave 1 agents have been dispatched. False until user clicks "Run Analysis". */
+  /** True once at least one Wave 1 browser session id is stored (successful launch). */
   dispatched: boolean;
   deadlineTrackerSession: DeadlineTrackerSession | null;
   defenseResearchSession: DefenseResearchSession | null;

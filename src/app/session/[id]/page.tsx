@@ -7,6 +7,7 @@ import { ActivityStrip } from "@/components/activity-strip";
 import { StatusBar } from "@/components/status-bar";
 import { SessionViewToggle, type SessionView } from "@/components/session-view-toggle";
 import { CaseFactsPanel } from "@/components/dashboard/case-facts-panel";
+import { Wave1DispatchPanel } from "@/components/dashboard/wave1-dispatch-panel";
 import { StatusPanel } from "@/components/dashboard/status-panel";
 import { ActionItemsPanel } from "@/components/dashboard/action-items-panel";
 import { ResourcesPanel } from "@/components/dashboard/resources-panel";
@@ -14,7 +15,7 @@ import { HitlGate } from "@/components/hitl-gate";
 import { useSession } from "@/context/session-context";
 import { useCaseContext } from "@/context/case-context";
 import { intakeStorageKey, parseIntakeSessionPayload } from "@/lib/intake-storage";
-import type { DispatchWave1Response } from "@/lib/types";
+import type { DispatchWave1Response, IntakeSessionPayload, Wave1AgentKey } from "@/lib/types";
 
 export default function SessionPage() {
   const params = useParams<{ id: string }>();
@@ -56,8 +57,19 @@ export default function SessionPage() {
     if (!id) return;
     const raw = sessionStorage.getItem(intakeStorageKey(id));
     if (!raw) return;
-    const payload = parseIntakeSessionPayload(raw);
+    let payload = parseIntakeSessionPayload(raw);
     if (!payload) return;
+
+    const anySession =
+      Boolean(payload.deadlineTrackerSession?.sessionId) ||
+      Boolean(payload.defenseResearchSession?.sessionId) ||
+      Boolean(payload.legalAidSession?.sessionId);
+
+    if (anySession && !payload.dispatched) {
+      const fixed: IntakeSessionPayload = { ...payload, dispatched: true };
+      sessionStorage.setItem(intakeStorageKey(id), JSON.stringify(fixed));
+      payload = fixed;
+    }
 
     setCaseContext(payload.caseContext);
     setDispatched(payload.dispatched ?? false);
@@ -116,7 +128,7 @@ export default function SessionPage() {
     if (polledLegalAidResult) setLegalAid(polledLegalAidResult);
   }, [polledLegalAidResult, setLegalAid]);
 
-  // Auto-switch to dashboard when all agents finish (once)
+  // Auto-switch to dashboard once polling settles after Wave 1 activity (once)
   useEffect(() => {
     if (!isPolling && dispatched && !autoSwitchedRef.current) {
       autoSwitchedRef.current = true;
@@ -124,50 +136,55 @@ export default function SessionPage() {
     }
   }, [isPolling, dispatched]);
 
-  async function handleRunAnalysis() {
+  async function handleDispatchWave1(agents: Wave1AgentKey[]) {
     const id = params.id;
-    if (!id || !caseContext) return;
+    if (!id || !caseContext || agents.length === 0) return;
 
     const res = await fetch("/api/agents/dispatch", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ sessionId: id, caseContext }),
+      body: JSON.stringify({ sessionId: id, caseContext, agents }),
     });
 
     if (!res.ok) return;
 
     const data = (await res.json()) as DispatchWave1Response;
 
+    const raw = sessionStorage.getItem(intakeStorageKey(id));
+    const payload = parseIntakeSessionPayload(raw ?? "");
+    if (!payload) return;
+
+    const next: IntakeSessionPayload = {
+      ...payload,
+      deadlineTrackerSession:
+        data.deadlineTrackerSession ?? payload.deadlineTrackerSession,
+      defenseResearchSession:
+        data.defenseResearchSession ?? payload.defenseResearchSession,
+      legalAidSession: data.legalAidSession ?? payload.legalAidSession,
+    };
+
+    const hasAnySession =
+      Boolean(next.deadlineTrackerSession?.sessionId) ||
+      Boolean(next.defenseResearchSession?.sessionId) ||
+      Boolean(next.legalAidSession?.sessionId);
+    next.dispatched = hasAnySession;
+
+    sessionStorage.setItem(intakeStorageKey(id), JSON.stringify(next));
+
     setTrackedSession({
       appSessionId: id,
-      browserSessionId: data.deadlineTrackerSession?.sessionId ?? null,
+      browserSessionId: next.deadlineTrackerSession?.sessionId ?? null,
     });
     setTrackedDefenseSession({
       appSessionId: id,
-      browserSessionId: data.defenseResearchSession?.sessionId ?? null,
+      browserSessionId: next.defenseResearchSession?.sessionId ?? null,
     });
     setTrackedLegalAidSession({
       appSessionId: id,
-      browserSessionId: data.legalAidSession?.sessionId ?? null,
+      browserSessionId: next.legalAidSession?.sessionId ?? null,
     });
 
-    setDispatched(true);
-
-    // Persist dispatched state + sessions to storage so refresh works
-    const raw = sessionStorage.getItem(intakeStorageKey(id));
-    const payload = parseIntakeSessionPayload(raw ?? "");
-    if (payload) {
-      sessionStorage.setItem(
-        intakeStorageKey(id),
-        JSON.stringify({
-          ...payload,
-          dispatched: true,
-          deadlineTrackerSession: data.deadlineTrackerSession,
-          defenseResearchSession: data.defenseResearchSession,
-          legalAidSession: data.legalAidSession,
-        }),
-      );
-    }
+    setDispatched(next.dispatched);
   }
 
   return (
@@ -241,11 +258,8 @@ export default function SessionPage() {
           </div>
 
           <div className="space-y-4">
-            <CaseFactsPanel
-              caseContext={caseContext}
-              dispatched={dispatched}
-              onRunAnalysis={dispatched ? undefined : handleRunAnalysis}
-            />
+            <Wave1DispatchPanel caseContext={caseContext} onDispatchWave1={handleDispatchWave1} />
+            <CaseFactsPanel caseContext={caseContext} />
 
             <ResourcesPanel
               model={{ defenses, legalAid }}

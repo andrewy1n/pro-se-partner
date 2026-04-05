@@ -19,8 +19,6 @@ import {
   ListChecks,
   AlertTriangle,
   Gavel,
-  Loader2,
-  PlayCircle,
   ChevronDown,
   ChevronRight,
 } from "lucide-react";
@@ -60,23 +58,10 @@ function parsedDocumentHasContent(p: ParsedDocumentFields): boolean {
 
 interface CaseFactsPanelProps {
   caseContext: CanonicalCaseContext | null;
-  dispatched?: boolean;
-  onRunAnalysis?: () => Promise<void>;
 }
 
-export function CaseFactsPanel({ caseContext, dispatched, onRunAnalysis }: CaseFactsPanelProps) {
-  const [isDispatching, setIsDispatching] = useState(false);
+export function CaseFactsPanel({ caseContext }: CaseFactsPanelProps) {
   const [panelOpen, setPanelOpen] = useState(true);
-
-  async function handleRunAnalysis() {
-    if (!onRunAnalysis || isDispatching) return;
-    setIsDispatching(true);
-    try {
-      await onRunAnalysis();
-    } finally {
-      setIsDispatching(false);
-    }
-  }
   const caseFacts = caseContext?.caseFacts ?? null;
   if (!caseFacts) return null;
 
@@ -220,28 +205,6 @@ export function CaseFactsPanel({ caseContext, dispatched, onRunAnalysis }: CaseF
           </p>
         </div>
       </div>
-
-      {!dispatched && onRunAnalysis && (
-        <div className="mt-4 border-t border-zinc-800 pt-4">
-          <button
-            onClick={handleRunAnalysis}
-            disabled={isDispatching}
-            className="flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {isDispatching ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                Starting research...
-              </>
-            ) : (
-              <>
-                <PlayCircle className="h-4 w-4" />
-                Run Analysis
-              </>
-            )}
-          </button>
-        </div>
-      )}
 
       {(caseContext?.uploadedFileName ||
         caseContext?.documentParseError ||
