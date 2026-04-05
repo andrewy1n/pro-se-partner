@@ -14,6 +14,7 @@ function mockNormalizedExtraction(): DocumentNormalizedExtraction {
     serviceDate: "2025-03-01",
     noticeServiceDate: "2025-03-01",
     noticeExpirationDate: "2025-03-04",
+    complaintVerifiedDate: "2025-03-10",
     noticeType: "3_day_pay_or_quit",
     serviceMethod: "personal",
     propertyAddress: "123 Main St, Los Angeles, CA 90012",

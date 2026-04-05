@@ -11,6 +11,7 @@ interface StatusPanelProps {
   hitlAction?: {
     instruction: string;
     missingFacts: string[];
+    complaintReferenceDateIso?: string | null;
     onSubmit: (updates: Partial<CaseFacts>) => void | Promise<void>;
   } | null;
   /** Show after Wave 2 e-filing agent returns a confirmation. */
@@ -332,6 +333,7 @@ export function StatusPanel({ model, hitlAction = null, efilingConfirmation = nu
               key={hitlAction.missingFacts.join("|")}
               instruction={hitlAction.instruction}
               missingFacts={hitlAction.missingFacts}
+              complaintReferenceDateIso={hitlAction.complaintReferenceDateIso}
               onSubmit={hitlAction.onSubmit}
               embedInModal
             />

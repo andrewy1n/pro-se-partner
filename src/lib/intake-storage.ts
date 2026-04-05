@@ -93,6 +93,7 @@ function migrateLegacyParsedDocumentFields(
     serviceDate: typeof o.serviceDate === "string" ? o.serviceDate : null,
     noticeServiceDate: null,
     noticeExpirationDate: null,
+    complaintVerifiedDate: null,
     noticeType: null,
     serviceMethod: null,
     propertyAddress: null,
@@ -144,12 +145,33 @@ function ensureCanonicalCaseContext(raw: unknown): CanonicalCaseContext | null {
   };
 }
 
+/**
+ * Parse stored payload, or build a minimal valid payload when storage is missing or invalid.
+ * Used after dispatch/HITL so we never drop Browser Use session wiring.
+ */
+export function parseIntakeSessionPayloadOrNew(
+  raw: string | null,
+  fallbackContext: CanonicalCaseContext,
+): IntakeSessionPayload {
+  const parsed = raw ? parseIntakeSessionPayload(raw) : null;
+  if (parsed) return parsed;
+  return {
+    caseContext: fallbackContext,
+    dispatched: false,
+    formsNavigatorSession: null,
+    deadlineTrackerSession: null,
+    defenseResearchSession: null,
+    legalAidSession: null,
+  };
+}
+
 export function parseIntakeSessionPayload(raw: string): IntakeSessionPayload | null {
   try {
     const parsed = JSON.parse(raw) as Record<string, unknown>;
     if (parsed.caseContext && typeof parsed.caseContext === "object") {
       const caseContext = ensureCanonicalCaseContext(parsed.caseContext);
       if (!caseContext) return null;
+
       return {
         caseContext,
         dispatched: Boolean(parsed.dispatched),

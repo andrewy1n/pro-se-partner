@@ -12,7 +12,11 @@ import { ActionItemsPanel } from "@/components/dashboard/action-items-panel";
 import { ResourcesPanel } from "@/components/dashboard/resources-panel";
 import { useSession } from "@/context/session-context";
 import { useCaseContext } from "@/context/case-context";
-import { intakeStorageKey, parseIntakeSessionPayload } from "@/lib/intake-storage";
+import {
+  intakeStorageKey,
+  parseIntakeSessionPayload,
+  parseIntakeSessionPayloadOrNew,
+} from "@/lib/intake-storage";
 import { resolveEffectiveBrowserTab } from "@/lib/browser-panel-tabs";
 import {
   extractBase64FromPdfDataUrl,
@@ -20,12 +24,20 @@ import {
 } from "@/lib/client-ud105-fill";
 import type {
   AgentId,
+  CanonicalCaseContext,
   CaseFacts,
   DispatchWave1Response,
   DispatchWave2Response,
   IntakeSessionPayload,
   Wave1AgentKey,
 } from "@/lib/types";
+import {
+  buildSummonsServiceHitlInstruction,
+  getComplaintReferenceDateIso,
+  hitlFactsNeedSummonsDateClarification,
+} from "@/lib/hitl-summons-service";
+
+const DEADLINE_CRITICAL_FACTS = ["service_date", "service_method"];
 
 export default function SessionPage() {
   const params = useParams<{ id: string }>();
@@ -163,6 +175,29 @@ export default function SessionPage() {
 
   const fillUd105Disabled = !caseContext || !ud105FillSource;
 
+  const statusMissingFacts = useMemo(() => {
+    const serviceComplete =
+      caseContext?.caseFacts.serviceDate != null &&
+      caseContext?.caseFacts.serviceMethod != null;
+    if (
+      serviceComplete &&
+      deadlineResult?.status === "needs_input" &&
+      (deadlineResult.missingFacts?.length ?? 0) > 0
+    ) {
+      return caseContext?.missingFacts ?? [];
+    }
+    if (deadlineResult?.missingFacts?.length) {
+      return deadlineResult.missingFacts;
+    }
+    return caseContext?.missingFacts ?? [];
+  }, [
+    caseContext?.caseFacts.serviceDate,
+    caseContext?.caseFacts.serviceMethod,
+    caseContext?.missingFacts,
+    deadlineResult?.missingFacts,
+    deadlineResult?.status,
+  ]);
+
   // Hydrate sessions from sessionStorage on mount
   useEffect(() => {
     const id = params.id;
@@ -253,22 +288,44 @@ export default function SessionPage() {
     }
   }, [addFormArtifact, formsNavigatorResult?.fw001, formsNavigatorResult?.ud105]);
 
-  // Wire deadline result into case context
+  // Wire deadline result from Browser Use polling only (no session id → no sync).
   useEffect(() => {
+    if (!deadlineSession?.sessionId) {
+      return;
+    }
+
     setDeadlineResult(polledDeadlineResult);
 
     if (polledDeadlineResult?.status === "needs_input") {
+      const serviceDateOk = caseContext?.caseFacts.serviceDate != null;
+      const serviceMethodOk = caseContext?.caseFacts.serviceMethod != null;
+      if (serviceDateOk && serviceMethodOk) {
+        setHitlGate({
+          isBlockedOnUser: false,
+          instruction: null,
+          missingFacts: [],
+          complaintReferenceDateIso: null,
+        });
+        return;
+      }
+
       const missingFacts = polledDeadlineResult.missingFacts;
       const factsLabel = missingFacts
         .map((fact) => fact.replace(/_/g, " "))
         .join(", ");
 
+      const useSummonsCopy =
+        caseContext && hitlFactsNeedSummonsDateClarification(missingFacts);
+
       setHitlGate({
         isBlockedOnUser: true,
-        instruction: factsLabel
-          ? `We need a few more details to calculate your response deadline: ${factsLabel}.`
-          : "We need more case details before we can calculate your response deadline.",
+        instruction: useSummonsCopy
+          ? buildSummonsServiceHitlInstruction(caseContext, "post-agent")
+          : factsLabel
+            ? `We need a few more details to calculate your response deadline: ${factsLabel}.`
+            : "We need more case details before we can calculate your response deadline.",
         missingFacts,
+        complaintReferenceDateIso: getComplaintReferenceDateIso(caseContext ?? null),
       });
       return;
     }
@@ -277,8 +334,17 @@ export default function SessionPage() {
       isBlockedOnUser: false,
       instruction: null,
       missingFacts: [],
+      complaintReferenceDateIso: null,
     });
-  }, [polledDeadlineResult, setDeadlineResult, setHitlGate]);
+  }, [
+    polledDeadlineResult,
+    deadlineSession?.sessionId,
+    caseContext,
+    caseContext?.caseFacts.serviceDate,
+    caseContext?.caseFacts.serviceMethod,
+    setDeadlineResult,
+    setHitlGate,
+  ]);
 
   // Wire defense result into case context
   useEffect(() => {
@@ -319,14 +385,18 @@ export default function SessionPage() {
     }
   }, [isPolling, dispatched]);
 
-  async function handleDispatchWave1(agents: Wave1AgentKey[]) {
+  async function handleDispatchWave1(
+    agents: Wave1AgentKey[],
+    contextOverride?: CanonicalCaseContext,
+  ) {
     const id = params.id;
-    if (!id || !caseContext || agents.length === 0) return;
+    const ctx = contextOverride ?? caseContext;
+    if (!id || !ctx || agents.length === 0) return;
 
     const res = await fetch("/api/agents/dispatch", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ sessionId: id, caseContext, agents }),
+      body: JSON.stringify({ sessionId: id, caseContext: ctx, agents }),
     });
 
     if (!res.ok) return;
@@ -334,11 +404,11 @@ export default function SessionPage() {
     const data = (await res.json()) as DispatchWave1Response;
 
     const raw = sessionStorage.getItem(intakeStorageKey(id));
-    const payload = parseIntakeSessionPayload(raw ?? "");
-    if (!payload) return;
+    const payload = parseIntakeSessionPayloadOrNew(raw, ctx);
 
     const next: IntakeSessionPayload = {
       ...payload,
+      caseContext: ctx,
       formsNavigatorSession:
         data.formsNavigatorSession ?? payload.formsNavigatorSession,
       deadlineTrackerSession:
@@ -348,12 +418,12 @@ export default function SessionPage() {
       legalAidSession: data.legalAidSession ?? payload.legalAidSession,
     };
 
-    const hasAnySession =
+    const hasAnyBrowserSession =
       Boolean(next.formsNavigatorSession?.sessionId) ||
       Boolean(next.deadlineTrackerSession?.sessionId) ||
       Boolean(next.defenseResearchSession?.sessionId) ||
       Boolean(next.legalAidSession?.sessionId);
-    next.dispatched = hasAnySession;
+    next.dispatched = hasAnyBrowserSession;
 
     sessionStorage.setItem(intakeStorageKey(id), JSON.stringify(next));
 
@@ -377,35 +447,78 @@ export default function SessionPage() {
     setDispatched(next.dispatched);
   }
 
+  async function handleDispatchWithPreCheck(agents: Wave1AgentKey[]) {
+    if (!caseContext) return;
+
+    const wantsDeadline = agents.includes("deadline");
+    const missingDeadlineFacts = wantsDeadline
+      ? DEADLINE_CRITICAL_FACTS.filter((f) => caseContext.missingFacts.includes(f))
+      : [];
+
+    if (missingDeadlineFacts.length > 0) {
+      const withoutDeadline = agents.filter((a) => a !== "deadline");
+      if (withoutDeadline.length > 0) {
+        await handleDispatchWave1(withoutDeadline);
+      }
+
+      setHitlGate({
+        isBlockedOnUser: true,
+        instruction: buildSummonsServiceHitlInstruction(caseContext, "pre-dispatch"),
+        missingFacts: missingDeadlineFacts,
+        complaintReferenceDateIso: getComplaintReferenceDateIso(caseContext),
+      });
+    } else {
+      await handleDispatchWave1(agents);
+    }
+  }
+
   async function handleHitlSubmit(updates: Partial<CaseFacts>) {
     if (!caseContext) return;
 
-    const enriched = {
+    const mergedFacts = { ...caseContext.caseFacts, ...updates };
+    const enriched: CanonicalCaseContext = {
       ...caseContext,
-      caseFacts: { ...caseContext.caseFacts, ...updates },
-      // Remove facts that the user just provided from the missing list
-      missingFacts: caseContext.missingFacts.filter(
-        (f) => !Object.keys(updates).some((k) => k === f || k.replace(/([A-Z])/g, "_$1").toLowerCase() === f),
-      ),
+      caseFacts: mergedFacts,
+      missingFacts: caseContext.missingFacts.filter((f) => {
+        if (
+          (f === "service_date" || f === "serviceDate") &&
+          mergedFacts.serviceDate != null &&
+          String(mergedFacts.serviceDate).trim() !== ""
+        ) {
+          return false;
+        }
+        if (
+          (f === "service_method" || f === "serviceMethod") &&
+          mergedFacts.serviceMethod != null
+        ) {
+          return false;
+        }
+        return !Object.keys(updates).some(
+          (k) => k === f || k.replace(/([A-Z])/g, "_$1").toLowerCase() === f,
+        );
+      }),
     };
 
     setCaseContext(enriched);
 
-    // Persist enriched context so polling picks it up after re-dispatch
     const id = params.id;
     if (id) {
       const raw = sessionStorage.getItem(intakeStorageKey(id));
-      const payload = parseIntakeSessionPayload(raw ?? "");
-      if (payload) {
-        sessionStorage.setItem(
-          intakeStorageKey(id),
-          JSON.stringify({ ...payload, caseContext: enriched }),
-        );
-      }
+      const payload = parseIntakeSessionPayloadOrNew(raw, enriched);
+      sessionStorage.setItem(
+        intakeStorageKey(id),
+        JSON.stringify({ ...payload, caseContext: enriched }),
+      );
     }
 
-    // Re-run only the deadline agent with the enriched context
-    await handleDispatchWave1(["deadline"]);
+    setHitlGate({
+      isBlockedOnUser: false,
+      instruction: null,
+      missingFacts: [],
+      complaintReferenceDateIso: null,
+    });
+
+    await handleDispatchWave1(["deadline"], enriched);
   }
 
   async function handleDispatchWave2(username: string) {
@@ -477,10 +590,7 @@ export default function SessionPage() {
                 consequenceSummary: deadlineResult?.consequenceSummary ?? null,
                 projectedTrialWindow: deadlineResult?.projectedTrialWindow ?? null,
                 citations: deadlineResult?.citations ?? [],
-                missingFacts:
-                  deadlineResult?.missingFacts.length
-                    ? deadlineResult.missingFacts
-                    : caseContext?.missingFacts ?? [],
+                missingFacts: statusMissingFacts,
                 explanation: deadlineResult?.explanation ?? null,
                 milestones: deadlineResult?.milestones ?? [],
               }}
@@ -491,6 +601,7 @@ export default function SessionPage() {
                         hitlGate.instruction ??
                         "Complete the required task to continue.",
                       missingFacts: hitlGate.missingFacts,
+                      complaintReferenceDateIso: hitlGate.complaintReferenceDateIso,
                       onSubmit: handleHitlSubmit,
                     }
                   : null
@@ -520,7 +631,7 @@ export default function SessionPage() {
           </div>
 
           <div className="space-y-4">
-            <Wave1DispatchPanel caseContext={caseContext} onDispatchWave1={handleDispatchWave1} />
+            <Wave1DispatchPanel caseContext={caseContext} onDispatchWave1={handleDispatchWithPreCheck} />
             <CaseFactsPanel caseContext={caseContext} />
 
             <ResourcesPanel

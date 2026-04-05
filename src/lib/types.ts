@@ -136,6 +136,8 @@ export interface LlmRawDocumentFields {
   noticeTypeFromDocument: string | null;
   noticeServiceDate: string | null;
   noticeExpirationDate: string | null;
+  /** Date the plaintiff signed the UD-100 verification (under penalty of perjury), if visible — lower bound for summons service. */
+  complaintVerifiedDate: string | null;
   serviceMethod: string | null;
   propertyAddress: string | null;
   /** Tenancy / lease facts from numbered complaint paragraphs (e.g. UD-100 items 6–7): rent, term, parties, TPA, etc. */
@@ -170,6 +172,8 @@ export interface DocumentNormalizedExtraction {
   serviceDate: string | null;
   noticeServiceDate: string | null;
   noticeExpirationDate: string | null;
+  /** Plaintiff verification date on UD-100 (ISO), when extracted — summons service must be on or after this. */
+  complaintVerifiedDate: string | null;
   noticeType: string | null;
   serviceMethod: string | null;
   propertyAddress: string | null;
@@ -366,6 +370,8 @@ export interface HitlGateState {
   isBlockedOnUser: boolean;
   instruction: string | null;
   missingFacts: string[];
+  /** When set, the Summons service date must be on or after this day (ISO YYYY-MM-DD). */
+  complaintReferenceDateIso?: string | null;
 }
 
 export interface SessionSnapshot {
