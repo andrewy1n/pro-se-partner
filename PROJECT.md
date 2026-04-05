@@ -228,35 +228,48 @@ User reports outcome. Win, loss, or continuance each triggers a different agent 
 
 ### Layout
 
-Single-page app. After submission the page splits into two columns: a **left column** for the live browser and agent feed, and a **right column** for the dashboard. On the home/pre-submit state, only the intake form is shown full-width.
+Single-page app with a **tabbed view toggle** on the session page. After intake submission the user lands on `/session/[id]` with two full-width views selectable via a top toggle: **Live Browser** and **Your Case Dashboard**. On the home/pre-submit state, only the intake form is shown full-width.
 
 ```
-+---------------------------+  +----------------------------------+
-|  [ Live Browser iframe ]  |  |  Top panel: Case Facts           |
-|                           |  |  Upper panel: Status & Timeline  |
-|  session.liveUrl rendered |  |  Middle panel: Action Items      |
-|  as <iframe>, ~60% width  |  |  Lower panel: Context & Resources|
-|                           |  |                                  |
-|                           |  |  (panels populate progressively) |
-+---------------------------+  +----------------------------------+
-|  [ Activity Strip ]       |
-|  Plain-language agent     |
-|  feed, updated via        |
-|  TanStack Query polling   |
-+---------------------------+
++---------------------------------------------------------------+
+|  [ Status Bar: deadline countdown | active agent status ]     |
+|  [ Live Browser ]  [ Your Case Dashboard ]   <- view toggle   |
++---------------------------------------------------------------+
+
+── Live Browser view (default while agents are running) ─────────
+|                                                               |
+|  [ Browser iframe — full width ]                              |
+|  session.liveUrl rendered as <iframe>, near 100% width        |
+|                                                               |
++---------------------------------------------------------------+
+|  [ Activity Strip ]                                           |
+|  Plain-language agent feed, updated via TanStack Query        |
++---------------------------------------------------------------+
+
+── Your Case Dashboard view (default after agents finish) ──────
+|                                                               |
+|  Case Facts          |  Status & Timeline                     |
+|  Action Items        |  Context & Resources                   |
+|                                                               |
+|  (panels populate progressively, full-width layout)           |
++---------------------------------------------------------------+
 ```
 
-**Left column (~60% width):**
+**Persistent status bar** — visible on both views. Shows deadline countdown (e.g. "5 days to respond") and current agent status (e.g. "Deadline Tracker: running…"). Provides orientation regardless of which view is active.
 
-1. **Live Browser iframe** — `session.liveUrl` from the active Browser Use session rendered as a full `<iframe>`. Shows the agent navigating real government websites in real time. During Wave 1 the iframe displays the Forms Navigator (most visually compelling). During Stage 2 it switches to the E-Filing session. Implemented via `browser-panel.tsx`, same pattern as the reference repo.
+**View toggle** — prominent tab bar below the status bar. Defaults to "Live Browser" when any agent is running; auto-switches (with a visual nudge) to "Your Case Dashboard" when all Wave 1 agents complete. User can manually toggle at any time.
+
+**Live Browser view:**
+
+1. **Live Browser iframe** — `session.liveUrl` from the active Browser Use session rendered as a near-full-width `<iframe>`. Shows the agent navigating real government websites in real time. During Wave 1 the iframe displays the Forms Navigator (most visually compelling). During Stage 2 it switches to the E-Filing session. Implemented via `browser-panel.tsx`.
 
 2. **Activity Strip** — below the iframe. Live plain-language feed of what each agent is currently doing, updated via TanStack Query polling all active sessions.
    - Example: `Forms Navigator: Searching LA Superior Court self-help portal... Found UD-105 (rev. 2024)... Checking filing fee schedule...`
    - Each line prefixed with the agent name and a status indicator dot (running / done / error)
 
-**Right column (~40% width):**
+**Your Case Dashboard view:**
 
-3. **Dashboard** — four stacked panels that populate progressively as agents finish:
+3. **Dashboard** — panels populate progressively as agents finish. Full-width layout allows panels to use horizontal space (e.g. Case Facts grid can be 3–4 columns, defenses and legal aid can sit side-by-side):
 
 | Panel | Loads | Contents |
 |---|---|---|
@@ -274,15 +287,17 @@ src/
 ├── app/
 │   ├── layout.tsx                   # Root layout with providers
 │   ├── page.tsx                     # Home — intake form
-│   └── session/[id]/page.tsx        # Session view — dashboard + live browser
+│   └── session/[id]/page.tsx        # Session view — tabbed browser + dashboard
 ├── components/
-│   ├── browser-panel.tsx            # Live browser iframe (session.liveUrl), left column top
-│   ├── activity-strip.tsx           # Real-time agent action feed, left column bottom
+│   ├── session-view-toggle.tsx      # Tab bar: "Live Browser" | "Your Case Dashboard"
+│   ├── status-bar.tsx               # Persistent strip: deadline countdown + active agent status
+│   ├── browser-panel.tsx            # Live browser iframe (session.liveUrl), full-width
+│   ├── activity-strip.tsx           # Real-time agent action feed, below browser
 │   ├── dashboard/
-│   │   ├── case-facts-panel.tsx     # Stacked top-right: extracted intake facts
-│   │   ├── status-panel.tsx         # Stacked upper-right: countdown + case arc
-│   │   ├── action-items-panel.tsx   # Stacked mid-right: checklist + form downloads
-│   │   └── resources-panel.tsx      # Stacked bottom-right: defenses + legal aid
+│   │   ├── case-facts-panel.tsx     # Extracted intake facts
+│   │   ├── status-panel.tsx         # Countdown + case arc
+│   │   ├── action-items-panel.tsx   # Checklist + form downloads
+│   │   └── resources-panel.tsx      # Defenses + legal aid
 │   ├── intake-form.tsx              # Full-width pre-submit: text input + file upload
 │   └── hitl-gate.tsx                # Human-in-the-loop pause card (replaces action items)
 ├── context/
@@ -352,3 +367,4 @@ Keep changes lightweight. Edit the relevant section in place, then append a one-
 | April 4 | MVP checklist: marked intake + Case Intake complete; added repo progress snapshot and notes on partial UI. |
 | April 4 | Renamed numbered agents to role-based names (Case Intake, Document Parser, Forms Navigator, PDF Filler, Deadline Tracker, Defense Research, Legal Aid, Fee Waiver, E-Filing). |
 | April 4 | Document Parser: direct multimodal extraction API + Case Facts panel section for structured fields from uploads. |
+| April 4 | Layout: replaced 60/40 two-column split with tabbed view toggle (Live Browser / Your Case Dashboard). Added persistent status bar. Both views use full width. |

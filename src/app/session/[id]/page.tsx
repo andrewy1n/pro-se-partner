@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import { BrowserPanel } from "@/components/browser-panel";
 import { ActivityStrip } from "@/components/activity-strip";
+import { StatusBar } from "@/components/status-bar";
+import { SessionViewToggle, type SessionView } from "@/components/session-view-toggle";
 import { CaseFactsPanel } from "@/components/dashboard/case-facts-panel";
 import { StatusPanel } from "@/components/dashboard/status-panel";
 import { ActionItemsPanel } from "@/components/dashboard/action-items-panel";
@@ -17,6 +19,8 @@ import type { DispatchWave1Response } from "@/lib/types";
 export default function SessionPage() {
   const params = useParams<{ id: string }>();
   const [dispatched, setDispatched] = useState(false);
+  const [activeView, setActiveView] = useState<SessionView>("browser");
+  const autoSwitchedRef = useRef(false);
   const {
     activeSession,
     deadlineSession,
@@ -112,6 +116,14 @@ export default function SessionPage() {
     if (polledLegalAidResult) setLegalAid(polledLegalAidResult);
   }, [polledLegalAidResult, setLegalAid]);
 
+  // Auto-switch to dashboard when all agents finish (once)
+  useEffect(() => {
+    if (!isPolling && dispatched && !autoSwitchedRef.current) {
+      autoSwitchedRef.current = true;
+      setActiveView("dashboard");
+    }
+  }, [isPolling, dispatched]);
+
   async function handleRunAnalysis() {
     const id = params.id;
     if (!id || !caseContext) return;
@@ -159,77 +171,88 @@ export default function SessionPage() {
   }
 
   return (
-    <main className="grid min-h-screen grid-cols-1 gap-4 p-4 lg:grid-cols-5">
-      <section className="space-y-4 lg:col-span-3">
-        <BrowserPanel
-          tabs={[
-            {
-              agentId: "agent-4-deadline-procedure",
-              label: "Deadline Tracker",
-              liveUrl: deadlineSession?.liveUrl,
-              status: deadlineSession?.status ?? null,
-            },
-            {
-              agentId: "agent-5-defense-research",
-              label: "Defense Research",
-              liveUrl: defenseSession?.liveUrl,
-              status: defenseSession?.status ?? null,
-            },
-            {
-              agentId: "agent-6-legal-aid",
-              label: "Legal Aid",
-              liveUrl: legalAidSession?.liveUrl,
-              status: legalAidSession?.status ?? null,
-            },
-          ]}
-        />
-        <ActivityStrip items={activityFeed} />
-      </section>
+    <main className="flex min-h-screen flex-col gap-4 p-4">
+      <StatusBar
+        countdownLabel={deadlineResult?.responseDeadline ?? "TBD"}
+        agentStatuses={[
+          { label: "Deadline Tracker", status: deadlineSession?.status ?? null },
+          { label: "Defense Research", status: defenseSession?.status ?? null },
+          { label: "Legal Aid", status: legalAidSession?.status ?? null },
+        ]}
+        isPolling={isPolling}
+      />
+      <SessionViewToggle activeView={activeView} onViewChange={setActiveView} />
 
-      <section className="space-y-4 lg:col-span-2">
-        <CaseFactsPanel
-          caseContext={caseContext}
-          dispatched={dispatched}
-          onRunAnalysis={dispatched ? undefined : handleRunAnalysis}
-        />
+      {activeView === "browser" ? (
+        <section className="flex flex-1 flex-col gap-4">
+          <BrowserPanel
+            tabs={[
+              {
+                agentId: "agent-4-deadline-procedure",
+                label: "Deadline Tracker",
+                liveUrl: deadlineSession?.liveUrl,
+                status: deadlineSession?.status ?? null,
+              },
+              {
+                agentId: "agent-5-defense-research",
+                label: "Defense Research",
+                liveUrl: defenseSession?.liveUrl,
+                status: defenseSession?.status ?? null,
+              },
+              {
+                agentId: "agent-6-legal-aid",
+                label: "Legal Aid",
+                liveUrl: legalAidSession?.liveUrl,
+                status: legalAidSession?.status ?? null,
+              },
+            ]}
+          />
+          <ActivityStrip items={activityFeed} />
+        </section>
+      ) : (
+        <section className="space-y-4">
+          <CaseFactsPanel
+            caseContext={caseContext}
+            dispatched={dispatched}
+            onRunAnalysis={dispatched ? undefined : handleRunAnalysis}
+          />
 
-        <StatusPanel
-          model={{
-            countdownLabel: deadlineResult?.responseDeadline ?? "TBD",
-            caseStage: activeSession?.stage ?? "stage-1-intake",
-            callToAction: hitlGate.instruction,
-            consequenceSummary: deadlineResult?.consequenceSummary ?? null,
-            projectedTrialWindow: deadlineResult?.projectedTrialWindow ?? null,
-            citations: deadlineResult?.citations ?? [],
-            missingFacts:
-              deadlineResult?.missingFacts.length
-                ? deadlineResult.missingFacts
-                : caseContext?.missingFacts ?? [],
-            explanation: deadlineResult?.explanation ?? null,
-          }}
-        />
-
-        {hitlGate.isBlockedOnUser ? (
-          <HitlGate instruction={hitlGate.instruction ?? "Complete the required task to continue."} />
-        ) : (
-          <ActionItemsPanel
+          <StatusPanel
             model={{
-              checklist: actionItems,
-              formArtifacts,
+              countdownLabel: deadlineResult?.responseDeadline ?? "TBD",
+              caseStage: activeSession?.stage ?? "stage-1-intake",
+              callToAction: hitlGate.instruction,
+              consequenceSummary: deadlineResult?.consequenceSummary ?? null,
+              projectedTrialWindow: deadlineResult?.projectedTrialWindow ?? null,
+              citations: deadlineResult?.citations ?? [],
+              missingFacts:
+                deadlineResult?.missingFacts.length
+                  ? deadlineResult.missingFacts
+                  : caseContext?.missingFacts ?? [],
+              explanation: deadlineResult?.explanation ?? null,
             }}
           />
-        )}
 
-        <ResourcesPanel
-          model={{ defenses, legalAid }}
-          isDefensesLoading={isPolling && defenses.length === 0}
-          isLegalAidLoading={isPolling && legalAid.length === 0}
-        />
-      </section>
+          {hitlGate.isBlockedOnUser ? (
+            <HitlGate instruction={hitlGate.instruction ?? "Complete the required task to continue."} />
+          ) : (
+            <ActionItemsPanel
+              model={{
+                checklist: actionItems,
+                formArtifacts,
+              }}
+            />
+          )}
+
+          <ResourcesPanel
+            model={{ defenses, legalAid }}
+            isDefensesLoading={isPolling && defenses.length === 0}
+            isLegalAidLoading={isPolling && legalAid.length === 0}
+          />
+        </section>
+      )}
 
       <p className="sr-only">Session id: {params.id}</p>
-      {/* TODO: Populate dashboard panels progressively in completion order. */}
-      {/* TODO: Implement active live session switching from Wave 1 to Stage 2 Agent 9. */}
     </main>
   );
 }
