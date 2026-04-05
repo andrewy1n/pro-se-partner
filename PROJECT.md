@@ -257,17 +257,9 @@ Single-page app with a **tabbed view toggle** on the session page. After intake 
 
 **Persistent status bar** — visible on both views. Shows deadline countdown (e.g. "5 days to respond") and current agent status (e.g. "Deadline Tracker: running…"). Provides orientation regardless of which view is active.
 
-**View toggle** — prominent tab bar below the status bar. Defaults to "Live Browser" when any agent is running; auto-switches (with a visual nudge) to "Your Case Dashboard" when all Wave 1 agents complete. User can manually toggle at any time.
+**Watch Live overlay** — the live browser is accessible via a `[Watch Live →]` button in the status bar (visible after agents are dispatched). Clicking it opens a full-screen overlay containing the browser iframe and activity strip. Dismissed via the close button or Escape key. During Wave 2 e-filing dispatch the overlay auto-opens. The dashboard is always the default — the live view is opt-in for demo purposes.
 
-**Live Browser view:**
-
-1. **Live Browser iframe** — `session.liveUrl` from the active Browser Use session rendered as a near-full-width `<iframe>`. Shows the agent navigating real government websites in real time. During Wave 1 the iframe displays the Forms Navigator (most visually compelling). During Stage 2 it switches to the E-Filing session. Implemented via `browser-panel.tsx`.
-
-2. **Activity Strip** — below the iframe. Live plain-language feed of what each agent is currently doing, updated via TanStack Query polling all active sessions.
-   - Example: `Forms Navigator: Searching LA Superior Court self-help portal... Found UD-105 (rev. 2024)... Checking filing fee schedule...`
-   - Each line prefixed with the agent name and a status indicator dot (running / done / error)
-
-**Your Case Dashboard view:**
+**Dashboard view (always shown):**
 
 3. **Dashboard** — panels populate progressively as agents finish. Full-width layout allows panels to use horizontal space (e.g. Case Facts grid can be 3–4 columns, defenses and legal aid can sit side-by-side):
 
@@ -287,12 +279,12 @@ src/
 ├── app/
 │   ├── layout.tsx                   # Root layout with providers
 │   ├── page.tsx                     # Home — intake form
-│   └── session/[id]/page.tsx        # Session view — tabbed browser + dashboard
+│   └── session/[id]/page.tsx        # Session view — dashboard + live overlay
 ├── components/
-│   ├── session-view-toggle.tsx      # Tab bar: "Live Browser" | "Your Case Dashboard"
-│   ├── status-bar.tsx               # Persistent strip: deadline countdown + active agent status
+│   ├── status-bar.tsx               # Persistent strip: deadline countdown + agent statuses + Watch Live button
+│   ├── live-browser-overlay.tsx     # Full-screen overlay: browser iframe + activity strip (opt-in)
 │   ├── browser-panel.tsx            # Live browser iframe (session.liveUrl), full-width
-│   ├── activity-strip.tsx           # Real-time agent action feed, below browser
+│   ├── activity-strip.tsx           # Real-time agent action feed
 │   ├── dashboard/
 │   │   ├── case-facts-panel.tsx     # Extracted intake facts
 │   │   ├── status-panel.tsx         # Countdown + case arc
@@ -370,3 +362,6 @@ Keep changes lightweight. Edit the relevant section in place, then append a one-
 | April 4 | Layout: replaced 60/40 two-column split with tabbed view toggle (Live Browser / Your Case Dashboard). Added persistent status bar. Both views use full width. |
 | April 4 | E-Filing agent: filing navigation and HITL account-creation URL updated from lacourt.org to courtfiling.net. |
 | April 4 | Re-integrated Forms Navigator into Wave 1 dispatch, session polling/streaming, and dashboard form artifact wiring so downloaded UD-105/FW-001 files appear in Action Items. |
+| April 4 | Layout: replaced tabbed view toggle with dashboard-first layout. Live browser moved to a full-screen opt-in overlay triggered by "Watch Live" button in the status bar. `session-view-toggle.tsx` removed; `live-browser-overlay.tsx` added. |
+| April 4 | Renamed all user-facing agent and panel labels to plain language (e.g. "Forms Navigator" → "Find & Fill Forms", "Wave 1 agents" → "Case Analysis", "Action Items" → "Your Next Steps"). |
+| April 4 | Added subtitles to Context & Resources panel and Applicable Defenses section to explain what they mean to a non-legal audience. |

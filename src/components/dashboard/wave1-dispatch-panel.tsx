@@ -46,10 +46,9 @@ export function Wave1DispatchPanel({ caseContext, onDispatchWave1 }: Wave1Dispat
       <div className="mb-3 flex items-start gap-2">
         <Bot className="mt-0.5 h-4 w-4 shrink-0 text-zinc-500" aria-hidden />
         <div>
-          <h2 className="text-sm font-medium text-zinc-200">Wave 1 agents</h2>
+          <h2 className="text-sm font-medium text-zinc-200">Case Analysis</h2>
           <p className="mt-1 text-xs text-zinc-500">
-            Runs browser research using the facts summarized in{" "}
-            <span className="text-zinc-400">Your Situation</span> below.
+            Researches your case and prepares your court forms.
           </p>
         </div>
       </div>
@@ -68,18 +67,18 @@ export function Wave1DispatchPanel({ caseContext, onDispatchWave1 }: Wave1Dispat
         ) : (
           <>
             <PlayCircle className="h-4 w-4" />
-            {allSelected ? "Run analysis" : `Run selected (${selectedAgents.length})`}
+            {allSelected ? "Analyze My Case" : `Analyze selected (${selectedAgents.length})`}
           </>
         )}
       </button>
 
       <CollapsibleSection
-        label="Advanced — choose agents"
+        label="Customize what to research"
         defaultOpen={false}
         className="mt-3"
       >
         <p className="mb-2 text-[11px] text-zinc-500">
-          Leave all selected to run the full Wave 1. Uncheck agents you do not want to launch.
+          Leave all checked to run a full case analysis. Uncheck anything you do not need.
         </p>
         <div className="space-y-2 text-sm text-zinc-300">
           <label className="flex cursor-pointer items-center gap-2">
@@ -89,7 +88,7 @@ export function Wave1DispatchPanel({ caseContext, onDispatchWave1 }: Wave1Dispat
               onChange={(e) => setRunForms(e.target.checked)}
               className="rounded border-zinc-600"
             />
-            Forms Navigator
+            Find & Fill Forms
           </label>
           <label className="flex cursor-pointer items-center gap-2">
             <input
@@ -98,7 +97,7 @@ export function Wave1DispatchPanel({ caseContext, onDispatchWave1 }: Wave1Dispat
               onChange={(e) => setRunDeadline(e.target.checked)}
               className="rounded border-zinc-600"
             />
-            Deadline Tracker
+            Response Deadline
           </label>
           <label className="flex cursor-pointer items-center gap-2">
             <input
@@ -107,7 +106,7 @@ export function Wave1DispatchPanel({ caseContext, onDispatchWave1 }: Wave1Dispat
               onChange={(e) => setRunDefense(e.target.checked)}
               className="rounded border-zinc-600"
             />
-            Defense Research
+            Legal Defenses
           </label>
           <label className="flex cursor-pointer items-center gap-2">
             <input
@@ -116,7 +115,7 @@ export function Wave1DispatchPanel({ caseContext, onDispatchWave1 }: Wave1Dispat
               onChange={(e) => setRunLegalAid(e.target.checked)}
               className="rounded border-zinc-600"
             />
-            Legal Aid
+            Legal Aid Near You
           </label>
         </div>
       </CollapsibleSection>

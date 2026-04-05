@@ -1,10 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
-import { BrowserPanel } from "@/components/browser-panel";
-import { ActivityStrip } from "@/components/activity-strip";
-import { SessionViewToggle, type SessionView } from "@/components/session-view-toggle";
+import { StatusBar } from "@/components/status-bar";
+import { LiveBrowserOverlay } from "@/components/live-browser-overlay";
 import { CaseFactsPanel } from "@/components/dashboard/case-facts-panel";
 import { Wave1DispatchPanel } from "@/components/dashboard/wave1-dispatch-panel";
 import { StatusPanel } from "@/components/dashboard/status-panel";
@@ -30,8 +29,7 @@ import type {
 export default function SessionPage() {
   const params = useParams<{ id: string }>();
   const [dispatched, setDispatched] = useState(false);
-  const [activeView, setActiveView] = useState<SessionView>("browser");
-  const autoSwitchedRef = useRef(false);
+  const [liveOverlayOpen, setLiveOverlayOpen] = useState(false);
   const [selectedBrowserAgentId, setSelectedBrowserAgentId] = useState<AgentId | null>(null);
   const [isEfilingDispatching, setIsEfilingDispatching] = useState(false);
 
@@ -79,31 +77,31 @@ export default function SessionPage() {
     () => [
       {
         agentId: "agent-3-forms-navigator" as const,
-        label: "Forms Navigator",
+        label: "Find & Fill Forms",
         liveUrl: formsSession?.liveUrl,
         status: formsSession?.status ?? null,
       },
       {
         agentId: "agent-4-deadline-procedure" as const,
-        label: "Deadline Tracker",
+        label: "Response Deadline",
         liveUrl: deadlineSession?.liveUrl,
         status: deadlineSession?.status ?? null,
       },
       {
         agentId: "agent-5-defense-research" as const,
-        label: "Defense Research",
+        label: "Legal Defenses",
         liveUrl: defenseSession?.liveUrl,
         status: defenseSession?.status ?? null,
       },
       {
         agentId: "agent-6-legal-aid" as const,
-        label: "Legal Aid",
+        label: "Legal Aid Near You",
         liveUrl: legalAidSession?.liveUrl,
         status: legalAidSession?.status ?? null,
       },
       {
         agentId: "agent-9-efiling" as const,
-        label: "E-Filing",
+        label: "File with Court",
         liveUrl: efilingSession?.liveUrl,
         status: efilingSession?.status ?? null,
       },
@@ -311,14 +309,6 @@ export default function SessionPage() {
     });
   }, [pdfFillState.status, formArtifacts, params.id]);
 
-  // Auto-switch to dashboard once polling settles after Wave 1 activity (once)
-  useEffect(() => {
-    if (!isPolling && dispatched && !autoSwitchedRef.current) {
-      autoSwitchedRef.current = true;
-      setActiveView("dashboard");
-    }
-  }, [isPolling, dispatched]);
-
   async function handleDispatchWave1(agents: Wave1AgentKey[]) {
     const id = params.id;
     if (!id || !caseContext || agents.length === 0) return;
@@ -444,7 +434,7 @@ export default function SessionPage() {
         appSessionId: id,
         browserSessionId: data.efilingSession.sessionId,
       });
-      setActiveView("browser");
+      setLiveOverlayOpen(true);
     } finally {
       setIsEfilingDispatching(false);
     }
@@ -452,85 +442,87 @@ export default function SessionPage() {
 
   return (
     <main className="flex min-h-dvh flex-col gap-4 p-4">
-      <SessionViewToggle activeView={activeView} onViewChange={setActiveView} />
+      <StatusBar
+        countdownLabel={deadlineResult?.responseDeadline ?? "TBD"}
+        agentStatuses={browserTabs.map((t) => ({ label: t.label, status: t.status }))}
+        isPolling={isPolling}
+        showWatchLive={dispatched}
+        onWatchLive={() => setLiveOverlayOpen(true)}
+      />
 
-      {activeView === "browser" ? (
-        <section className="flex min-h-0 flex-1 flex-col gap-4 xl:flex-row">
-          <BrowserPanel
-            tabs={browserTabs}
-            effectiveTab={effectiveBrowserTab}
-            onSelectAgentId={setSelectedBrowserAgentId}
+      <section className="grid gap-4 xl:grid-cols-[minmax(0,1.4fr)_minmax(320px,1fr)]">
+        <div className="space-y-4">
+          <StatusPanel
+            model={{
+              countdownLabel: deadlineResult?.responseDeadline ?? "TBD",
+              caseStage: activeSession?.stage ?? "stage-1-intake",
+              callToAction: hitlGate.instruction,
+              consequenceSummary: deadlineResult?.consequenceSummary ?? null,
+              projectedTrialWindow: deadlineResult?.projectedTrialWindow ?? null,
+              citations: deadlineResult?.citations ?? [],
+              missingFacts:
+                deadlineResult?.missingFacts.length
+                  ? deadlineResult.missingFacts
+                  : caseContext?.missingFacts ?? [],
+              explanation: deadlineResult?.explanation ?? null,
+              milestones: deadlineResult?.milestones ?? [],
+            }}
+            hitlAction={
+              hitlGate.isBlockedOnUser
+                ? {
+                    instruction:
+                      hitlGate.instruction ??
+                      "Complete the required task to continue.",
+                    missingFacts: hitlGate.missingFacts,
+                    onSubmit: handleHitlSubmit,
+                  }
+                : null
+            }
+            efilingConfirmation={efilingResult ?? null}
           />
-          <ActivityStrip
-            items={visibleActivityFeed}
-            contextLabel={effectiveBrowserTab?.label ?? null}
+
+          <ActionItemsPanel
+            model={{
+              checklist: actionItems,
+              formArtifacts,
+            }}
+            pdfFillStatus={pdfFillState.status}
+            pdfFillErrorCode={pdfFillState.errorCode}
+            pdfFillErrorMessage={pdfFillState.errorMessage}
+            onFillUd105={handleFillUd105}
+            fillUd105Disabled={fillUd105Disabled}
+            showEfilingGate={
+              !isPolling &&
+              dispatched &&
+              !efilingResult &&
+              (!efilingSession || efilingSession.status === "stopped" || efilingSession.status === "error")
+            }
+            isEfilingDispatching={isEfilingDispatching}
+            onDispatchEfiling={handleDispatchWave2}
           />
-        </section>
-      ) : (
-        <section className="grid gap-4 xl:grid-cols-[minmax(0,1.4fr)_minmax(320px,1fr)]">
-          <div className="space-y-4">
-            <StatusPanel
-              model={{
-                countdownLabel: deadlineResult?.responseDeadline ?? "TBD",
-                caseStage: activeSession?.stage ?? "stage-1-intake",
-                callToAction: hitlGate.instruction,
-                consequenceSummary: deadlineResult?.consequenceSummary ?? null,
-                projectedTrialWindow: deadlineResult?.projectedTrialWindow ?? null,
-                citations: deadlineResult?.citations ?? [],
-                missingFacts:
-                  deadlineResult?.missingFacts.length
-                    ? deadlineResult.missingFacts
-                    : caseContext?.missingFacts ?? [],
-                explanation: deadlineResult?.explanation ?? null,
-                milestones: deadlineResult?.milestones ?? [],
-              }}
-              hitlAction={
-                hitlGate.isBlockedOnUser
-                  ? {
-                      instruction:
-                        hitlGate.instruction ??
-                        "Complete the required task to continue.",
-                      missingFacts: hitlGate.missingFacts,
-                      onSubmit: handleHitlSubmit,
-                    }
-                  : null
-              }
-              efilingConfirmation={efilingResult ?? null}
-            />
+        </div>
 
-            <ActionItemsPanel
-              model={{
-                checklist: actionItems,
-                formArtifacts,
-              }}
-              pdfFillStatus={pdfFillState.status}
-              pdfFillErrorCode={pdfFillState.errorCode}
-              pdfFillErrorMessage={pdfFillState.errorMessage}
-              onFillUd105={handleFillUd105}
-              fillUd105Disabled={fillUd105Disabled}
-              showEfilingGate={
-                !isPolling &&
-                dispatched &&
-                !efilingResult &&
-                (!efilingSession || efilingSession.status === "stopped" || efilingSession.status === "error")
-              }
-              isEfilingDispatching={isEfilingDispatching}
-              onDispatchEfiling={handleDispatchWave2}
-            />
-          </div>
+        <div className="space-y-4">
+          <Wave1DispatchPanel caseContext={caseContext} onDispatchWave1={handleDispatchWave1} />
+          <CaseFactsPanel caseContext={caseContext} />
 
-          <div className="space-y-4">
-            <Wave1DispatchPanel caseContext={caseContext} onDispatchWave1={handleDispatchWave1} />
-            <CaseFactsPanel caseContext={caseContext} />
+          <ResourcesPanel
+            model={{ defenses, legalAid }}
+            isDefensesLoading={isPolling && defenses.length === 0}
+            isLegalAidLoading={isPolling && legalAid.length === 0}
+          />
+        </div>
+      </section>
 
-            <ResourcesPanel
-              model={{ defenses, legalAid }}
-              isDefensesLoading={isPolling && defenses.length === 0}
-              isLegalAidLoading={isPolling && legalAid.length === 0}
-            />
-          </div>
-        </section>
-      )}
+      <LiveBrowserOverlay
+        open={liveOverlayOpen}
+        onClose={() => setLiveOverlayOpen(false)}
+        tabs={browserTabs}
+        effectiveTab={effectiveBrowserTab}
+        onSelectAgentId={setSelectedBrowserAgentId}
+        activityItems={visibleActivityFeed}
+        contextLabel={effectiveBrowserTab?.label ?? null}
+      />
 
       <p className="sr-only">Session id: {params.id}</p>
     </main>

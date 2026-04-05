@@ -114,7 +114,7 @@ export function HitlGate({
       <section className={shellClass}>
         <h2 className="text-sm font-semibold text-amber-200">Recalculating deadline…</h2>
         <p className="mt-2 text-sm text-amber-100">
-          Your answers have been submitted. The Deadline Tracker is re-running now.
+          Your answers have been submitted. Response Deadline is re-running now.
         </p>
       </section>
     );

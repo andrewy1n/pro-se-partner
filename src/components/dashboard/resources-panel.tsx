@@ -25,15 +25,19 @@ export function ResourcesPanel({ model, isDefensesLoading, isLegalAidLoading }: 
         ) : (
           <ChevronRight className="h-3.5 w-3.5 text-zinc-500" />
         )}
-        <h2 className="text-sm font-medium text-zinc-200">Context &amp; Resources</h2>
+        <div>
+          <h2 className="text-sm font-medium text-zinc-200">Context &amp; Resources</h2>
+          <p className="mt-0.5 text-xs text-zinc-500">Legal arguments you may be able to raise, and organizations that can help.</p>
+        </div>
       </button>
 
       {panelOpen && <div className="mt-4 space-y-5">
         {/* Defenses */}
         <div>
-          <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-zinc-500">
+          <h3 className="mb-1 text-xs font-semibold uppercase tracking-wider text-zinc-500">
             Applicable Defenses
           </h3>
+          <p className="mb-2 text-xs text-zinc-600">Arguments based on your situation that you may be able to raise in court.</p>
           {isDefensesLoading ? (
             <DefenseSkeletons />
           ) : defenses.length === 0 ? (

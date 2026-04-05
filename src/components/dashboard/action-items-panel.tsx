@@ -187,7 +187,7 @@ export function ActionItemsPanel({
 
   return (
     <section className="rounded-xl border border-zinc-800 bg-zinc-950 p-4">
-      <h2 className="text-sm font-medium text-zinc-200">Action Items</h2>
+      <h2 className="text-sm font-medium text-zinc-200">Your Next Steps</h2>
 
       {/* Fill-step status indicator */}
       {showFillStatus && (
@@ -259,7 +259,7 @@ export function ActionItemsPanel({
 
         {!hasAnyArtifact && (
           <p className="text-xs text-zinc-500">
-            No forms yet &mdash; use Run Find &amp; Fill Forms.
+            No forms yet &mdash; run Find &amp; Fill Forms to get started.
           </p>
         )}
 
