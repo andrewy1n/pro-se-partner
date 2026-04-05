@@ -152,9 +152,18 @@ export function parseIntakeSessionPayload(raw: string): IntakeSessionPayload | n
       if (!caseContext) return null;
       return {
         caseContext,
+        dispatched: Boolean(parsed.dispatched),
         deadlineTrackerSession:
           "deadlineTrackerSession" in parsed && parsed.deadlineTrackerSession !== undefined
             ? (parsed.deadlineTrackerSession as IntakeSessionPayload["deadlineTrackerSession"])
+            : null,
+        defenseResearchSession:
+          "defenseResearchSession" in parsed && parsed.defenseResearchSession !== undefined
+            ? (parsed.defenseResearchSession as IntakeSessionPayload["defenseResearchSession"])
+            : null,
+        legalAidSession:
+          "legalAidSession" in parsed && parsed.legalAidSession !== undefined
+            ? (parsed.legalAidSession as IntakeSessionPayload["legalAidSession"])
             : null,
       };
     }
@@ -163,10 +172,13 @@ export function parseIntakeSessionPayload(raw: string): IntakeSessionPayload | n
     if (!legacyCaseContext) return null;
     return {
       caseContext: legacyCaseContext,
+      dispatched: Boolean(parsed.dispatched),
       deadlineTrackerSession:
         "deadlineTrackerSession" in parsed && parsed.deadlineTrackerSession !== undefined
           ? (parsed.deadlineTrackerSession as IntakeSessionPayload["deadlineTrackerSession"])
           : null,
+      defenseResearchSession: null,
+      legalAidSession: null,
     };
   } catch {
     return null;

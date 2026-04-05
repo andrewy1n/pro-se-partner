@@ -87,6 +87,7 @@ export async function POST(request: Request) {
       caseSummary,
       uploadedFile: fileInput,
     });
+
     logServerEvent("intake_submit", {
       sessionId,
       caseSummaryLength: caseSummary.length,
@@ -99,14 +100,13 @@ export async function POST(request: Request) {
     const response: IntakeSubmitResponse = {
       sessionId,
       caseContext,
-      deadlineTrackerSession: null,
     };
 
     return NextResponse.json(response);
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unified intake failed";
     logServerError("intake_submit_error", err, {
-      stage: "unified_intake_or_wave1",
+      stage: "unified_intake",
     });
     return NextResponse.json({ error: message }, { status: 502 });
   }

@@ -65,6 +65,7 @@ export async function POST(request: Request) {
   try {
     const sessionId = randomUUID();
     const caseContext = await orchestrateUnifiedIntake({ caseSummary });
+
     logIntakeClassification({
       sessionId,
       caseSummaryLength: caseSummary.length,
@@ -77,14 +78,13 @@ export async function POST(request: Request) {
     const response: IntakeSubmitResponse = {
       sessionId,
       caseContext,
-      deadlineTrackerSession: null,
     };
 
     return NextResponse.json(response);
   } catch (err) {
     const message = err instanceof Error ? err.message : "Intake failed";
     logServerError("intake_classification_error", err, {
-      stage: "unified_intake_or_wave1",
+      stage: "unified_intake",
     });
     return NextResponse.json({ error: message }, { status: 502 });
   }

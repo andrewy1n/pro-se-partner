@@ -16,6 +16,16 @@ export type AgentId =
 export type AgentStatus = "idle" | "queued" | "running" | "done" | "error" | "paused";
 export type CaseStage = "stage-1-intake" | "stage-2-filing";
 export type WaveId = "wave-1" | "wave-2";
+
+/** Subset of Wave 1 browser agents the user can dispatch from the session dashboard. */
+export type Wave1AgentKey = "deadline" | "defense" | "legalAid";
+
+export const WAVE1_AGENT_KEYS_ALL: readonly Wave1AgentKey[] = [
+  "deadline",
+  "defense",
+  "legalAid",
+];
+
 export type ServiceMethod =
   | "personal"
   | "substituted"
@@ -75,14 +85,32 @@ export interface CanonicalCaseContext {
   conflicts: CaseFactConflict[];
 }
 
+/** POST /api/agents/dispatch — omit `agents` to run all Wave 1 agents. */
+export interface DispatchWave1RequestBody {
+  sessionId: string;
+  caseContext: CanonicalCaseContext;
+  agents?: Wave1AgentKey[];
+}
+
 /** Persisted client-side after intake API success; hydrates CaseContext on the session page. */
 export interface IntakeSessionPayload {
   caseContext: CanonicalCaseContext;
+  /** True once at least one Wave 1 browser session id is stored (successful launch). */
+  dispatched: boolean;
   deadlineTrackerSession: DeadlineTrackerSession | null;
+  defenseResearchSession: DefenseResearchSession | null;
+  legalAidSession: LegalAidSession | null;
 }
 
-export interface IntakeSubmitResponse extends IntakeSessionPayload {
+export interface IntakeSubmitResponse {
   sessionId: string;
+  caseContext: CanonicalCaseContext;
+}
+
+export interface DispatchWave1Response {
+  deadlineTrackerSession: DeadlineTrackerSession | null;
+  defenseResearchSession: DefenseResearchSession | null;
+  legalAidSession: LegalAidSession | null;
 }
 
 /**
@@ -155,54 +183,19 @@ export interface ParsedDocumentFields {
   normalizedExtraction: DocumentNormalizedExtraction;
 }
 
-/** Structured output from Agent 3 Forms Navigator (browser download + metadata). */
-export interface DownloadedFormMetadata {
-  formTitleVerified: string;
-  revisionLabel: string | null;
-  fileName: string;
-  pdfBase64: string;
-}
-
-export interface FormsNavigatorResult {
-  ud105: DownloadedFormMetadata | null;
-  fw001?: DownloadedFormMetadata | null;
-  notes: string[];
-}
-
-export type PdfFillErrorCode =
-  | "encrypted_pdf"
-  | "invalid_pdf_structure"
-  | "corrupt_pdf_structure"
-  | "xfa_or_unsupported_form"
-  | "pdftk_not_installed"
-  | "unknown_fill_error";
-
-/** Result from Agent 3b PDF Filler (server-side pdf-lib). */
-export interface PdfFillResult {
-  formCode: "UD-105";
-  fileName: string;
-  /** Base64-encoded filled PDF */
-  pdfBase64: string;
-  /** Sanitized copy of the original (pre-fill) PDF so the client can offer a viewable original. */
-  originalSanitizedBase64?: string;
-  missingFields: string[];
-  warnings: string[];
-}
-
-export type PdfFillStatus =
-  | "idle"
-  | "preparing"
-  | "filling"
-  | "done"
-  | "failed";
-
 export interface FormArtifact {
+  // Produced by Agent 3 and Agent 3b.
   formCode: "UD-105" | "FW-001";
   fileName: string;
   downloadUrl: string;
   revisionLabel?: string;
-  /** "original" = raw download, "filled" = after pdf-lib fill */
-  variant: "original" | "filled";
+}
+
+export interface TimelineMilestone {
+  label: string;
+  date: string | null;      // ISO date string e.g. "2026-04-09"
+  dateLabel: string | null; // Human-readable fallback e.g. "April 20–30 (projected)"
+  description: string | null;
 }
 
 export interface DeadlineResult {
@@ -214,11 +207,13 @@ export interface DeadlineResult {
   citations: Citation[];
   missingFacts: string[];
   explanation: string | null;
+  milestones: TimelineMilestone[];
 }
 
 export interface DefenseItem {
   // Produced by Agent 5 Defense Research.
   title: string;
+  strength: "strong" | "possible";
   explanation: string;
   citations: Citation[];
 }
@@ -229,6 +224,7 @@ export interface LegalAidItem {
   distanceMiles?: number;
   hours?: string;
   contact?: string;
+  walkInAvailable?: boolean;
   eligibilityNotes?: string;
 }
 
@@ -249,13 +245,47 @@ export interface Citation {
   url?: string;
 }
 
-export interface ActivityFeedItem {
+export type ActivityFeedKind = "text" | "tool_call" | "thinking" | "fallback";
+
+interface ActivityFeedItemBase {
   id: string;
   agentId: AgentId;
   agentLabel: string;
   status: Extract<AgentStatus, "running" | "done" | "error">;
-  message: string;
   createdAt: string;
+}
+
+export type ActivityFeedItem =
+  | (ActivityFeedItemBase & {
+      feedKind: "text";
+      message: string;
+    })
+  | (ActivityFeedItemBase & {
+      feedKind: "tool_call";
+      toolName: string;
+      displayName: string;
+      displayValue: string;
+    })
+  | (ActivityFeedItemBase & {
+      feedKind: "thinking";
+      fullText: string;
+    })
+  | (ActivityFeedItemBase & {
+      feedKind: "fallback";
+      label: string;
+      rawSnippet: string;
+    });
+
+export interface StatusPanelModel {
+  countdownLabel: string;
+  caseStage: CaseStage;
+  callToAction: string | null;
+  consequenceSummary: string | null;
+  projectedTrialWindow: string | null;
+  citations: Citation[];
+  missingFacts: string[];
+  explanation: string | null;
+  milestones: TimelineMilestone[];
 }
 
 export interface ActionChecklistItem {
@@ -278,6 +308,7 @@ export interface ResourcesPanelModel {
 export interface HitlGateState {
   isBlockedOnUser: boolean;
   instruction: string | null;
+  missingFacts: string[];
 }
 
 export interface SessionSnapshot {
@@ -296,9 +327,47 @@ export interface DeadlineTrackerSession {
   activeAgentId: Extract<AgentId, "agent-4-deadline-procedure">;
 }
 
+export interface DefenseResearchSession {
+  sessionId: string;
+  liveUrl: string | null;
+  status: BrowserUseSessionStatus;
+  activeAgentId: Extract<AgentId, "agent-5-defense-research">;
+}
+
+export interface LegalAidSession {
+  sessionId: string;
+  liveUrl: string | null;
+  status: BrowserUseSessionStatus;
+  activeAgentId: Extract<AgentId, "agent-6-legal-aid">;
+}
+
 export interface SessionPollResponse {
   activeSession: SessionSnapshot | null;
   deadlineResult: DeadlineResult | null;
-  formsNavigatorResult: FormsNavigatorResult | null;
+  defenseResult: DefenseItem[] | null;
+  legalAidResult: LegalAidItem[] | null;
   messages: MessageResponse[];
 }
+
+export interface SessionStreamMessageEvent {
+  type: "message";
+  agentId: AgentId;
+  message: MessageResponse;
+}
+
+export interface SessionStreamTerminalEvent {
+  type: "terminal";
+  agentId: AgentId;
+  status: BrowserUseSessionStatus | null;
+}
+
+export interface SessionStreamErrorEvent {
+  type: "error";
+  agentId: AgentId;
+  message: string;
+}
+
+export type SessionStreamEvent =
+  | SessionStreamMessageEvent
+  | SessionStreamTerminalEvent
+  | SessionStreamErrorEvent;

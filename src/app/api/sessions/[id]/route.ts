@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
-import { getBrowserSession, listSessionMessages } from "@/lib/api";
+import { getBrowserSession } from "@/lib/api";
 import { parseDeadlineResult } from "@/lib/deadline-tracker";
-import { parseFormsNavigatorResult } from "@/lib/forms-navigator";
+import { parseDefenseResult } from "@/lib/defense-research";
+import { parseLegalAidResult } from "@/lib/legal-aid";
 import {
   isVerboseSessionPoll,
   logServerError,
@@ -18,11 +19,7 @@ export async function GET(
   const { id } = await context.params;
   const { searchParams } = new URL(request.url);
   const browserSessionId = searchParams.get("browserSessionId")?.trim();
-  const activeAgentParam = searchParams.get("activeAgentId")?.trim();
-  const activeAgentId: AgentId =
-    activeAgentParam === "agent-3-forms-navigator"
-      ? "agent-3-forms-navigator"
-      : "agent-4-deadline-procedure";
+  const agentId = (searchParams.get("agentId")?.trim() ?? "agent-4-deadline-procedure") as AgentId;
 
   if (!id) {
     return NextResponse.json({ error: "Missing app session id" }, { status: 400 });
@@ -37,63 +34,57 @@ export async function GET(
 
   try {
     const session = await getBrowserSession(browserSessionId);
-    let messages: Awaited<ReturnType<typeof listSessionMessages>> = [];
-    try {
-      messages = await listSessionMessages(browserSessionId);
-    } catch (messagesErr) {
-      logServerError("session_poll_messages_non_fatal", messagesErr, {
-        appSessionId: id,
-        browserSessionId,
-      });
-    }
+    let deadlineResult = null;
+    let defenseResult = null;
+    let legalAidResult = null;
 
-    const deadlineResult =
-      activeAgentId === "agent-4-deadline-procedure"
-        ? parseDeadlineResult(session.output)
-        : null;
-    const formsNavigatorResult =
-      activeAgentId === "agent-3-forms-navigator"
-        ? parseFormsNavigatorResult(session.output)
-        : null;
-
-    if (
-      activeAgentId === "agent-4-deadline-procedure" &&
-      session.output != null &&
-      deadlineResult == null
-    ) {
-      logServerEvent("session_poll_deadline_parse_mismatch", {
-        appSessionId: id,
-        browserSessionId,
-        outputType: typeof session.output,
-        outputPreview:
-          typeof session.output === "string"
-            ? session.output.slice(0, 400)
-            : JSON.stringify(session.output).slice(0, 400),
-      });
-    }
-    if (
-      activeAgentId === "agent-3-forms-navigator" &&
-      session.output != null &&
-      formsNavigatorResult == null
-    ) {
-      logServerEvent("session_poll_forms_parse_mismatch", {
-        appSessionId: id,
-        browserSessionId,
-        outputType: typeof session.output,
-        outputPreview:
-          typeof session.output === "string"
-            ? session.output.slice(0, 400)
-            : JSON.stringify(session.output).slice(0, 400),
-      });
+    if (agentId === "agent-5-defense-research") {
+      defenseResult = parseDefenseResult(session.output);
+      if (session.output != null && defenseResult == null) {
+        logServerEvent("session_poll_defense_parse_mismatch", {
+          appSessionId: id,
+          browserSessionId,
+          outputPreview:
+            typeof session.output === "string"
+              ? session.output.slice(0, 400)
+              : JSON.stringify(session.output).slice(0, 400),
+        });
+      }
+    } else if (agentId === "agent-6-legal-aid") {
+      legalAidResult = parseLegalAidResult(session.output);
+      if (session.output != null && legalAidResult == null) {
+        logServerEvent("session_poll_legal_aid_parse_mismatch", {
+          appSessionId: id,
+          browserSessionId,
+          outputPreview:
+            typeof session.output === "string"
+              ? session.output.slice(0, 400)
+              : JSON.stringify(session.output).slice(0, 400),
+        });
+      }
+    } else {
+      deadlineResult = parseDeadlineResult(session.output);
+      if (session.output != null && deadlineResult == null) {
+        logServerEvent("session_poll_deadline_parse_mismatch", {
+          appSessionId: id,
+          browserSessionId,
+          outputPreview:
+            typeof session.output === "string"
+              ? session.output.slice(0, 400)
+              : JSON.stringify(session.output).slice(0, 400),
+        });
+      }
     }
 
     if (isVerboseSessionPoll()) {
       logServerEvent("session_poll_ok", {
         appSessionId: id,
         browserSessionId,
+        agentId,
         sessionStatus: session.status,
-        messageCount: messages.length,
         hasDeadlineResult: Boolean(deadlineResult),
+        hasDefenseResult: Boolean(defenseResult),
+        hasLegalAidResult: Boolean(legalAidResult),
       });
     }
 
@@ -101,14 +92,15 @@ export async function GET(
       activeSession: {
         sessionId: session.id,
         liveUrl: session.liveUrl ?? null,
-        activeAgentId,
+        activeAgentId: agentId,
         activeWave: "wave-1",
         stage: "stage-1-intake",
         status: session.status,
       },
       deadlineResult,
-      formsNavigatorResult,
-      messages,
+      defenseResult,
+      legalAidResult,
+      messages: [],
     };
 
     return NextResponse.json(response);
@@ -117,6 +109,7 @@ export async function GET(
     logServerError("session_poll_failed", err, {
       appSessionId: id,
       browserSessionId,
+      agentId,
     });
     return NextResponse.json({ error: message }, { status: 502 });
   }

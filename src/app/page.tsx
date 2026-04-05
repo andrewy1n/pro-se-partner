@@ -78,7 +78,10 @@ export default function HomePage() {
 
       const payload: IntakeSessionPayload = {
         caseContext: data.caseContext,
-        deadlineTrackerSession: data.deadlineTrackerSession ?? null,
+        dispatched: false,
+        deadlineTrackerSession: null,
+        defenseResearchSession: null,
+        legalAidSession: null,
       };
       sessionStorage.setItem(
         intakeStorageKey(data.sessionId),

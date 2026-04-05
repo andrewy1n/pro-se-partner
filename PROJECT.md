@@ -41,7 +41,7 @@ When the user hits a step requiring human action (like creating an e-filing acco
 | Defense surfacing | Identifies applicable defenses (habitability, improper notice, retaliation) with citations |
 | Legal aid search | Geocoded search filtered by case type, income eligibility, and availability |
 | Fee waiver check | Evaluates eligibility against California thresholds, pre-fills FW-001 if qualified |
-| E-filing | Navigates LA Superior Court portal, uploads completed UD-105, captures confirmation number |
+| E-filing | Navigates courtfiling.net (LA Superior Court e-filing), uploads completed UD-105, captures confirmation number |
 
 ---
 
@@ -106,7 +106,7 @@ upload)
                          |
                          v
               E-Filing (Wave 2)
-              Navigates portal -> uploads UD-105
+              Navigates courtfiling.net -> uploads UD-105
               -> captures confirmation number
 ```
 
@@ -196,8 +196,8 @@ Each agent has a role-based name below. Older references may have used numeric l
 
 ### E-Filing *(Stage 2)*
 - **Type:** Browser Use session (`bu-max`)
-- **Activates:** After user creates an LA Superior Court e-filing account and returns with credentials
-- **Task:** Navigate the e-filing portal -> upload completed UD-105 -> capture confirmation number and timestamp
+- **Activates:** After user creates an LA Superior Court e-filing account at courtfiling.net and returns with credentials
+- **Task:** Navigate courtfiling.net -> upload completed UD-105 -> capture confirmation number and timestamp
 - **Human-in-the-loop:** System detects task completion and resumes autonomously. This is the visible handoff moment in the demo.
 - **Output:** Confirmation number, timestamp, dashboard update — "Answer filed."
 
@@ -209,11 +209,11 @@ Each agent has a role-based name below. Older references may have used numeric l
 1. User describes situation, optionally uploads documents
 2. Case Intake classifies and dispatches Wave 1 agents
 3. Document Parser through Fee Waiver run in parallel; dashboard populates progressively
-4. Ends with one clear call to action: "Your UD-105 is ready. To file it, you'll need an e-filing account. Here's how — it takes 5 minutes. Come back when you have your login."
+4. Ends with one clear call to action: "Your UD-105 is ready. To file it, you'll need an e-filing account at courtfiling.net. Here's how — it takes 5 minutes. Come back when you have your login."
 
 ### Stage 2 — Filing *(hackathon MVP)*
 1. User returns with e-filing credentials
-2. E-Filing activates, navigates the portal, uploads UD-105
+2. E-Filing activates, navigates courtfiling.net, uploads UD-105
 3. Dashboard updates: "Answer filed. Confirmation #XXXXX. Trial date set within 20 days."
 
 ### Stage 3 — Trial Preparation *(post-hackathon v2)*
@@ -228,35 +228,48 @@ User reports outcome. Win, loss, or continuance each triggers a different agent 
 
 ### Layout
 
-Single-page app. After submission the page splits into two columns: a **left column** for the live browser and agent feed, and a **right column** for the dashboard. On the home/pre-submit state, only the intake form is shown full-width.
+Single-page app with a **tabbed view toggle** on the session page. After intake submission the user lands on `/session/[id]` with two full-width views selectable via a top toggle: **Live Browser** and **Your Case Dashboard**. On the home/pre-submit state, only the intake form is shown full-width.
 
 ```
-+---------------------------+  +----------------------------------+
-|  [ Live Browser iframe ]  |  |  Top panel: Case Facts           |
-|                           |  |  Upper panel: Status & Timeline  |
-|  session.liveUrl rendered |  |  Middle panel: Action Items      |
-|  as <iframe>, ~60% width  |  |  Lower panel: Context & Resources|
-|                           |  |                                  |
-|                           |  |  (panels populate progressively) |
-+---------------------------+  +----------------------------------+
-|  [ Activity Strip ]       |
-|  Plain-language agent     |
-|  feed, updated via        |
-|  TanStack Query polling   |
-+---------------------------+
++---------------------------------------------------------------+
+|  [ Status Bar: deadline countdown | active agent status ]     |
+|  [ Live Browser ]  [ Your Case Dashboard ]   <- view toggle   |
++---------------------------------------------------------------+
+
+── Live Browser view (default while agents are running) ─────────
+|                                                               |
+|  [ Browser iframe — full width ]                              |
+|  session.liveUrl rendered as <iframe>, near 100% width        |
+|                                                               |
++---------------------------------------------------------------+
+|  [ Activity Strip ]                                           |
+|  Plain-language agent feed, updated via TanStack Query        |
++---------------------------------------------------------------+
+
+── Your Case Dashboard view (default after agents finish) ──────
+|                                                               |
+|  Case Facts          |  Status & Timeline                     |
+|  Action Items        |  Context & Resources                   |
+|                                                               |
+|  (panels populate progressively, full-width layout)           |
++---------------------------------------------------------------+
 ```
 
-**Left column (~60% width):**
+**Persistent status bar** — visible on both views. Shows deadline countdown (e.g. "5 days to respond") and current agent status (e.g. "Deadline Tracker: running…"). Provides orientation regardless of which view is active.
 
-1. **Live Browser iframe** — `session.liveUrl` from the active Browser Use session rendered as a full `<iframe>`. Shows the agent navigating real government websites in real time. During Wave 1 the iframe displays the Forms Navigator (most visually compelling). During Stage 2 it switches to the E-Filing session. Implemented via `browser-panel.tsx`, same pattern as the reference repo.
+**View toggle** — prominent tab bar below the status bar. Defaults to "Live Browser" when any agent is running; auto-switches (with a visual nudge) to "Your Case Dashboard" when all Wave 1 agents complete. User can manually toggle at any time.
+
+**Live Browser view:**
+
+1. **Live Browser iframe** — `session.liveUrl` from the active Browser Use session rendered as a near-full-width `<iframe>`. Shows the agent navigating real government websites in real time. During Wave 1 the iframe displays the Forms Navigator (most visually compelling). During Stage 2 it switches to the E-Filing session. Implemented via `browser-panel.tsx`.
 
 2. **Activity Strip** — below the iframe. Live plain-language feed of what each agent is currently doing, updated via TanStack Query polling all active sessions.
    - Example: `Forms Navigator: Searching LA Superior Court self-help portal... Found UD-105 (rev. 2024)... Checking filing fee schedule...`
    - Each line prefixed with the agent name and a status indicator dot (running / done / error)
 
-**Right column (~40% width):**
+**Your Case Dashboard view:**
 
-3. **Dashboard** — four stacked panels that populate progressively as agents finish:
+3. **Dashboard** — panels populate progressively as agents finish. Full-width layout allows panels to use horizontal space (e.g. Case Facts grid can be 3–4 columns, defenses and legal aid can sit side-by-side):
 
 | Panel | Loads | Contents |
 |---|---|---|
@@ -265,7 +278,7 @@ Single-page app. After submission the page splits into two columns: a **left col
 | **Action Items** | Third | Numbered prioritized checklist, pre-filled forms attached for download, each item expandable with detail |
 | **Context & Resources** | Last | Applicable defenses with plain-language explanations and citations, legal aid clinics with distance/hours/eligibility |
 
-4. **HITL Gate card** — replaces the Action Items panel content when the system is waiting on the user. Single focused instruction, e.g. *"Create a free e-filing account at lacourt.org. It takes 5 minutes. Come back when you have your login."* Dismissed automatically when Stage 2 begins.
+4. **HITL Gate card** — replaces the Action Items panel content when the system is waiting on the user. Single focused instruction, e.g. *"Create a free e-filing account at courtfiling.net. It takes 5 minutes. Come back when you have your login."* Dismissed automatically when Stage 2 begins.
 
 ### Component Structure
 
@@ -274,15 +287,17 @@ src/
 ├── app/
 │   ├── layout.tsx                   # Root layout with providers
 │   ├── page.tsx                     # Home — intake form
-│   └── session/[id]/page.tsx        # Session view — dashboard + live browser
+│   └── session/[id]/page.tsx        # Session view — tabbed browser + dashboard
 ├── components/
-│   ├── browser-panel.tsx            # Live browser iframe (session.liveUrl), left column top
-│   ├── activity-strip.tsx           # Real-time agent action feed, left column bottom
+│   ├── session-view-toggle.tsx      # Tab bar: "Live Browser" | "Your Case Dashboard"
+│   ├── status-bar.tsx               # Persistent strip: deadline countdown + active agent status
+│   ├── browser-panel.tsx            # Live browser iframe (session.liveUrl), full-width
+│   ├── activity-strip.tsx           # Real-time agent action feed, below browser
 │   ├── dashboard/
-│   │   ├── case-facts-panel.tsx     # Stacked top-right: extracted intake facts
-│   │   ├── status-panel.tsx         # Stacked upper-right: countdown + case arc
-│   │   ├── action-items-panel.tsx   # Stacked mid-right: checklist + form downloads
-│   │   └── resources-panel.tsx      # Stacked bottom-right: defenses + legal aid
+│   │   ├── case-facts-panel.tsx     # Extracted intake facts
+│   │   ├── status-panel.tsx         # Countdown + case arc
+│   │   ├── action-items-panel.tsx   # Checklist + form downloads
+│   │   └── resources-panel.tsx      # Defenses + legal aid
 │   ├── intake-form.tsx              # Full-width pre-submit: text input + file upload
 │   └── hitl-gate.tsx                # Human-in-the-loop pause card (replaces action items)
 ├── context/
@@ -304,8 +319,8 @@ src/
 - [ ] Forms Navigator — live navigation and UD-105 + FW-001 download
 - [ ] PDF Filler — field mapping and pre-fill from structured case facts
 - [x] Deadline Tracker — deadline computation with dual source citation
-- [ ] Defense Research — minimum 2 defenses
-- [ ] Activity Strip with real-time agent feed
+- [x] Defense Research — minimum 2 defenses
+- [x] Activity Strip with real-time agent feed
 - [ ] Dashboard — all four panels populating end-to-end from agent outputs *(Case Facts panel from intake classification is implemented; Status, Action Items, and Resources still placeholders until Wave 1 agents populate context)*
 - [ ] HITL gate card with clear user instructions *(component exists; gate state not wired to dispatch / pause flow)*
 - [ ] Stage 2: E-Filing flow functional
@@ -316,7 +331,7 @@ What is implemented today: home intake form; `POST /api/intake/classify` (struct
 
 ### Stretch Goals
 - [x] Document Parser: direct extraction from uploaded files *(PDF/images/text via `POST /api/intake/parse-document`; Browser Use session path still TBD in `api.ts`)*
-- [ ] Legal Aid: live geocoded search
+- [x] Legal Aid: live geocoded search
 - [ ] Fee Waiver: eligibility check + FW-001 pre-fill
 - [ ] Mobile-responsive layout
 - [ ] Session persistence (user can close and return)
@@ -352,3 +367,5 @@ Keep changes lightweight. Edit the relevant section in place, then append a one-
 | April 4 | MVP checklist: marked intake + Case Intake complete; added repo progress snapshot and notes on partial UI. |
 | April 4 | Renamed numbered agents to role-based names (Case Intake, Document Parser, Forms Navigator, PDF Filler, Deadline Tracker, Defense Research, Legal Aid, Fee Waiver, E-Filing). |
 | April 4 | Document Parser: direct multimodal extraction API + Case Facts panel section for structured fields from uploads. |
+| April 4 | Layout: replaced 60/40 two-column split with tabbed view toggle (Live Browser / Your Case Dashboard). Added persistent status bar. Both views use full width. |
+| April 4 | E-Filing agent: filing navigation and HITL account-creation URL updated from lacourt.org to courtfiling.net. |
