@@ -1,55 +1,136 @@
-import type { StatusPanelModel } from "@/lib/types";
+import type { ReactNode } from "react";
+import type { TimelineDisplayModel, TimelinePanelInput } from "@/lib/timeline-display-model";
+import { buildTimelineDisplayModel } from "@/lib/timeline-display-model";
 
 interface StatusPanelProps {
-  model: StatusPanelModel | null;
+  model: TimelinePanelInput | null;
+}
+
+function BulletList({ items }: { items: string[] }) {
+  if (!items.length) return null;
+  return (
+    <ul className="mt-2 list-inside list-disc space-y-1.5 text-sm leading-relaxed text-zinc-300">
+      {items.map((item, i) => (
+        <li key={`${i}-${item.slice(0, 48)}`} className="marker:text-zinc-600">
+          {item}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function SectionCard({
+  label,
+  children,
+  variant = "default",
+}: {
+  label: string;
+  children: ReactNode;
+  variant?: "default" | "risk";
+}) {
+  const shell =
+    variant === "risk"
+      ? "border-amber-500/25 bg-amber-950/15"
+      : "border-zinc-800 bg-zinc-900/40";
+
+  return (
+    <div className={`rounded-lg border px-3 py-3 ${shell}`}>
+      <p className="text-[11px] font-medium uppercase tracking-wide text-zinc-500">{label}</p>
+      {children}
+    </div>
+  );
+}
+
+function renderSources(sources: NonNullable<TimelineDisplayModel["sources"]>) {
+  return (
+    <div className="mt-2 flex flex-wrap gap-1.5">
+      {sources.map((s) =>
+        s.href ? (
+          <a
+            key={`${s.label}-${s.href}`}
+            className="inline-flex max-w-full rounded-full border border-zinc-700 bg-zinc-900/80 px-2.5 py-1 text-xs text-blue-300 transition hover:border-zinc-600 hover:text-blue-200"
+            href={s.href}
+            target="_blank"
+            rel="noreferrer"
+          >
+            {s.label}
+          </a>
+        ) : (
+          <span
+            key={s.label}
+            className="inline-flex rounded-full border border-zinc-700/90 bg-zinc-900/80 px-2.5 py-1 text-xs text-zinc-300"
+          >
+            {s.label}
+          </span>
+        ),
+      )}
+    </div>
+  );
 }
 
 export function StatusPanel({ model }: StatusPanelProps) {
+  const display = buildTimelineDisplayModel(model);
+
   return (
     <section className="rounded-xl border border-zinc-800 bg-zinc-950 p-4">
-      <h2 className="text-sm font-medium text-zinc-200">Status &amp; Timeline</h2>
-      <p className="mt-1 text-xs text-zinc-500">
-        Live deadline tracking from the Browser Use session.
-      </p>
+      <header className="border-b border-zinc-800/80 pb-3">
+        <h2 className="text-sm font-medium text-zinc-100">Status &amp; Timeline</h2>
+        <p className="mt-1 text-xs text-zinc-500">
+          Live deadline tracking from the Browser Use session.
+        </p>
+      </header>
 
-      <div className="mt-3 space-y-2 text-sm text-zinc-300">
-        <p>Countdown: {model?.countdownLabel ?? "TBD"}</p>
-        <p>Current stage: {model?.caseStage ?? "stage-1-intake"}</p>
-        {model?.consequenceSummary && (
-          <p>Missing the deadline: {model.consequenceSummary}</p>
-        )}
-        {model?.projectedTrialWindow && (
-          <p>Projected trial window: {model.projectedTrialWindow}</p>
-        )}
-        {model?.explanation && <p>Notes: {model.explanation}</p>}
-        {model?.missingFacts.length ? (
-          <p>Still needed: {model.missingFacts.join(", ")}</p>
+      <div className="mt-4 space-y-4">
+        <div className="rounded-lg border border-zinc-700/60 bg-zinc-900/50 px-4 py-4">
+          <p className="text-[11px] font-medium uppercase tracking-wide text-zinc-500">
+            Response deadline
+          </p>
+          <p className="mt-2 text-xl font-semibold tracking-tight text-zinc-50">{display.headline}</p>
+          {display.subheadline ? (
+            <p className="mt-2 text-sm text-zinc-500">{display.subheadline}</p>
+          ) : null}
+        </div>
+
+        <SectionCard label="Current case stage">
+          <p className="mt-2 text-sm font-medium text-zinc-200">{display.stageLabel}</p>
+        </SectionCard>
+
+        {display.knownFacts.length > 0 ? (
+          <SectionCard label="What we know">
+            <BulletList items={display.knownFacts} />
+          </SectionCard>
         ) : null}
-        {model?.callToAction && <p>Next step: {model.callToAction}</p>}
+
+        {display.missingFacts.length > 0 ? (
+          <SectionCard label="What we still need">
+            <BulletList items={display.missingFacts} />
+          </SectionCard>
+        ) : null}
+
+        {display.riskText ? (
+          <SectionCard label="Risk if missed" variant="risk">
+            <p className="mt-2 text-sm leading-relaxed text-zinc-300">{display.riskText}</p>
+          </SectionCard>
+        ) : null}
+
+        {display.trialTimingText ? (
+          <SectionCard label="Projected trial timing">
+            <p className="mt-2 text-sm leading-relaxed text-zinc-300">{display.trialTimingText}</p>
+          </SectionCard>
+        ) : null}
+
+        {display.nextStepText ? (
+          <SectionCard label="Next step">
+            <p className="mt-2 text-sm leading-relaxed text-zinc-300">{display.nextStepText}</p>
+          </SectionCard>
+        ) : null}
+
+        {display.sources && display.sources.length > 0 ? (
+          <SectionCard label="Sources">{renderSources(display.sources)}</SectionCard>
+        ) : null}
       </div>
 
-      {model?.citations.length ? (
-        <div className="mt-4 space-y-2 border-t border-zinc-800 pt-3 text-sm text-zinc-300">
-          <p className="text-xs uppercase tracking-wide text-zinc-500">Sources</p>
-          {model.citations.map((citation) => (
-            <p key={`${citation.title}-${citation.url ?? "local"}`}>
-              {citation.url ? (
-                <a
-                  className="text-blue-300 underline underline-offset-2"
-                  href={citation.url}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  {citation.title}
-                </a>
-              ) : (
-                citation.title
-              )}
-            </p>
-          ))}
-        </div>
-      ) : null}
-      <div className="mt-4 text-xs text-zinc-500">
+      <div className="mt-4 text-xs text-zinc-600">
         {/* TODO: Expand this into the full case arc progress tracker from PROJECT.md. */}
       </div>
     </section>

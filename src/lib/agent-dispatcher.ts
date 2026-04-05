@@ -9,9 +9,13 @@ import {
   buildDeadlineTrackerTask,
   DEADLINE_RESULT_OUTPUT_SCHEMA,
 } from "@/lib/deadline-tracker";
+import {
+  buildFormsNavigatorTask,
+  FORMS_NAVIGATOR_OUTPUT_SCHEMA,
+} from "@/lib/forms-navigator";
 import { logServerError, logServerEvent } from "@/lib/server-log";
 
-export interface DispatchWave1Input {
+export interface DispatchCaseContextInput {
   appSessionId: string;
   caseContext: CanonicalCaseContext;
 }
@@ -21,14 +25,18 @@ export interface DispatchWave2Input {
   efilingUsername: string;
 }
 
-export interface DispatchWave1Result {
-  deadlineTrackerSession: DeadlineTrackerSession;
+/** Browser Use handle for either Deadline Tracker or Forms Navigator. */
+export interface BrowserAgentSessionHandle {
+  sessionId: string;
+  liveUrl: string | null;
+  status: DeadlineTrackerSession["status"];
+  activeAgentId: DeadlineTrackerSession["activeAgentId"] | "agent-3-forms-navigator";
 }
 
-export async function dispatchWave1Agents(
-  input: DispatchWave1Input,
-): Promise<DispatchWave1Result> {
-  logServerEvent("dispatch_wave1_start", {
+export async function dispatchDeadlineTracker(
+  input: DispatchCaseContextInput,
+): Promise<BrowserAgentSessionHandle> {
+  logServerEvent("dispatch_deadline_tracker_start", {
     appSessionId: input.appSessionId,
     agent: "agent-4-deadline-procedure",
   });
@@ -50,29 +58,89 @@ export async function dispatchWave1Agents(
 Internal tracking id: ${input.appSessionId}`,
     });
 
-    const result = {
-      deadlineTrackerSession: {
-        sessionId: session.id,
-        liveUrl: session.liveUrl ?? null,
-        status: session.status,
-        activeAgentId: "agent-4-deadline-procedure" as const,
-      },
+    const result: BrowserAgentSessionHandle = {
+      sessionId: session.id,
+      liveUrl: session.liveUrl ?? null,
+      status: session.status,
+      activeAgentId: "agent-4-deadline-procedure",
     };
 
-    logServerEvent("dispatch_wave1_deadline_tracker_ok", {
+    logServerEvent("dispatch_deadline_tracker_ok", {
       appSessionId: input.appSessionId,
-      browserSessionId: result.deadlineTrackerSession.sessionId,
-      status: result.deadlineTrackerSession.status,
-      hasLiveUrl: Boolean(result.deadlineTrackerSession.liveUrl),
+      browserSessionId: result.sessionId,
+      status: result.status,
+      hasLiveUrl: Boolean(result.liveUrl),
     });
 
     return result;
   } catch (err) {
-    logServerError("dispatch_wave1_deadline_tracker_failed", err, {
+    logServerError("dispatch_deadline_tracker_failed", err, {
       appSessionId: input.appSessionId,
     });
     throw err;
   }
+}
+
+export async function dispatchFormsNavigator(
+  input: DispatchCaseContextInput,
+): Promise<BrowserAgentSessionHandle> {
+  logServerEvent("dispatch_forms_navigator_start", {
+    appSessionId: input.appSessionId,
+    agent: "agent-3-forms-navigator",
+  });
+
+  try {
+    const session = await createBrowserSession({
+      keepAlive: true,
+      outputSchema: FORMS_NAVIGATOR_OUTPUT_SCHEMA,
+    });
+
+    await sendAgentTask({
+      sessionId: session.id,
+      agentId: "agent-3-forms-navigator",
+      outputSchema: FORMS_NAVIGATOR_OUTPUT_SCHEMA,
+      task: buildFormsNavigatorTask({
+        caseContext: input.caseContext,
+        appSessionId: input.appSessionId,
+      }),
+    });
+
+    const result: BrowserAgentSessionHandle = {
+      sessionId: session.id,
+      liveUrl: session.liveUrl ?? null,
+      status: session.status,
+      activeAgentId: "agent-3-forms-navigator",
+    };
+
+    logServerEvent("dispatch_forms_navigator_ok", {
+      appSessionId: input.appSessionId,
+      browserSessionId: result.sessionId,
+      status: result.status,
+      hasLiveUrl: Boolean(result.liveUrl),
+    });
+
+    return result;
+  } catch (err) {
+    logServerError("dispatch_forms_navigator_failed", err, {
+      appSessionId: input.appSessionId,
+    });
+    throw err;
+  }
+}
+
+/** @deprecated Use dispatchDeadlineTracker — intake no longer auto-starts agents. */
+export async function dispatchWave1Agents(
+  input: DispatchCaseContextInput,
+): Promise<{ deadlineTrackerSession: DeadlineTrackerSession }> {
+  const handle = await dispatchDeadlineTracker(input);
+  return {
+    deadlineTrackerSession: {
+      sessionId: handle.sessionId,
+      liveUrl: handle.liveUrl,
+      status: handle.status,
+      activeAgentId: "agent-4-deadline-procedure",
+    },
+  };
 }
 
 export async function dispatchWave2Agent(_input: DispatchWave2Input): Promise<void> {

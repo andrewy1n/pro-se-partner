@@ -1,6 +1,5 @@
 import { randomUUID } from "crypto";
 import { NextResponse } from "next/server";
-import { dispatchWave1Agents } from "@/lib/agent-dispatcher";
 import { orchestrateUnifiedIntake } from "@/lib/intake-orchestrator";
 import { logServerError, logServerEvent } from "@/lib/server-log";
 import type { IntakeSubmitResponse } from "@/lib/types";
@@ -29,16 +28,6 @@ export async function POST(request: Request) {
       { status: 503 },
     );
   }
-  if (!process.env.BROWSER_USE_API_KEY?.trim()) {
-    return NextResponse.json(
-      {
-        error:
-          "Server is not configured for Browser Use. Set BROWSER_USE_API_KEY (see .env.local).",
-      },
-      { status: 503 },
-    );
-  }
-
   let formData: FormData;
   try {
     formData = await request.formData();
@@ -98,11 +87,6 @@ export async function POST(request: Request) {
       caseSummary,
       uploadedFile: fileInput,
     });
-    const wave1 = await dispatchWave1Agents({
-      appSessionId: sessionId,
-      caseContext,
-    });
-
     logServerEvent("intake_submit", {
       sessionId,
       caseSummaryLength: caseSummary.length,
@@ -110,14 +94,12 @@ export async function POST(request: Request) {
       caseFacts: caseContext.caseFacts,
       missingFacts: caseContext.missingFacts,
       needsHumanReview: caseContext.needsHumanReview,
-      browserSessionId: wave1.deadlineTrackerSession.sessionId,
-      browserSessionStatus: wave1.deadlineTrackerSession.status,
     });
 
     const response: IntakeSubmitResponse = {
       sessionId,
       caseContext,
-      deadlineTrackerSession: wave1.deadlineTrackerSession,
+      deadlineTrackerSession: null,
     };
 
     return NextResponse.json(response);

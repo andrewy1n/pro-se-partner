@@ -2,20 +2,25 @@
 
 import type { AgentId } from "@/lib/types";
 
+const AGENT_LABELS: Partial<Record<AgentId, string>> = {
+  "agent-3-forms-navigator": "Forms Navigator",
+  "agent-4-deadline-procedure": "Deadline Tracker",
+};
+
 interface BrowserPanelProps {
   liveUrl: string | null | undefined;
   activeAgentId: AgentId | null;
 }
 
 export function BrowserPanel({ liveUrl, activeAgentId }: BrowserPanelProps) {
+  const label = activeAgentId ? AGENT_LABELS[activeAgentId] ?? activeAgentId : null;
+
   return (
     <section className="flex h-full flex-col rounded-xl border border-zinc-800 bg-zinc-950">
       <div className="border-b border-zinc-800 px-4 py-3">
         <p className="text-sm font-medium text-zinc-200">Live Browser</p>
         <p className="text-xs text-zinc-500">
-          {/* TODO: Use Wave 1 Forms Agent as default live session. */}
-          {/* TODO: Switch to Agent 9 E-Filing session during Stage 2. */}
-          Active agent: {activeAgentId ?? "none"}
+          Active agent: {label ?? "none"}
         </p>
       </div>
 

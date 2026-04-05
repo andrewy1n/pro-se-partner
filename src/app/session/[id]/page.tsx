@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useParams } from "next/navigation";
 import { BrowserPanel } from "@/components/browser-panel";
 import { ActivityStrip } from "@/components/activity-strip";
+import { SessionAgentToolbar } from "@/components/session-agent-toolbar";
 import { CaseFactsPanel } from "@/components/dashboard/case-facts-panel";
 import { StatusPanel } from "@/components/dashboard/status-panel";
 import { ActionItemsPanel } from "@/components/dashboard/action-items-panel";
@@ -19,6 +20,7 @@ export default function SessionPage() {
     activeSession,
     activityFeed,
     deadlineResult: polledDeadlineResult,
+    trackedSession,
     setTrackedSession,
   } = useSession();
   const {
@@ -32,6 +34,7 @@ export default function SessionPage() {
     defenses,
     legalAid,
     deadlineResult,
+    pdfFillState,
   } = useCaseContext();
 
   useEffect(() => {
@@ -42,10 +45,15 @@ export default function SessionPage() {
     const payload = parseIntakeSessionPayload(raw);
     if (!payload) return;
     setCaseContext(payload.caseContext);
-    setTrackedSession({
-      appSessionId: id,
-      browserSessionId: payload.deadlineTrackerSession?.sessionId ?? null,
-    });
+    setTrackedSession(
+      payload.deadlineTrackerSession?.sessionId
+        ? {
+            appSessionId: id,
+            browserSessionId: payload.deadlineTrackerSession.sessionId,
+            activeAgentId: "agent-4-deadline-procedure",
+          }
+        : null,
+    );
 
     return () => {
       setTrackedSession(null);
@@ -53,6 +61,10 @@ export default function SessionPage() {
   }, [params.id, setCaseContext, setTrackedSession]);
 
   useEffect(() => {
+    if (trackedSession?.activeAgentId !== "agent-4-deadline-procedure") {
+      return;
+    }
+
     setDeadlineResult(polledDeadlineResult);
 
     if (polledDeadlineResult?.status === "needs_input") {
@@ -73,7 +85,7 @@ export default function SessionPage() {
       isBlockedOnUser: false,
       instruction: null,
     });
-  }, [polledDeadlineResult, setDeadlineResult, setHitlGate]);
+  }, [polledDeadlineResult, setDeadlineResult, setHitlGate, trackedSession?.activeAgentId]);
 
   return (
     <main className="grid min-h-screen grid-cols-1 gap-4 p-4 lg:grid-cols-5">
@@ -88,11 +100,13 @@ export default function SessionPage() {
       <section className="space-y-4 lg:col-span-2">
         <CaseFactsPanel caseContext={caseContext} />
 
+        {params.id ? <SessionAgentToolbar appSessionId={params.id} /> : null}
+
         <StatusPanel
           model={{
-            countdownLabel: deadlineResult?.responseDeadline ?? "TBD",
-            caseStage: activeSession?.stage ?? "stage-1-intake",
-            callToAction: hitlGate.instruction,
+            responseDeadline: deadlineResult?.responseDeadline ?? null,
+            sessionCaseStage: activeSession?.stage ?? "stage-1-intake",
+            proceedingStage: caseContext?.caseFacts.proceedingStage ?? null,
             consequenceSummary: deadlineResult?.consequenceSummary ?? null,
             projectedTrialWindow: deadlineResult?.projectedTrialWindow ?? null,
             citations: deadlineResult?.citations ?? [],
@@ -101,6 +115,7 @@ export default function SessionPage() {
                 ? deadlineResult.missingFacts
                 : caseContext?.missingFacts ?? [],
             explanation: deadlineResult?.explanation ?? null,
+            nextStep: hitlGate.instruction,
           }}
         />
 
@@ -112,6 +127,9 @@ export default function SessionPage() {
               checklist: actionItems,
               formArtifacts,
             }}
+            pdfFillStatus={pdfFillState.status}
+            pdfFillErrorCode={pdfFillState.errorCode}
+            pdfFillErrorMessage={pdfFillState.errorMessage}
           />
         )}
 

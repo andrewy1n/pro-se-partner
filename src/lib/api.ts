@@ -133,8 +133,9 @@ export async function listSessionMessages(sessionId: string): Promise<MessageRes
   assertBrowserUseConfigured();
 
   try {
+    // Browser Use API validates limit <= 100 (HTTP 422 if higher).
     const { messages } = await client.sessions.messages(sessionId, {
-      limit: 200,
+      limit: 100,
     });
     if (isVerboseSessionPoll()) {
       logServerEvent("browser_use_list_messages_ok", {

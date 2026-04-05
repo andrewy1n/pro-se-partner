@@ -155,12 +155,54 @@ export interface ParsedDocumentFields {
   normalizedExtraction: DocumentNormalizedExtraction;
 }
 
+/** Structured output from Agent 3 Forms Navigator (browser download + metadata). */
+export interface DownloadedFormMetadata {
+  formTitleVerified: string;
+  revisionLabel: string | null;
+  fileName: string;
+  pdfBase64: string;
+}
+
+export interface FormsNavigatorResult {
+  ud105: DownloadedFormMetadata | null;
+  fw001?: DownloadedFormMetadata | null;
+  notes: string[];
+}
+
+export type PdfFillErrorCode =
+  | "encrypted_pdf"
+  | "invalid_pdf_structure"
+  | "corrupt_pdf_structure"
+  | "xfa_or_unsupported_form"
+  | "pdftk_not_installed"
+  | "unknown_fill_error";
+
+/** Result from Agent 3b PDF Filler (server-side pdf-lib). */
+export interface PdfFillResult {
+  formCode: "UD-105";
+  fileName: string;
+  /** Base64-encoded filled PDF */
+  pdfBase64: string;
+  /** Sanitized copy of the original (pre-fill) PDF so the client can offer a viewable original. */
+  originalSanitizedBase64?: string;
+  missingFields: string[];
+  warnings: string[];
+}
+
+export type PdfFillStatus =
+  | "idle"
+  | "preparing"
+  | "filling"
+  | "done"
+  | "failed";
+
 export interface FormArtifact {
-  // Produced by Agent 3 and Agent 3b.
   formCode: "UD-105" | "FW-001";
   fileName: string;
   downloadUrl: string;
   revisionLabel?: string;
+  /** "original" = raw download, "filled" = after pdf-lib fill */
+  variant: "original" | "filled";
 }
 
 export interface DeadlineResult {
@@ -216,17 +258,6 @@ export interface ActivityFeedItem {
   createdAt: string;
 }
 
-export interface StatusPanelModel {
-  countdownLabel: string;
-  caseStage: CaseStage;
-  callToAction: string | null;
-  consequenceSummary: string | null;
-  projectedTrialWindow: string | null;
-  citations: Citation[];
-  missingFacts: string[];
-  explanation: string | null;
-}
-
 export interface ActionChecklistItem {
   id: string;
   title: string;
@@ -268,5 +299,6 @@ export interface DeadlineTrackerSession {
 export interface SessionPollResponse {
   activeSession: SessionSnapshot | null;
   deadlineResult: DeadlineResult | null;
+  formsNavigatorResult: FormsNavigatorResult | null;
   messages: MessageResponse[];
 }
