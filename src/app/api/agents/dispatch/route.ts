@@ -73,10 +73,12 @@ export async function POST(request: Request) {
     );
   }
 
+  const ctx = caseContext as CanonicalCaseContext;
+
   try {
     const wave1 = await dispatchWave1Agents({
       appSessionId: sessionId,
-      caseContext: caseContext as CanonicalCaseContext,
+      caseContext: ctx,
       agents,
     });
 

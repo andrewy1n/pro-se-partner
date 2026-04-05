@@ -52,6 +52,7 @@ export function CaseProvider({ children }: { children: ReactNode }) {
     isBlockedOnUser: false,
     instruction: null,
     missingFacts: [],
+    complaintReferenceDateIso: null,
   });
   const [pdfFillState, setPdfFillState] = useState<PdfFillState>({
     status: "idle",

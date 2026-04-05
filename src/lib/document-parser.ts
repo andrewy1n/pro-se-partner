@@ -18,6 +18,7 @@ export const llmRawSchema = z.object({
   noticeTypeFromDocument: z.string().nullable(),
   noticeServiceDate: z.string().nullable(),
   noticeExpirationDate: z.string().nullable(),
+  complaintVerifiedDate: z.string().nullable(),
   serviceMethod: z.string().nullable(),
   propertyAddress: z.string().nullable(),
   tenancyAllegations: allegationList,
@@ -79,6 +80,7 @@ Do **not** summarize the complaint into a few short phrases. Do **not** reduce e
 - Use the same category ideas when analogous; otherwise use best-effort grouping and leave unused lists empty.
 
 ## Other fields
+- complaintVerifiedDate: For UD-100, the **date next to the plaintiff's verification** under penalty of perjury (verification block, not item 10(a) notice service). ISO YYYY-MM-DD or null if not visible. Used to confirm the tenant's **Summons** service date is not before the case was filed/verified.
 - documentHeaderOrTitleLine: the main title or caption at the top (e.g. form title), verbatim enough to detect form type.
 - Dates as ISO 8601 (YYYY-MM-DD) or null.
 - claimedAmount: number in dollars or null (may overlap with relief—still extract top-line amount if clearly stated).
@@ -109,6 +111,7 @@ export function createEmptyRawDocumentFields(): LlmRawDocumentFields {
     noticeTypeFromDocument: null,
     noticeServiceDate: null,
     noticeExpirationDate: null,
+    complaintVerifiedDate: null,
     serviceMethod: null,
     propertyAddress: null,
     tenancyAllegations: [],

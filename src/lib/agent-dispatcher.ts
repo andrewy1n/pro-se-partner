@@ -296,6 +296,29 @@ export async function dispatchWave2Agent(
   };
 }
 
+/** Single-agent helpers for `/api/sessions/[id]/run-*` routes. */
+export async function dispatchFormsNavigator(input: {
+  appSessionId: string;
+  caseContext: CanonicalCaseContext;
+}): Promise<DispatchWave1Result> {
+  return dispatchWave1Agents({
+    appSessionId: input.appSessionId,
+    caseContext: input.caseContext,
+    agents: ["forms"],
+  });
+}
+
+export async function dispatchDeadlineTracker(input: {
+  appSessionId: string;
+  caseContext: CanonicalCaseContext;
+}): Promise<DispatchWave1Result> {
+  return dispatchWave1Agents({
+    appSessionId: input.appSessionId,
+    caseContext: input.caseContext,
+    agents: ["deadline"],
+  });
+}
+
 export function deriveHitlGateState(): HitlGateState {
   // TODO: Replace action items content while waiting for required user action.
   return {

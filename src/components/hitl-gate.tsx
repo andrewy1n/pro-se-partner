@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { CaseFacts } from "@/lib/types";
+import { validateSummonsServiceDateVsComplaint } from "@/lib/hitl-summons-service";
 
 // Maps fact keys (snake_case or camelCase from agent) to form config
 const FIELD_CONFIG: Record<
@@ -11,10 +12,21 @@ const FIELD_CONFIG: Record<
     type: "text" | "date" | "select" | "number";
     caseFact: keyof CaseFacts;
     options?: { value: string; label: string }[];
+    hint?: string;
   }
 > = {
-  service_date: { label: "Date you were served", type: "date", caseFact: "serviceDate" },
-  serviceDate: { label: "Date you were served", type: "date", caseFact: "serviceDate" },
+  service_date: {
+    label: "Date Summons and Complaint were delivered to you",
+    type: "date",
+    caseFact: "serviceDate",
+    hint: "The date you were physically handed the court papers after the case was filed—not the date on the 3-day or pay-or-quit notice (often UD-100 item 10(a)).",
+  },
+  serviceDate: {
+    label: "Date Summons and Complaint were delivered to you",
+    type: "date",
+    caseFact: "serviceDate",
+    hint: "The date you were physically handed the court papers after the case was filed—not the date on the 3-day or pay-or-quit notice (often UD-100 item 10(a)).",
+  },
   service_method: {
     label: "How were you served?",
     type: "select",
@@ -49,6 +61,8 @@ const FIELD_CONFIG: Record<
 interface HitlGateProps {
   instruction: string;
   missingFacts: string[];
+  /** UD-100 plaintiff verification date (ISO); Summons service date must be on or after this. */
+  complaintReferenceDateIso?: string | null;
   onSubmit: (updates: Partial<CaseFacts>) => void | Promise<void>;
   /** Omit outer card chrome when embedded in a dialog. */
   embedInModal?: boolean;
@@ -57,12 +71,14 @@ interface HitlGateProps {
 export function HitlGate({
   instruction,
   missingFacts,
+  complaintReferenceDateIso = null,
   onSubmit,
   embedInModal = false,
 }: HitlGateProps) {
   const [values, setValues] = useState<Record<string, string>>({});
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   const shellClass = embedInModal
     ? "rounded-lg border-0 bg-transparent p-0"
@@ -79,6 +95,7 @@ export function HitlGate({
   });
 
   function handleChange(fact: string, value: string) {
+    setValidationError(null);
     setValues((prev) => ({ ...prev, [fact]: value }));
   }
 
@@ -96,6 +113,23 @@ export function HitlGate({
           (updates as Record<string, unknown>)[key] = parseFloat(raw);
         } else {
           (updates as Record<string, unknown>)[key] = raw;
+        }
+      }
+    }
+
+    if (complaintReferenceDateIso?.trim()) {
+      const serviceIso =
+        typeof updates.serviceDate === "string"
+          ? updates.serviceDate
+          : values.service_date?.trim() || values.serviceDate?.trim() || "";
+      if (serviceIso) {
+        const check = validateSummonsServiceDateVsComplaint(
+          serviceIso,
+          complaintReferenceDateIso.trim().slice(0, 10),
+        );
+        if (!check.ok) {
+          setValidationError(check.message);
+          return;
         }
       }
     }
@@ -129,6 +163,11 @@ export function HitlGate({
 
       {uniqueFacts.length > 0 && (
         <form onSubmit={handleSubmit} className="mt-4 space-y-3">
+          {validationError ? (
+            <p className="rounded-md border border-red-500/50 bg-red-950/40 px-3 py-2 text-sm text-red-100">
+              {validationError}
+            </p>
+          ) : null}
           {uniqueFacts.map((fact) => {
             const config = FIELD_CONFIG[fact];
             const label = config
@@ -141,6 +180,9 @@ export function HitlGate({
                 <label htmlFor={inputId} className="text-xs font-medium text-amber-200">
                   {label}
                 </label>
+                {config?.hint ? (
+                  <p className="text-[11px] leading-snug text-amber-200/70">{config.hint}</p>
+                ) : null}
 
                 {config?.type === "select" ? (
                   <select

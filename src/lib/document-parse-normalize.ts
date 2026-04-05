@@ -323,6 +323,7 @@ export function normalizeAndValidateDocument(
 
   const noticeServiceDate = emptyToNull(raw.noticeServiceDate);
   const noticeExpirationDate = emptyToNull(raw.noticeExpirationDate);
+  const complaintVerifiedDate = emptyToNull(raw.complaintVerifiedDate);
   const serviceDate = noticeServiceDate;
 
   const trimLines = (arr: string[] | undefined) =>
@@ -355,6 +356,7 @@ export function normalizeAndValidateDocument(
     serviceDate,
     noticeServiceDate,
     noticeExpirationDate,
+    complaintVerifiedDate,
     noticeType: emptyToNull(raw.noticeTypeFromDocument),
     serviceMethod: emptyToNull(raw.serviceMethod),
     propertyAddress: emptyToNull(raw.propertyAddress),
