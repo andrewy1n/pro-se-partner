@@ -82,10 +82,10 @@ function DefenseCard({ defense }: { defense: DefenseItem }) {
       <button
         type="button"
         onClick={() => setExpanded((o) => !o)}
-        className="flex w-full items-start justify-between gap-2 text-left"
+        className="flex w-full flex-col gap-2 text-left sm:flex-row sm:items-start sm:justify-between"
       >
-        <h4 className="text-sm font-medium text-zinc-100 leading-snug">{defense.title}</h4>
-        <div className="flex shrink-0 items-center gap-1.5">
+        <h4 className="text-sm font-medium leading-snug text-zinc-100">{defense.title}</h4>
+        <div className="flex shrink-0 flex-wrap items-center gap-1.5">
           <span
             className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
               isStrong
@@ -141,12 +141,12 @@ function LegalAidRow({ org }: { org: LegalAidItem }) {
       <button
         type="button"
         onClick={() => setExpanded((o) => !o)}
-        className="flex w-full items-start justify-between gap-2 text-left"
+        className="flex w-full flex-col gap-2 text-left sm:flex-row sm:items-start sm:justify-between"
       >
-        <span className="text-sm font-medium text-zinc-100 leading-snug">
+        <span className="text-sm font-medium leading-snug text-zinc-100">
           {org.organizationName}
         </span>
-        <div className="flex shrink-0 items-center gap-1">
+        <div className="flex shrink-0 flex-wrap items-center gap-1">
           {org.distanceMiles != null && (
             <span className="rounded-full bg-zinc-800 px-2 py-0.5 text-xs text-zinc-400">
               {org.distanceMiles.toFixed(1)} mi

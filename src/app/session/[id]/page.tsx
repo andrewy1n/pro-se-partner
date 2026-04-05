@@ -210,45 +210,49 @@ export default function SessionPage() {
           <ActivityStrip items={activityFeed} />
         </section>
       ) : (
-        <section className="space-y-4">
-          <CaseFactsPanel
-            caseContext={caseContext}
-            dispatched={dispatched}
-            onRunAnalysis={dispatched ? undefined : handleRunAnalysis}
-          />
-
-          <StatusPanel
-            model={{
-              countdownLabel: deadlineResult?.responseDeadline ?? "TBD",
-              caseStage: activeSession?.stage ?? "stage-1-intake",
-              callToAction: hitlGate.instruction,
-              consequenceSummary: deadlineResult?.consequenceSummary ?? null,
-              projectedTrialWindow: deadlineResult?.projectedTrialWindow ?? null,
-              citations: deadlineResult?.citations ?? [],
-              missingFacts:
-                deadlineResult?.missingFacts.length
-                  ? deadlineResult.missingFacts
-                  : caseContext?.missingFacts ?? [],
-              explanation: deadlineResult?.explanation ?? null,
-            }}
-          />
-
-          {hitlGate.isBlockedOnUser ? (
-            <HitlGate instruction={hitlGate.instruction ?? "Complete the required task to continue."} />
-          ) : (
-            <ActionItemsPanel
+        <section className="grid gap-4 xl:grid-cols-[minmax(0,1.4fr)_minmax(320px,1fr)]">
+          <div className="space-y-4">
+            <StatusPanel
               model={{
-                checklist: actionItems,
-                formArtifacts,
+                countdownLabel: deadlineResult?.responseDeadline ?? "TBD",
+                caseStage: activeSession?.stage ?? "stage-1-intake",
+                callToAction: hitlGate.instruction,
+                consequenceSummary: deadlineResult?.consequenceSummary ?? null,
+                projectedTrialWindow: deadlineResult?.projectedTrialWindow ?? null,
+                citations: deadlineResult?.citations ?? [],
+                missingFacts:
+                  deadlineResult?.missingFacts.length
+                    ? deadlineResult.missingFacts
+                    : caseContext?.missingFacts ?? [],
+                explanation: deadlineResult?.explanation ?? null,
               }}
             />
-          )}
 
-          <ResourcesPanel
-            model={{ defenses, legalAid }}
-            isDefensesLoading={isPolling && defenses.length === 0}
-            isLegalAidLoading={isPolling && legalAid.length === 0}
-          />
+            {hitlGate.isBlockedOnUser ? (
+              <HitlGate instruction={hitlGate.instruction ?? "Complete the required task to continue."} />
+            ) : (
+              <ActionItemsPanel
+                model={{
+                  checklist: actionItems,
+                  formArtifacts,
+                }}
+              />
+            )}
+          </div>
+
+          <div className="space-y-4">
+            <CaseFactsPanel
+              caseContext={caseContext}
+              dispatched={dispatched}
+              onRunAnalysis={dispatched ? undefined : handleRunAnalysis}
+            />
+
+            <ResourcesPanel
+              model={{ defenses, legalAid }}
+              isDefensesLoading={isPolling && defenses.length === 0}
+              isLegalAidLoading={isPolling && legalAid.length === 0}
+            />
+          </div>
         </section>
       )}
 

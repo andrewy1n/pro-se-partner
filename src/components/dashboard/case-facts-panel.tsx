@@ -147,7 +147,7 @@ export function CaseFactsPanel({ caseContext, dispatched, onRunAnalysis }: CaseF
         </div>
       ) : null}
 
-      <div className="grid grid-cols-2 gap-x-3 gap-y-2.5 text-sm">
+      <div className="grid grid-cols-1 gap-x-3 gap-y-2.5 text-sm sm:grid-cols-2">
         <div>
           <div className="mb-0.5 flex items-center gap-1.5 text-zinc-500">
             <Home className="h-3.5 w-3.5" />
@@ -284,7 +284,7 @@ export function CaseFactsPanel({ caseContext, dispatched, onRunAnalysis }: CaseF
           )}
           {parsed && n && !caseContext?.documentParseError && parsedDocumentHasContent(parsed) && (
             <div className="mt-3 space-y-3 text-sm">
-              <div className="grid grid-cols-2 gap-x-3 gap-y-2.5">
+              <div className="grid grid-cols-1 gap-x-3 gap-y-2.5 sm:grid-cols-2">
                 <ParsedDocField
                   icon={<Gavel className="h-3.5 w-3.5" />}
                   label="Document type"
